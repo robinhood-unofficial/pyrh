@@ -68,20 +68,23 @@ class Robinhood:
         return res['results']
 
     def quote_data(self, stock):
-        res = self.session.get(self.endpoints['quotes']+stock.upper())
-        return res.json()
+        params = { 'symbols': stock }
+        res = self.session.get(self.endpoints['quotes'], params=params)
+        res = res.json()
+        return res['results']
 
-    def place_order(self, instrument, quantity=1, transaction=None):
-        bid_price = self.quote_data(instrument['symbol'])['bid_price']
+    def place_order(self, instrument, quantity=1, bid_price = None, transaction=None):
+        if bid_price == None:
+            bid_price = self.quote_data(instrument['symbol'])[0]['bid_price']
         data = 'account=%s&instrument=%s&price=%f&quantity=%d&side=buy&symbol=%s&time_in_force=gfd&trigger=immediate&type=market' % (urllib.quote('https://api.robinhood.com/accounts/5PY93481/'), urllib.unquote(instrument['url']), float(bid_price), quantity, instrument['symbol']) 
         res = self.session.post(self.endpoints['orders'], data=data)
         return res
 
-    def place_buy_order(self, instrument, quantity):
+    def place_buy_order(self, instrument, quantity, bid_price=None):
         transaction = "buy"
-        place_order(instrument, quantity, transaction)
+        return self.place_order(instrument, quantity, bid_price, transaction)
 
-    def place_sell_order(self, instrument, quantity):
+    def place_sell_order(self, instrument, quantity, bid_price=None):
         transaction = "sell"
-        place_order(instrument, quantity, transaction)
+        return self.place_order(instrument, quantity, bid_price, transaction)
 
