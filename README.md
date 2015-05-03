@@ -1,6 +1,12 @@
 # Robinhood
 Python Framework to make trades with Robinhood Private API
 
+Current Features Include:
+- Placing buy orders (Robinhood.place_buy_order)
+- Placing sell order (Robinhood.place_sell_order)
+- Quote Information (Robinhood.quote_data)
+- More coming soon
+
 How To Use (see example.py):
 
     from Robinhood import Robinhood
