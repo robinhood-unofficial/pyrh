@@ -72,7 +72,22 @@ class Robinhood:
         if stock is None:
             stock = raw_input("Symbol: ");
         url = str(self.endpoints['quotes']) + str(stock) + "/"
-        return json.loads((urllib.urlopen(url)).read());
+
+        try:
+            res = json.loads((urllib.urlopen(url)).read());
+            
+            if len(res) > 0:
+                print("IN HERE");
+                return res;
+            else:
+                raise NameError("Invalid Symbol: " + stock);
+
+        except (ValueError):
+            raise NameError("Invalid Symbol: " + stock);
+
+    def get_quote(self, stock=None):
+        data = self.quote_data(stock)
+        return data["symbol"]
 
     def print_quote(self, stock=None):
         data = self.quote_data(stock)
