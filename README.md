@@ -8,11 +8,11 @@ Current Features Include:
 - Quote Information (Robinhood.quote_data)
 - More coming soon
 
-How To Install:
+###How To Install:
 
     >pip install -r requirements.txt
 
-How to Use (see example.py):
+###How to Use (see example.py):
 
     from Robinhood import Robinhood
     my_trader = Robinhood(username="USERNAME HERE", password="PASSWORD HERE")
@@ -21,9 +21,10 @@ How to Use (see example.py):
     buy_order = my_trader.place_buy_order(stock_instrument, 1)
     sell_order = my_trader.place_sell_order(stock_instrument, 1)
 
-One way to store your login information (see example.py)
+####One way to store your login credentials  (see [example.py](https://github.com/rohanpai/Robinhood/blob/master/example.py))
 [Python's Keyring Library](https://pypi.python.org/pypi/keyring#using-keyring)
 Usage:
+
     import keyring;
 
     #Create temporary credntial.py with this information, run it, and then securely delete it
