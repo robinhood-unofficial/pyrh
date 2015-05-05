@@ -1,6 +1,4 @@
-import requests
-import urllib
-import json
+import requests, urllib, json
 
 class Robinhood:
 
@@ -109,6 +107,39 @@ class Robinhood:
     def print_quotes(self, stocks):
         for i in range(len(stocks)):
             self.print_quote(stocks[i]);
+
+    def ask_price(self, stock=None):
+        return self.quote_data(stock)['ask_price'];
+
+    def ask_size(self, stock=None):
+        return self.quote_data(stock)['ask_size'];
+
+    def bid_price(self, stock=None):
+        return self.quote_data(stock)['bid_price'];
+
+    def bid_size(self, stock=None):
+        return self.quote_data(stock)['bid_size'];
+
+    def last_trade_price(self, stock=None):
+        return self.quote_data(stock)['last_trade_price'];
+
+    def last_trade_price(self, stock=None):
+        return self.quote_data(stock)['last_trade_price'];
+
+    def previous_close(self, stock=None):
+        return self.quote_data(stock)['previous_close'];
+
+    def previous_close_date(self, stock=None):
+        return self.quote_data(stock)['previous_close_date'];
+
+    def adjusted_previous_close(self, stock=None):
+        return self.quote_data(stock)['adjusted_previous_close'];
+
+    def symbol(self, stock=None):
+        return self.quote_data(stock)['symbol'];
+
+    def last_updated_at(self, stock=None):
+        return self.quote_data(stock)['updated_at'];
 
 
     ##############################
