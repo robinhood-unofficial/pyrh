@@ -79,10 +79,13 @@ class Robinhood:
         return res['results']
 
     def quote_data(self, stock=None):
+
+        #Prompt for stock if not entered
         if stock is None:
             stock = raw_input("Symbol: ");
         url = str(self.endpoints['quotes']) + str(stock) + "/"
 
+        #Check for validity of symbol
         try:
             res = json.loads((urllib.urlopen(url)).read());
             
@@ -103,6 +106,10 @@ class Robinhood:
         data = self.quote_data(stock)
         print(data["symbol"] + ": $" + data["last_trade_price"]);
 
+    def print_quotes(self, stocks):
+        for i in range(len(stocks)):
+            self.print_quote(stocks[i]);
+
 
     ##############################
     #PLACE ORDER
@@ -122,4 +129,3 @@ class Robinhood:
     def place_sell_order(self, instrument, quantity, bid_price=None):
         transaction = "sell"
         return self.place_order(instrument, quantity, bid_price, transaction)
-
