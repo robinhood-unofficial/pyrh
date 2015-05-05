@@ -36,6 +36,11 @@ class Robinhood:
 
     auth_token = None
 
+
+    ##############################
+    #Logging in and initializing
+    ##############################
+
     def __init__(self, username, password):
         self.session = requests.session()
         self.session.proxies = urllib.getproxies()
@@ -59,6 +64,11 @@ class Robinhood:
         res = res.json()
         self.auth_token = res['token']
         self.headers['Authorization'] = 'Token '+self.auth_token
+
+
+    ##############################
+    #GET DATA 
+    ##############################
 
     def investment_profile(self):
         self.session.get(self.endpoints['investment_profile'])
@@ -92,6 +102,11 @@ class Robinhood:
     def print_quote(self, stock=None):
         data = self.quote_data(stock)
         print(data["symbol"] + ": $" + data["last_trade_price"]);
+
+
+    ##############################
+    #PLACE ORDER
+    ##############################
 
     def place_order(self, instrument, quantity=1, bid_price = None, transaction=None):
         if bid_price == None:
