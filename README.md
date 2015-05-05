@@ -32,3 +32,6 @@ Usage:
 
     #Create a new trader with your stored username/password
     my_trader = Robinhood(keyring.get_password("system", "usernameRobinhood"), keyring.get_password("system", "passwordRobinhood"));
+
+####Various API Methods
++   my_trader.get_quote
