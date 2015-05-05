@@ -77,7 +77,6 @@ class Robinhood:
         return res['results']
 
     def quote_data(self, stock=None):
-
         #Prompt for stock if not entered
         if stock is None:
             stock = raw_input("Symbol: ");
@@ -88,11 +87,9 @@ class Robinhood:
             res = json.loads((urllib.urlopen(url)).read());
             
             if len(res) > 0:
-                print("IN HERE");
                 return res;
             else:
                 raise NameError("Invalid Symbol: " + stock);
-
         except (ValueError):
             raise NameError("Invalid Symbol: " + stock);
 
