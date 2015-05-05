@@ -9,10 +9,9 @@ Current Features Include:
 - More coming soon
 
 ###How To Install:
+    pip install -r requirements.txt
 
-    >pip install -r requirements.txt
-
-###How to Use (see example.py):
+###How to Use (see [example.py](https://github.com/dsouzarc/Robinhood/blob/master/example.py))
 
     from Robinhood import Robinhood
     my_trader = Robinhood(username="USERNAME HERE", password="PASSWORD HERE")
@@ -21,7 +20,7 @@ Current Features Include:
     buy_order = my_trader.place_buy_order(stock_instrument, 1)
     sell_order = my_trader.place_sell_order(stock_instrument, 1)
 
-####One way to store your login credentials  (see [example.py](https://github.com/rohanpai/Robinhood/blob/master/example.py))
+####One way to store your login credentials  (see [example.py](https://github.com/dsouzarc/Robinhood/blob/master/example.py))
 [Python's Keyring Library](https://pypi.python.org/pypi/keyring#using-keyring)
 Usage:
 
