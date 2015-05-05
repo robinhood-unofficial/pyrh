@@ -20,5 +20,3 @@ How to Use (see example.py):
     quote_info = my_trader.quote_data("GEVO")
     buy_order = my_trader.place_buy_order(stock_instrument, 1)
     sell_order = my_trader.place_sell_order(stock_instrument, 1)
-
-Test commit
