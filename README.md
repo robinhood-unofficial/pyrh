@@ -2,7 +2,7 @@
 Python Framework to make trades with Robinhood Private API
 See Blog Post: https://medium.com/@rohanpai25/reversing-robinhood-free-accessible-automated-stock-trading-f40fba1e7d8b
 
-Current Features Include:
+##Current Features 
 - Placing buy orders (Robinhood.place_buy_order)
 - Placing sell order (Robinhood.place_sell_order)
 - Quote Information (Robinhood.quote_data)
@@ -33,5 +33,14 @@ Usage:
     #Create a new trader with your stored username/password
     my_trader = Robinhood(keyring.get_password("system", "usernameRobinhood"), keyring.get_password("system", "passwordRobinhood"));
 
-####Various API Methods
-+   my_trader.get_quote
+####Data returned
+    + Ask Price
+    + Ask Size
+    + Bid Price
+    + Bid Size
+    + Last trade price
+    + Previous close
+    + Previous close date
+    + Adjusted previous close
+    + Trading halted
+    + Updated at
