@@ -34,13 +34,13 @@ Usage:
     my_trader = Robinhood(keyring.get_password("system", "usernameRobinhood"), keyring.get_password("system", "passwordRobinhood"));
 
 ####Data returned
-    + Ask Price
-    + Ask Size
-    + Bid Price
-    + Bid Size
-    + Last trade price
-    + Previous close
-    + Previous close date
-    + Adjusted previous close
-    + Trading halted
-    + Updated at
++ Ask Price
++ Ask Size
++ Bid Price
++ Bid Size
++ Last trade price
++ Previous close
++ Previous close date
++ Adjusted previous close
++ Trading halted
++ Updated at
