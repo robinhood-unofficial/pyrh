@@ -1,22 +1,30 @@
-from Robinhood import Robinhood
 import keyring;
+from Robinhood import Robinhood
 
-my_trader = Robinhood(username=keyring.get_password("system", "usernameRobinhood"), password=keyring.get_password("system", "passwordRobinhood"));
+#Credential Setup
+YOUR_USERNAME = keyring.get_password("system", "usernameRobinhood");
+YOUR_PASSWORD = keyring.get_password("system", "passwordRobinhood");
+my_trader = Robinhood(username=YOUR_USERNAME, password=YOUR_PASSWORD);
 
-#get stock information about a stock
-# Note: for some stock names, more than one instrument
-#       may be returned for a given stock symbol
+#Get stock information
+    #Note: for some stock names, more than one instrument may be returned for a given stock symbol
 stock_instrument = my_trader.instruments("GEVO")[0]
 
-print(stock_instrument)
+#Get a stock's quote
+my_trader.print_quote("AAPL")
 
-#You can stock information about current bid_price, etc
+#Prompt for a symbol
+my_trader.print_quote();
+
+#Print multiple symbols
+my_trader.print_quotes(stocks=["BBRY", "FB", "MSFT"])
+
+#View all data for a given stock ie. Ask price and size, bid price and size, previous close, adjusted previous close, etc.
 quote_info = my_trader.quote_data("GEVO")
+print(quote_info);
 
-#place a buy order (uses market bid price)
+#Place a buy order (uses market bid price)
 #buy_order = my_trader.place_buy_order(stock_instrument, 1)
 
-#place a sell order
+#Place a sell order
 #sell_order = my_trader.place_sell_order(stock_instrument, 1)
-
-
