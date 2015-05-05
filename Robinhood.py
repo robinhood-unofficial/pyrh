@@ -1,5 +1,6 @@
 import requests
 import urllib
+import json
 
 class Robinhood:
 
@@ -67,11 +68,15 @@ class Robinhood:
         res = res.json()
         return res['results']
 
-    def quote_data(self, stock):
-        params = { 'symbols': stock }
-        res = self.session.get(self.endpoints['quotes'], params=params)
-        res = res.json()
-        return res['results']
+    def quote_data(self, stock=None):
+        if stock is None:
+            stock = raw_input("Symbol: ");
+        url = str(self.endpoints['quotes']) + str(stock) + "/"
+        return json.loads((urllib.urlopen(url)).read());
+
+    def print_quote(self, stock=None):
+        data = self.quote_data(stock)
+        print(data["symbol"] + ": $" + data["last_trade_price"]);
 
     def place_order(self, instrument, quantity=1, bid_price = None, transaction=None):
         if bid_price == None:
