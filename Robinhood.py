@@ -1,4 +1,6 @@
-import requests, urllib, json
+import json
+import requests
+import urllib
 
 class Robinhood:
 
@@ -81,11 +83,9 @@ class Robinhood:
         if stock is None:
             stock = raw_input("Symbol: ");
         url = str(self.endpoints['quotes']) + str(stock) + "/"
-
         #Check for validity of symbol
         try:
             res = json.loads((urllib.urlopen(url)).read());
-            
             if len(res) > 0:
                 return res;
             else:
