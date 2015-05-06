@@ -1,10 +1,7 @@
-import keyring;
 from Robinhood import Robinhood
 
 #Setup
-YOUR_USERNAME = keyring.get_password("system", "usernameRobinhood");
-YOUR_PASSWORD = keyring.get_password("system", "passwordRobinhood");
-my_trader = Robinhood(username=YOUR_USERNAME, password=YOUR_PASSWORD);
+my_trader = Robinhood(username="YOUR_USERNAME", password="YOUR_PASSWORD");
 
 #Get stock information
     #Note: Sometimes more than one instrument may be returned for a given stock symbol

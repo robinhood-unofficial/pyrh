@@ -20,19 +20,6 @@ See Blog Post: https://medium.com/@rohanpai25/reversing-robinhood-free-accessibl
     buy_order = my_trader.place_buy_order(stock_instrument, 1)
     sell_order = my_trader.place_sell_order(stock_instrument, 1)
 
-####One way to store your login credentials  (see [example.py](https://github.com/dsouzarc/Robinhood/blob/master/example.py))
-[Python's Keyring Library](https://pypi.python.org/pypi/keyring#using-keyring)
-Usage:
-
-    import keyring;
-
-    #Create temporary credntial.py with this information, run it, and then securely delete it
-    keyring.set_password("system", "usernameRobinhood", "your_user_name");
-    keyring.set_password("system", "passwordRobinhood", "your_password");
-
-    #Create a new trader with your stored username/password
-    my_trader = Robinhood(keyring.get_password("system", "usernameRobinhood"), keyring.get_password("system", "passwordRobinhood"));
-
 ####Data returned
 + Ask Price
 + Ask Size
