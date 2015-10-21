@@ -41,11 +41,9 @@ class Robinhood:
     #Logging in and initializing
     ##############################
 
-    def __init__(self, username, password):
+    def __init__(self):
         self.session = requests.session()
         self.session.proxies = urllib.getproxies()
-        self.username = username
-        self.password = password
         self.headers = {
             "Accept": "*/*",
             "Accept-Encoding": "gzip, deflate",
@@ -56,14 +54,19 @@ class Robinhood:
             "User-Agent": "Robinhood/823 (iPhone; iOS 7.1.2; Scale/2.00)"
         }
         self.session.headers = self.headers
-        self.login()
 
-    def login(self):
+    def login(self, username, password):
+        self.username = username
+        self.password = password
         data = "password=%s&username=%s" % (self.password, self.username)
         res = self.session.post(self.endpoints['login'], data=data)
         res = res.json()
-        self.auth_token = res['token']
+        try:
+            self.auth_token = res['token']
+        except KeyError:
+            return False
         self.headers['Authorization'] = 'Token '+self.auth_token
+        return True
 
 
     ##############################
