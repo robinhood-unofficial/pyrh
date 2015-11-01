@@ -1,3 +1,4 @@
+import json
 import requests
 import urllib
 
@@ -35,11 +36,14 @@ class Robinhood:
 
     auth_token = None
 
-    def __init__(self, username, password):
+
+    ##############################
+    #Logging in and initializing
+    ##############################
+
+    def __init__(self):
         self.session = requests.session()
         self.session.proxies = urllib.getproxies()
-        self.username = username
-        self.password = password
         self.headers = {
             "Accept": "*/*",
             "Accept-Encoding": "gzip, deflate",
@@ -50,14 +54,24 @@ class Robinhood:
             "User-Agent": "Robinhood/823 (iPhone; iOS 7.1.2; Scale/2.00)"
         }
         self.session.headers = self.headers
-        self.login()
 
-    def login(self):
+    def login(self, username, password):
+        self.username = username
+        self.password = password
         data = "password=%s&username=%s" % (self.password, self.username)
         res = self.session.post(self.endpoints['login'], data=data)
         res = res.json()
-        self.auth_token = res['token']
+        try:
+            self.auth_token = res['token']
+        except KeyError:
+            return False
         self.headers['Authorization'] = 'Token '+self.auth_token
+        return True
+
+
+    ##############################
+    #GET DATA 
+    ##############################
 
     def investment_profile(self):
         self.session.get(self.endpoints['investment_profile'])
@@ -67,11 +81,70 @@ class Robinhood:
         res = res.json()
         return res['results']
 
-    def quote_data(self, stock):
-        params = { 'symbols': stock }
-        res = self.session.get(self.endpoints['quotes'], params=params)
-        res = res.json()
-        return res['results']
+    def quote_data(self, stock=None):
+        #Prompt for stock if not entered
+        if stock is None:
+            stock = raw_input("Symbol: ");
+        url = str(self.endpoints['quotes']) + str(stock) + "/"
+        #Check for validity of symbol
+        try:
+            res = json.loads((urllib.urlopen(url)).read());
+            if len(res) > 0:
+                return res;
+            else:
+                raise NameError("Invalid Symbol: " + stock);
+        except (ValueError):
+            raise NameError("Invalid Symbol: " + stock);
+
+    def get_quote(self, stock=None):
+        data = self.quote_data(stock)
+        return data["symbol"]
+
+    def print_quote(self, stock=None):
+        data = self.quote_data(stock)
+        print(data["symbol"] + ": $" + data["last_trade_price"]);
+
+    def print_quotes(self, stocks):
+        for i in range(len(stocks)):
+            self.print_quote(stocks[i]);
+
+    def ask_price(self, stock=None):
+        return self.quote_data(stock)['ask_price'];
+
+    def ask_size(self, stock=None):
+        return self.quote_data(stock)['ask_size'];
+
+    def bid_price(self, stock=None):
+        return self.quote_data(stock)['bid_price'];
+
+    def bid_size(self, stock=None):
+        return self.quote_data(stock)['bid_size'];
+
+    def last_trade_price(self, stock=None):
+        return self.quote_data(stock)['last_trade_price'];
+
+    def last_trade_price(self, stock=None):
+        return self.quote_data(stock)['last_trade_price'];
+
+    def previous_close(self, stock=None):
+        return self.quote_data(stock)['previous_close'];
+
+    def previous_close_date(self, stock=None):
+        return self.quote_data(stock)['previous_close_date'];
+
+    def adjusted_previous_close(self, stock=None):
+        return self.quote_data(stock)['adjusted_previous_close'];
+
+    def symbol(self, stock=None):
+        return self.quote_data(stock)['symbol'];
+
+    def last_updated_at(self, stock=None):
+        return self.quote_data(stock)['updated_at'];
+
+
+    ##############################
+    #PLACE ORDER
+    ##############################
 
     def place_order(self, instrument, quantity=1, bid_price = None, transaction=None):
         if bid_price == None:
@@ -87,4 +160,3 @@ class Robinhood:
     def place_sell_order(self, instrument, quantity, bid_price=None):
         transaction = "sell"
         return self.place_order(instrument, quantity, bid_price, transaction)
-
