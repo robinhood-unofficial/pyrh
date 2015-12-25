@@ -140,6 +140,11 @@ class Robinhood:
 
     def last_updated_at(self, stock=None):
         return self.quote_data(stock)['updated_at'];
+    
+    def get_account(self):
+        res = self.session.get(self.endpoints['accounts'])
+        res = res.json()
+        return res['results'][0]
 
 
     ##############################
@@ -148,8 +153,15 @@ class Robinhood:
 
     def place_order(self, instrument, quantity=1, bid_price = None, transaction=None):
         if bid_price == None:
-            bid_price = self.quote_data(instrument['symbol'])[0]['bid_price']
-        data = 'account=%s&instrument=%s&price=%f&quantity=%d&side=buy&symbol=%s&time_in_force=gfd&trigger=immediate&type=market' % (urllib.quote('https://api.robinhood.com/accounts/5PY93481/'), urllib.unquote(instrument['url']), float(bid_price), quantity, instrument['symbol']) 
+            bid_price = self.quote_data(instrument['symbol'])['bid_price']
+        data = 'account=%s&instrument=%s&price=%f&quantity=%d&side=%s&symbol=%s&time_in_force=gfd&trigger=immediate&type=market' % (
+            self.get_account()['url'],
+            urllib.unquote(instrument['url']),
+            float(bid_price),
+            quantity,
+            transaction,
+            instrument['symbol']
+        ) 
         res = self.session.post(self.endpoints['orders'], data=data)
         return res
 
