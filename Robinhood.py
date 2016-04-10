@@ -22,6 +22,7 @@ class Robinhood:
             "notifications":"https://api.robinhood.com/notifications/",
             "orders":"https://api.robinhood.com/orders/",
             "password_reset":"https://api.robinhood.com/password_reset/request/",
+            "portfolios":"https://api.robinhood.com/portfolios/",
             "quotes":"https://api.robinhood.com/quotes/",
             "document_requests":"https://api.robinhood.com/upload/document_requests/",
             "user":"https://api.robinhood.com/user/",
@@ -58,18 +59,7 @@ class Robinhood:
         self.session.headers = self.headers
 
     def login_prompt(self):
-        """
-        Prompts user for username and password and calls login().
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        out : boolean
-            Return status of the login() method.
-        """
+        """Prompts user for username and password and calls login()."""
         username = raw_input("Username: ")
         password = getpass.getpass()
         return self.login(username=username, password=password)
@@ -94,6 +84,15 @@ class Robinhood:
 
     def investment_profile(self):
         self.session.get(self.endpoints['investment_profile'])
+
+    def portfolios(self):
+        """Returns the user's portfolio data."""
+        return self.session.get(self.endpoints['portfolios']).json()['results'][0]
+
+    def positions(self):
+        """Returns the user's positions data."""
+        return self.session.get(self.endpoints['positions']).json()['results'][0]
+
 
     def instruments(self, stock=None):
         res = self.session.get(self.endpoints['instruments'], params={'query':stock.upper()})
