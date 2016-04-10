@@ -123,9 +123,6 @@ class Robinhood:
     def last_trade_price(self, stock=None):
         return self.quote_data(stock)['last_trade_price'];
 
-    def last_trade_price(self, stock=None):
-        return self.quote_data(stock)['last_trade_price'];
-
     def previous_close(self, stock=None):
         return self.quote_data(stock)['previous_close'];
 
