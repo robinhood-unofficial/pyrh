@@ -1,3 +1,5 @@
+
+import getpass
 import json
 import requests
 import urllib
@@ -54,6 +56,23 @@ class Robinhood:
             "User-Agent": "Robinhood/823 (iPhone; iOS 7.1.2; Scale/2.00)"
         }
         self.session.headers = self.headers
+
+    def login_prompt(self):
+        """
+        Prompts user for username and password and calls login().
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        out : boolean
+            Return status of the login() method.
+        """
+        username = raw_input("Username: ")
+        password = getpass.getpass()
+        return self.login(username=username, password=password)
 
     def login(self, username, password):
         self.username = username
