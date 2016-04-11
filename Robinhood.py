@@ -23,6 +23,7 @@ class Robinhood:
             "orders":"https://api.robinhood.com/orders/",
             "password_reset":"https://api.robinhood.com/password_reset/request/",
             "portfolios":"https://api.robinhood.com/portfolios/",
+            "positions":"https://api.robinhood.com/positions/",
             "quotes":"https://api.robinhood.com/quotes/",
             "document_requests":"https://api.robinhood.com/upload/document_requests/",
             "user":"https://api.robinhood.com/user/",
@@ -77,22 +78,12 @@ class Robinhood:
         self.headers['Authorization'] = 'Token '+self.auth_token
         return True
 
-
     ##############################
     #GET DATA 
     ##############################
 
     def investment_profile(self):
         self.session.get(self.endpoints['investment_profile'])
-
-    def portfolios(self):
-        """Returns the user's portfolio data."""
-        return self.session.get(self.endpoints['portfolios']).json()['results'][0]
-
-    def positions(self):
-        """Returns the user's positions data."""
-        return self.session.get(self.endpoints['positions']).json()['results'][0]
-
 
     def instruments(self, stock=None):
         res = self.session.get(self.endpoints['instruments'], params={'query':stock.upper()})
@@ -161,6 +152,61 @@ class Robinhood:
         res = res.json()
         return res['results'][0]
 
+    ##############################
+    # PORTFOLIOS DATA
+    ##############################
+
+    def portfolios(self):
+        """Returns the user's portfolio data."""
+        return self.session.get(self.endpoints['portfolios']).json()['results'][0]
+
+    def adjusted_equity_previous_close(self):
+        return float(self.portfolios()['adjusted_equity_previous_close'])
+
+    def equity(self):
+        return float(self.portfolios()['equity'])
+
+    def equity_previous_close(self):
+        return float(self.portfolios()['equity_previous_close'])
+
+    def excess_margin(self):
+        return float(self.portfolios()['excess_margin'])
+
+    def extended_hours_equity(self):
+        return float(self.portfolios()['extended_hours_equity'])
+
+    def extended_hours_market_value(self):
+        return float(self.portfolios()['extended_hours_market_value'])
+
+    def last_core_equity(self):
+        return float(self.portfolios()['last_core_equity'])
+
+    def last_core_market_value(self):
+        return float(self.portfolios()['last_core_market_value'])
+
+    def market_value(self):
+        return float(self.portfolios()['market_value'])
+
+    ##############################
+    # POSITIONS DATA
+    ##############################
+
+    def positions(self):
+        """Returns the user's positions data."""
+        return self.session.get(self.endpoints['positions']).json()['results']
+
+    def securities_owned(self):
+        """
+        Returns a list of symbols of securities of which there are more
+        than zero shares in user's portfolio.
+        """
+        positions = self.positions()
+        securities = []
+        for position in positions:
+            quantity = float(position['quantity'])
+            if quantity > 0:
+                securities.append(self.session.get(position['instrument']).json()['symbol'])
+        return securities
 
     ##############################
     #PLACE ORDER
