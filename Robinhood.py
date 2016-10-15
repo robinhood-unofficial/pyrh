@@ -151,6 +151,9 @@ class Robinhood:
         res = self.session.get(self.endpoints['accounts'])
         res = res.json()
         return res['results'][0]
+        
+    def get_url(self,url):
+        return self.session.get(url).json()
 
     ##############################
     # PORTFOLIOS DATA
@@ -186,6 +189,9 @@ class Robinhood:
 
     def market_value(self):
         return float(self.portfolios()['market_value'])
+        
+    def order_history(self):
+        return self.session.get(self.endpoints['orders']).json()
 
     ##############################
     # POSITIONS DATA
