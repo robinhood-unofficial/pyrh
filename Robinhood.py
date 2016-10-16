@@ -192,6 +192,9 @@ class Robinhood:
         
     def order_history(self):
         return self.session.get(self.endpoints['orders']).json()
+        
+    def dividends(self):
+        return self.session.get(self.endpoints['dividends']).json()
 
     ##############################
     # POSITIONS DATA
