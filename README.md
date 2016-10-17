@@ -35,6 +35,7 @@ See this [blog post](https://medium.com/@rohanpai25/reversing-robinhood-free-acc
   + Adjusted previous close
   + Trading halted
   + Updated at
+  + Historical Price
 * User portfolio data
   + Adjusted equity previous close
   + Equity
@@ -49,3 +50,4 @@ See this [blog post](https://medium.com/@rohanpai25/reversing-robinhood-free-acc
   + Dividend history
 * User positions data
   + Securities owned
+* News

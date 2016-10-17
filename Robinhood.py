@@ -25,9 +25,11 @@ class Robinhood:
             "portfolios":"https://api.robinhood.com/portfolios/",
             "positions":"https://api.robinhood.com/positions/",
             "quotes":"https://api.robinhood.com/quotes/",
+            "historicals":"https://api.robinhood.com/quotes/historicals/",
             "document_requests":"https://api.robinhood.com/upload/document_requests/",
             "user":"https://api.robinhood.com/user/",
-            "watchlists":"https://api.robinhood.com/watchlists/"
+            "watchlists":"https://api.robinhood.com/watchlists/",
+            "news":"https://api.robinhood.com/midlands/news/"
     }
 
     session = None
@@ -108,6 +110,18 @@ class Robinhood:
     def get_quote(self, stock=None):
         data = self.quote_data(stock)
         return data["symbol"]
+
+    def get_historical_quotes(self,symbol,interval,span):
+        # Valid combination
+        # interval = 5minute | 10minute + span = day, week
+        # interval = day + span = year
+        # interval = week
+        res = self.session.get(self.endpoints['historicals'], params={'symbols':','.join(symbol).upper(), 'interval':interval, 'span':span})
+        return res.json()
+        
+    def get_news(self, symbol):
+        return self.session.get(self.endpoints['news']+symbol.upper()+"/").json()
+        
 
     def print_quote(self, stock=None):
         data = self.quote_data(stock)
