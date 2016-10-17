@@ -202,7 +202,7 @@ class Robinhood:
 
     def positions(self):
         """Returns the user's positions data."""
-        return self.session.get(self.endpoints['positions']).json()['results']
+        return self.session.get(self.endpoints['positions']).json()
 
     def securities_owned(self):
         """
@@ -211,7 +211,7 @@ class Robinhood:
         """
         positions = self.positions()
         securities = []
-        for position in positions:
+        for position in positions['results']:
             quantity = float(position['quantity'])
             if quantity > 0:
                 securities.append(self.session.get(position['instrument']).json()['symbol'])
