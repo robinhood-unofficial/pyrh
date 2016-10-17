@@ -45,5 +45,7 @@ See this [blog post](https://medium.com/@rohanpai25/reversing-robinhood-free-acc
   + Last core equity
   + Last core market value
   + Market value
+  + Order history
+  + Dividend history
 * User positions data
   + Securities owned
