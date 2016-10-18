@@ -111,12 +111,13 @@ class Robinhood:
         data = self.quote_data(stock)
         return data["symbol"]
 
-    def get_historical_quotes(self,symbol,interval,span):
+    def get_historical_quotes(self,symbol,interval,span,bounds='regular'):
         # Valid combination
         # interval = 5minute | 10minute + span = day, week
         # interval = day + span = year
         # interval = week
-        res = self.session.get(self.endpoints['historicals'], params={'symbols':','.join(symbol).upper(), 'interval':interval, 'span':span})
+        # bounds can be 'regular' for regular hours or 'extended' for extended hours
+        res = self.session.get(self.endpoints['historicals'], params={'symbols':','.join(symbol).upper(), 'interval':interval, 'span':span, 'bounds':bounds})
         return res.json()
         
     def get_news(self, symbol):
