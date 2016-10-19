@@ -25,9 +25,11 @@ class Robinhood:
             "portfolios":"https://api.robinhood.com/portfolios/",
             "positions":"https://api.robinhood.com/positions/",
             "quotes":"https://api.robinhood.com/quotes/",
+            "historicals":"https://api.robinhood.com/quotes/historicals/",
             "document_requests":"https://api.robinhood.com/upload/document_requests/",
             "user":"https://api.robinhood.com/user/",
-            "watchlists":"https://api.robinhood.com/watchlists/"
+            "watchlists":"https://api.robinhood.com/watchlists/",
+            "news":"https://api.robinhood.com/midlands/news/"
     }
 
     session = None
@@ -97,7 +99,7 @@ class Robinhood:
         url = str(self.endpoints['quotes']) + str(stock) + "/"
         #Check for validity of symbol
         try:
-            res = json.loads((urllib.request.urlopen(url)).read());
+            res = json.loads((urllib.request.urlopen(url)).read().decode('utf-8'));
             if len(res) > 0:
                 return res;
             else:
@@ -108,6 +110,19 @@ class Robinhood:
     def get_quote(self, stock=None):
         data = self.quote_data(stock)
         return data["symbol"]
+
+    def get_historical_quotes(self,symbol,interval,span,bounds='regular'):
+        # Valid combination
+        # interval = 5minute | 10minute + span = day, week
+        # interval = day + span = year
+        # interval = week
+        # bounds can be 'regular' for regular hours or 'extended' for extended hours
+        res = self.session.get(self.endpoints['historicals'], params={'symbols':','.join(symbol).upper(), 'interval':interval, 'span':span, 'bounds':bounds})
+        return res.json()
+        
+    def get_news(self, symbol):
+        return self.session.get(self.endpoints['news']+symbol.upper()+"/").json()
+        
 
     def print_quote(self, stock=None):
         data = self.quote_data(stock)
@@ -202,7 +217,7 @@ class Robinhood:
 
     def positions(self):
         """Returns the user's positions data."""
-        return self.session.get(self.endpoints['positions']).json()['results']
+        return self.session.get(self.endpoints['positions']).json()
 
     def securities_owned(self):
         """
@@ -211,7 +226,7 @@ class Robinhood:
         """
         positions = self.positions()
         securities = []
-        for position in positions:
+        for position in positions['results']:
             quantity = float(position['quantity'])
             if quantity > 0:
                 securities.append(self.session.get(position['instrument']).json()['symbol'])
