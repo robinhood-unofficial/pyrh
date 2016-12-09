@@ -51,3 +51,10 @@ See this [blog post](https://medium.com/@rohanpai25/reversing-robinhood-free-acc
 * User positions data
   + Securities owned
 * News
+
+------------------
+
+# Related
+
+* [robinhood-ruby](https://github.com/rememberlenny/robinhood-ruby) - RubyGem for interacting with Robinhood API
+* [robinhood-node](https://github.com/aurbano/robinhood-node) - NodeJS module to make trades with Robinhood Private API
