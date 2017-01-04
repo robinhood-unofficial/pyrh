@@ -13,7 +13,7 @@ See this [blog post](https://medium.com/@rohanpai25/reversing-robinhood-free-acc
 ###How To Install:
     pip install -r requirements.txt
 
-###How to Use (see [example.py](https://github.com/Jamonek/Robinhood/blob/master/example.py))
+###How to Use (see [example.py](https://github.com/MeheLLC/Robinhood/blob/master/example.py))
 
     from Robinhood import Robinhood
     my_trader = Robinhood()
