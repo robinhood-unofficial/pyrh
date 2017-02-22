@@ -49,7 +49,7 @@ class Robinhood:
 
     def __init__(self):
         self.session = requests.session()
-        self.session.proxies = urllib.request.getproxies()
+        self.session.proxies = urllib.getproxies()
         self.headers = {
             "Accept": "*/*",
             "Accept-Encoding": "gzip, deflate",
@@ -99,7 +99,7 @@ class Robinhood:
         url = str(self.endpoints['quotes']) + str(stock) + "/"
         #Check for validity of symbol
         try:
-            res = json.loads((urllib.request.urlopen(url)).read().decode('utf-8'));
+            res = json.loads((urllib.urlopen(url)).read().decode('utf-8'));
             if len(res) > 0:
                 return res;
             else:
