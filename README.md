@@ -18,7 +18,7 @@ By default, this module is written in Python 2.  For users who wish to use the m
     
     2to3 -w Robinhood.py
 
-###How to Use (see [example.py](https://github.com/MeheLLC/Robinhood/blob/master/example.py))
+###How to Use (see [example.py](https://github.com/Jamonek/Robinhood/blob/master/example.py))
 
     from Robinhood import Robinhood
     my_trader = Robinhood()
