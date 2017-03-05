@@ -2,7 +2,7 @@
 import getpass
 import json
 import requests
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 class Robinhood:
 
@@ -49,7 +49,7 @@ class Robinhood:
 
     def __init__(self):
         self.session = requests.session()
-        self.session.proxies = urllib.getproxies()
+        self.session.proxies = urllib.request.getproxies()
         self.headers = {
             "Accept": "*/*",
             "Accept-Encoding": "gzip, deflate",
@@ -63,14 +63,14 @@ class Robinhood:
 
     def login_prompt(self):
         """Prompts user for username and password and calls login()."""
-        username = raw_input("Username: ")
+        username = input("Username: ")
         password = getpass.getpass()
         return self.login(username=username, password=password)
 
     def login(self, username, password):
         self.username = username
         self.password = password
-        data = urllib.urlencode({"password" : self.password, "username" : self.username})
+        data = urllib.parse.urlencode({"password" : self.password, "username" : self.username})
         res = self.session.post(self.endpoints['login'], data=data)
         res = res.json()
         try:
@@ -95,11 +95,11 @@ class Robinhood:
     def quote_data(self, stock=None):
         #Prompt for stock if not entered
         if stock is None:
-            stock = raw_input("Symbol: ");
+            stock = input("Symbol: ");
         url = str(self.endpoints['quotes']) + str(stock) + "/"
         #Check for validity of symbol
         try:
-            res = json.loads((urllib.urlopen(url)).read().decode('utf-8'));
+            res = json.loads((urllib.request.urlopen(url)).read().decode('utf-8'));
             if len(res) > 0:
                 return res;
             else:
@@ -126,7 +126,7 @@ class Robinhood:
 
     def print_quote(self, stock=None):
         data = self.quote_data(stock)
-        print(data["symbol"] + ": $" + data["last_trade_price"]);
+        print((data["symbol"] + ": $" + data["last_trade_price"]));
 
     def print_quotes(self, stocks):
         for i in range(len(stocks)):
@@ -241,7 +241,7 @@ class Robinhood:
             bid_price = self.quote_data(instrument['symbol'])['bid_price']
         data = 'account=%s&instrument=%s&price=%f&quantity=%d&side=%s&symbol=%s&time_in_force=gfd&trigger=immediate&type=market' % (
             self.get_account()['url'],
-            urllib.unquote(instrument['url']),
+            urllib.parse.unquote(instrument['url']),
             float(bid_price),
             quantity,
             transaction,
