@@ -13,10 +13,6 @@ See this [blog post](https://medium.com/@rohanpai25/reversing-robinhood-free-acc
 ###How To Install:
     pip install -r requirements.txt
     
-###Converting to Python 3
-By default, this module is written in Python 2.  For users who wish to use the module in Python 3, use the following command:
-    
-    2to3 -w Robinhood.py
 
 ###How to Use (see [example.py](https://github.com/Jamonek/Robinhood/blob/master/example.py))
 
