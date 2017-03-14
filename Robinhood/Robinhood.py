@@ -1,8 +1,11 @@
 
 import getpass
-import json
+import logging
+from urllib.request import getproxies
+#import urllib.request, urllib.parse, urllib.error
+
 import requests
-import urllib.request, urllib.parse, urllib.error
+from six.moves.urllib.parse import unquote
 
 class Robinhood:
 
@@ -10,28 +13,28 @@ class Robinhood:
         "login": "https://api.robinhood.com/api-token-auth/",
         "logout": "https://api.robinhood.com/api-token-logout/",
         "investment_profile": "https://api.robinhood.com/user/investment_profile/",
-        "accounts":"https://api.robinhood.com/accounts/",
-        "ach_iav_auth":"https://api.robinhood.com/ach/iav/auth/",
-        "ach_relationships":"https://api.robinhood.com/ach/relationships/",
-        "ach_transfers":"https://api.robinhood.com/ach/transfers/",
-        "applications":"https://api.robinhood.com/applications/",
-        "dividends":"https://api.robinhood.com/dividends/",
-        "edocuments":"https://api.robinhood.com/documents/",
-        "instruments":"https://api.robinhood.com/instruments/",
-        "margin_upgrades":"https://api.robinhood.com/margin/upgrades/",
-        "markets":"https://api.robinhood.com/markets/",
-        "notifications":"https://api.robinhood.com/notifications/",
-        "orders":"https://api.robinhood.com/orders/",
-        "password_reset":"https://api.robinhood.com/password_reset/request/",
-        "portfolios":"https://api.robinhood.com/portfolios/",
-        "positions":"https://api.robinhood.com/positions/",
-        "quotes":"https://api.robinhood.com/quotes/",
-        "historicals":"https://api.robinhood.com/quotes/historicals/",
-        "document_requests":"https://api.robinhood.com/upload/document_requests/",
-        "user":"https://api.robinhood.com/user/",
-        "watchlists":"https://api.robinhood.com/watchlists/",
-        "news":"https://api.robinhood.com/midlands/news/",
-        "fundamentals":"https://api.robinhood.com/fundamentals/",
+        "accounts": "https://api.robinhood.com/accounts/",
+        "ach_iav_auth": "https://api.robinhood.com/ach/iav/auth/",
+        "ach_relationships": "https://api.robinhood.com/ach/relationships/",
+        "ach_transfers": "https://api.robinhood.com/ach/transfers/",
+        "applications": "https://api.robinhood.com/applications/",
+        "dividends": "https://api.robinhood.com/dividends/",
+        "edocuments": "https://api.robinhood.com/documents/",
+        "instruments": "https://api.robinhood.com/instruments/",
+        "margin_upgrades": "https://api.robinhood.com/margin/upgrades/",
+        "markets": "https://api.robinhood.com/markets/",
+        "notifications": "https://api.robinhood.com/notifications/",
+        "orders": "https://api.robinhood.com/orders/",
+        "password_reset": "https://api.robinhood.com/password_reset/request/",
+        "portfolios": "https://api.robinhood.com/portfolios/",
+        "positions": "https://api.robinhood.com/positions/",
+        "quotes": "https://api.robinhood.com/quotes/",
+        "historicals": "https://api.robinhood.com/quotes/historicals/",
+        "document_requests": "https://api.robinhood.com/upload/document_requests/",
+        "user": "https://api.robinhood.com/user/",
+        "watchlists": "https://api.robinhood.com/watchlists/",
+        "news": "https://api.robinhood.com/midlands/news/",
+        "fundamentals": "https://api.robinhood.com/fundamentals/",
     }
 
     session = None
@@ -44,6 +47,7 @@ class Robinhood:
 
     auth_token = None
 
+    logger = logging.getLogger('Robinhood').addHandler(logging.NullHandler())
 
     ##############################
     #Logging in and initializing
@@ -51,7 +55,7 @@ class Robinhood:
 
     def __init__(self):
         self.session = requests.session()
-        self.session.proxies = urllib.request.getproxies()
+        self.session.proxies = getproxies()
         self.headers = {
             "Accept": "*/*",
             "Accept-Encoding": "gzip, deflate",
@@ -69,17 +73,26 @@ class Robinhood:
         password = getpass.getpass()
         return self.login(username=username, password=password)
 
-    def login(self, username, password):
+    def login(
+            self,
+            username,
+            password
+        ):
         self.username = username
         self.password = password
-        data = urllib.parse.urlencode({"password" : self.password, "username" : self.username})
-        res = self.session.post(self.endpoints['login'], data=data)
+        #data = urllib.parse.urlencode({"password" : self.password, "username" : self.username})
+        params = {
+            'password': self.password,
+            'username': self.username
+        }
+        #res = self.session.post(self.endpoints['login'], data=data)
+        res = self.session.post(self.endpoints['login'], params=params)
         res = res.json()
         try:
             self.auth_token = res['token']
         except KeyError:
             return False
-        self.headers['Authorization'] = 'Token '+self.auth_token
+        self.headers['Authorization'] = 'Token ' + self.auth_token
         return True
 
     def logout(self):
@@ -94,80 +107,97 @@ class Robinhood:
     def investment_profile(self):
         self.session.get(self.endpoints['investment_profile'])
 
-    def instruments(self, stock=None):
-        res = self.session.get(self.endpoints['instruments'], params={'query':stock.upper()})
+    def instruments(self, stock):
+        params = {
+            'query': stock.upper()
+        }
+        res = self.session.get(
+            self.endpoints['instruments'],
+            params=params
+        )
         res = res.json()
         return res['results']
 
-    def quote_data(self, stock=None):
+    def quote_data(self, stock=''):
         #Prompt for stock if not entered
-        if stock is None:
-            stock = input("Symbol: ");
+        if not stock:
+            stock = input("Symbol: ")
         url = str(self.endpoints['quotes']) + str(stock) + "/"
         #Check for validity of symbol
         try:
-            res = json.loads((urllib.request.urlopen(url)).read().decode('utf-8'));
-            if len(res) > 0:
-                return res;
-            else:
-                raise NameError("Invalid Symbol: " + stock);
-        except (ValueError):
-            raise NameError("Invalid Symbol: " + stock);
+            req = requests.get(url)
+            req.raise_for_status()
+            data = req.json()
+        except requests.exceptions.HTTPError:
+            raise NameError('Invalid Symbol: ' + stock)
 
-    def get_quote(self, stock=None):
+        return data
+
+    def get_quote(self, stock=''):
         data = self.quote_data(stock)
         return data["symbol"]
 
-    def get_historical_quotes(self,symbol,interval,span,bounds='regular'):
+    def get_historical_quotes(
+            self,
+            symbol,
+            interval,
+            span,
+            bounds='regular'
+        ):
         # Valid combination
         # interval = 5minute | 10minute + span = day, week
         # interval = day + span = year
         # interval = week
         # bounds can be 'regular' for regular hours or 'extended' for extended hours
-        res = self.session.get(self.endpoints['historicals'], params={'symbols':','.join(symbol).upper(), 'interval':interval, 'span':span, 'bounds':bounds})
+        params = {
+            'symbols': ','.join(symbol).upper,
+            'interval': interval,
+            'span': span,
+            'bounds': bounds
+        }
+        res = self.session.get(self.endpoints['historicals'], params=params)
         return res.json()
 
     def get_news(self, symbol):
         return self.session.get(self.endpoints['news']+symbol.upper()+"/").json()
 
-
     def print_quote(self, stock=None):
         data = self.quote_data(stock)
-        print((data["symbol"] + ": $" + data["last_trade_price"]));
+        print((data["symbol"] + ": $" + data["last_trade_price"]))
 
     def print_quotes(self, stocks):
-        for i in range(len(stocks)):
-            self.print_quote(stocks[i]);
+        for stock in stocks:
+            self.print_quote(stock)
 
     def ask_price(self, stock=None):
-        return self.quote_data(stock)['ask_price'];
+        return self.quote_data(stock)['ask_price']
 
     def ask_size(self, stock=None):
-        return self.quote_data(stock)['ask_size'];
+        return self.quote_data(stock)['ask_size']
 
     def bid_price(self, stock=None):
-        return self.quote_data(stock)['bid_price'];
+        return self.quote_data(stock)['bid_price']
 
     def bid_size(self, stock=None):
-        return self.quote_data(stock)['bid_size'];
+        return self.quote_data(stock)['bid_size']
 
     def last_trade_price(self, stock=None):
-        return self.quote_data(stock)['last_trade_price'];
+        return self.quote_data(stock)['last_trade_price']
 
     def previous_close(self, stock=None):
-        return self.quote_data(stock)['previous_close'];
+        return self.quote_data(stock)['previous_close']
 
     def previous_close_date(self, stock=None):
-        return self.quote_data(stock)['previous_close_date'];
+        return self.quote_data(stock)['previous_close_date']
 
     def adjusted_previous_close(self, stock=None):
-        return self.quote_data(stock)['adjusted_previous_close'];
+        return self.quote_data(stock)['adjusted_previous_close']
 
     def symbol(self, stock=None):
-        return self.quote_data(stock)['symbol'];
+        return self.quote_data(stock)['symbol']
 
     def last_updated_at(self, stock=None):
-        return self.quote_data(stock)['updated_at'];
+        return self.quote_data(stock)['updated_at']
 
     def get_account(self):
         res = self.session.get(self.endpoints['accounts'])
@@ -177,17 +207,25 @@ class Robinhood:
     def get_fundamentals(self, stock=None):
         #Prompt for stock if not entered
         if stock is None:
-            stock = input("Symbol: ");
+            stock = input("Symbol: ")
         url = str(self.endpoints['fundamentals']) + str(stock.upper()) + "/"
         #Check for validity of symbol
         try:
-            res = json.loads((urllib.request.urlopen(url)).read().decode('utf-8'));
-            if len(res) > 0:
-                return res;
-            else:
-                raise NameError("Invalid Symbol: " + stock);
-        except (ValueError):
-            raise NameError("Invalid Symbol: " + stock);
+            req = requests.get(url)
+            req.raise_for_status()
+            data = req.json()
+        except requests.exceptions.HTTPError:
+            raise NameError('Invalid Symbol: ' + stock)
+
+        return data
+        #try:
+        #    res = json.loads((urllib.request.urlopen(url)).read().decode('utf-8'));
+        #    if len(res) > 0:
+        #        return res;
+        #    else:
+        #        raise NameError("Invalid Symbol: " + stock);
+        #except (ValueError):
+        #    raise NameError("Invalid Symbol: " + stock);
 
     def fundamentals(self, stock=None):
         return self.get_fundamentals(stock)
@@ -261,24 +299,54 @@ class Robinhood:
     #PLACE ORDER
     ##############################
 
-    def place_order(self, instrument, quantity=1, bid_price = None, transaction=None):
-        if bid_price == None:
+    def place_order(
+            self,
+            instrument,
+            quantity=1,
+            bid_price=0.0,
+            transaction=None
+        ):
+        if not bid_price:
             bid_price = self.quote_data(instrument['symbol'])['bid_price']
-        data = 'account=%s&instrument=%s&price=%f&quantity=%d&side=%s&symbol=%s&time_in_force=gfd&trigger=immediate&type=market' % (
-            self.get_account()['url'],
-            urllib.parse.unquote(instrument['url']),
-            float(bid_price),
-            quantity,
-            transaction,
-            instrument['symbol']
+        payload = {
+            'account': self.get_account()['url'],
+            'instrument': unquote(instrument['url']),
+            'price': float(bid_price),
+            'quantity': quantity,
+            'side': transaction,
+            'symbol': instrument['symbol'],
+            'time_in_force': 'gfd',
+            'trigger': 'immediate',
+            'type': 'market'
+        }
+        #data = 'account=%s&instrument=%s&price=%f&quantity=%d&side=%s&symbol=%s#&time_in_force=gfd&trigger=immediate&type=market' % (
+        #    self.get_account()['url'],
+        #    urllib.parse.unquote(instrument['url']),
+        #    float(bid_price),
+        #    quantity,
+        #    transaction,
+        #    instrument['symbol']
+        #)
+        res = self.session.post(
+            self.endpoints['orders'],
+            params=payload
         )
-        res = self.session.post(self.endpoints['orders'], data=data)
         return res
 
-    def place_buy_order(self, instrument, quantity, bid_price=None):
+    def place_buy_order(
+            self,
+            instrument,
+            quantity,
+            bid_price=0.0
+        ):
         transaction = "buy"
         return self.place_order(instrument, quantity, bid_price, transaction)
 
-    def place_sell_order(self, instrument, quantity, bid_price=None):
+    def place_sell_order(
+            self,
+            instrument,
+            quantity,
+            bid_price=0.0
+        ):
         transaction = "sell"
         return self.place_order(instrument, quantity, bid_price, transaction)
