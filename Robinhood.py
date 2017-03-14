@@ -83,9 +83,10 @@ class Robinhood:
         return True
 
     def logout(self):
+        res = self.session.post(self.endpoints['logout'])
         self.headers['Authorization'] = None
         self.auth_token = None
-        return self.session.post(self.endpoints['logout'])
+        return 
 
     ##############################
     #GET DATA 
