@@ -8,6 +8,7 @@ import requests
 import six
 from six.moves.urllib.parse import unquote
 from six.moves.urllib.request import getproxies
+from six.moves import input
 
 class Robinhood:
 
@@ -71,10 +72,7 @@ class Robinhood:
 
     def login_prompt(self):
         """Prompts user for username and password and calls login()."""
-        if six.PY2:
-            username = raw_input('Username: ')
-        else:
-            username = input("Username: ")
+        username = input("Username: ")
         password = getpass.getpass()
         return self.login(username=username, password=password)
 
@@ -126,10 +124,7 @@ class Robinhood:
     def quote_data(self, stock=''):
         #Prompt for stock if not entered
         if not stock:
-            if six.PY2:
-                stock = raw_input('Symbol: ')
-            else:
-                stock = input("Symbol: ")
+            stock = input("Symbol: ")
         url = str(self.endpoints['quotes']) + str(stock) + "/"
         #Check for validity of symbol
         try:
@@ -215,10 +210,7 @@ class Robinhood:
     def get_fundamentals(self, stock=''):
         #Prompt for stock if not entered
         if not stock:
-            if six.PY2:
-                stock = raw_input('Symbol: ')
-            else:
-                stock = input("Symbol: ")
+            stock = input("Symbol: ")
 
         url = str(self.endpoints['fundamentals']) + str(stock.upper()) + "/"
         #Check for validity of symbol
