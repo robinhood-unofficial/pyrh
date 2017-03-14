@@ -90,7 +90,7 @@ class PyTest(TestCommand):
         exit(errno)
 
 setup(
-    name='rh_redist',
+    name='Robinhood',
     author='Jamone Kelly',
     author_email='prospermarketshow@gmail.com',
     url='https://github.com/lockefox/Robinhood',
