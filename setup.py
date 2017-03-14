@@ -1,11 +1,43 @@
 """Setup.py for Robinhood helper library"""
 
+import sys
 from os import path, listdir
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
 HERE = path.abspath(path.dirname(__file__))
 __version__ = '1.0.0'
+
+REQUIRES = [
+    'requests~=2.13.0',
+    'six~=1.10.0',
+]
+TEST = [
+    'pytest~=3.0.0',
+    'pytest_cov~=2.4.0',
+]
+
+def get_requirements(test_or_prod=False):
+    """cover py2/3 stdlib extensions
+
+    Args:
+        test_or_prod (bool): test=true, prod=false
+
+    Returns:
+        (:obj:`list`): list of requirements as per py2/3
+
+    """
+    requires_list = []
+    if test_or_prod: #TEST
+        requires_list = TEST
+        if sys.version_info.major < 3:
+            requires_list.append('configparser~=3.5.0')
+    else:
+        requires_list = REQUIRES
+        if sys.version_info.major < 3:
+            requires_list.append('enum~=0.4.6')
+
+    return requires_list
 
 def include_all_subfiles(*args):
     """Slurps up all files in a directory (non recursive) for data_files section
@@ -58,7 +90,7 @@ class PyTest(TestCommand):
         exit(errno)
 
 setup(
-    name='Robinhood',
+    name='rh_redist',
     author='Jamone Kelly',
     author_email='prospermarketshow@gmail.com',
     url='https://github.com/lockefox/Robinhood',
@@ -78,14 +110,8 @@ setup(
     package_data={
 
     },
-    install_requires=[
-        'requests~=2.13.0',
-        'six~=1.10.0'
-    ],
-    tests_require=[
-        'pytest~=3.0.0',
-        'pytest_cov~=2.4.0'
-    ],
+    install_requires=get_requirements(),
+    tests_require=get_requirements(True),
     cmdclass={
         'test':PyTest
     }
