@@ -301,7 +301,7 @@ class Robinhood:
         """
         return self.quote_data(stock)['bid_price']
 
-    def bid_size(self, stock=None):
+    def bid_size(self, stock=''):
         """get bid size for a stock
 
         Note:
