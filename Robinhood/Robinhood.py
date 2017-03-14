@@ -15,6 +15,10 @@ class Bounds(Enum):
     """enum for bounds in `historicals` endpoint"""
     REGULAR = 'regular'
     EXTENDED = 'extended'
+class Transaction(Enum):
+    """enum for buy/sell orders"""
+    BUY = 'buy'
+    SELL = 'sell'
 
 class Robinhood:
 
@@ -187,7 +191,7 @@ class Robinhood:
             stock,
             interval,
             span,
-            bounds='regular'
+            bounds=Bounds.REGULAR
         ):
         """fetch historical data for stock
 
@@ -195,22 +199,20 @@ class Robinhood:
             interval = 5minute | 10minute + span = day, week
             interval = day + span = year
             interval = week
-            bounds can be 'regular' for regular hours or 'extended' for extended hours
+
         Args:
             stock (str): stock ticker
             interval (str): resolution of data
             span (str): length of data
-            bounds (:enum:`Bounds`, optional): ??
+            bounds (:enum:`Bounds`, optional): 'extended' or 'regular' trading hours
 
         Returns:
             (:obj:`dict`) values returned from `historicals` endpoint
 
         """
-        # Valid combination
-        # interval = 5minute | 10minute + span = day, week
-        # interval = day + span = year
-        # interval = week
-        # bounds can be 'regular' for regular hours or 'extended' for extended hours
+        if isinstance(bounds, str): #recast to Enum
+            bounds = Bounds(bounds)
+
         params = {
             'symbols': ','.join(stock).upper,
             'interval': interval,
@@ -220,53 +222,216 @@ class Robinhood:
         res = self.session.get(self.endpoints['historicals'], params=params)
         return res.json()
 
-    def get_news(self, symbol):
-        return self.session.get(self.endpoints['news']+symbol.upper()+"/").json()
+    def get_news(self, stock):
+        """fetch news endpoint
+        Args:
+            stock (str): stock ticker
 
-    def print_quote(self, stock=None):
+        Returns:
+            (:obj:`dict`) values returned from `news` endpoint
+
+        """
+        return self.session.get(self.endpoints['news']+stock.upper()+"/").json()
+
+    def print_quote(self, stock=''):
+        """print quote information
+        Args:
+            stock (str): ticker to fetch
+
+        Returns:
+            None
+
+        """
         data = self.quote_data(stock)
-        print((data["symbol"] + ": $" + data["last_trade_price"]))
+        quote_str = data["symbol"] + ": $" + data["last_trade_price"]
+        print(quote_str)
+        self.logger.info(quote_str)
 
     def print_quotes(self, stocks):
+        """print a collection of stocks
+
+        Args:
+            stocks (:obj:`list`): list of stocks to pirnt
+
+        Returns:
+            None
+
+        """
         for stock in stocks:
             self.print_quote(stock)
 
-    def ask_price(self, stock=None):
+    def ask_price(self, stock=''):
+        """get asking price for a stock
+
+        Note:
+            queries `quote` endpoint, dict wrapper
+
+        Args:
+            stock (str): stock ticker
+
+        Returns:
+            (float): ask price
+
+        """
         return self.quote_data(stock)['ask_price']
 
-    def ask_size(self, stock=None):
+    def ask_size(self, stock=''):
+        """get ask size for a stock
+
+        Note:
+            queries `quote` endpoint, dict wrapper
+
+        Args:
+            stock (str): stock ticker
+
+        Returns:
+            (int): ask size
+
+        """
         return self.quote_data(stock)['ask_size']
 
-    def bid_price(self, stock=None):
+    def bid_price(self, stock=''):
+        """get bid price for a stock
+
+        Note:
+            queries `quote` endpoint, dict wrapper
+
+        Args:
+            stock (str): stock ticker
+
+        Returns:
+            (float): bid price
+
+        """
         return self.quote_data(stock)['bid_price']
 
     def bid_size(self, stock=None):
+        """get bid size for a stock
+
+        Note:
+            queries `quote` endpoint, dict wrapper
+
+        Args:
+            stock (str): stock ticker
+
+        Returns:
+            (int): bid size
+
+        """
         return self.quote_data(stock)['bid_size']
 
-    def last_trade_price(self, stock=None):
+    def last_trade_price(self, stock=''):
+        """get last trade price for a stock
+
+        Note:
+            queries `quote` endpoint, dict wrapper
+
+        Args:
+            stock (str): stock ticker
+
+        Returns:
+            (float): last trade price
+
+        """
         return self.quote_data(stock)['last_trade_price']
 
-    def previous_close(self, stock=None):
+    def previous_close(self, stock=''):
+        """get previous closing price for a stock
+
+        Note:
+            queries `quote` endpoint, dict wrapper
+
+        Args:
+            stock (str): stock ticker
+
+        Returns:
+            (float): previous closing price
+
+        """
         return self.quote_data(stock)['previous_close']
 
-    def previous_close_date(self, stock=None):
+    def previous_close_date(self, stock=''):
+        """get previous closing date for a stock
+
+        Note:
+            queries `quote` endpoint, dict wrapper
+
+        Args:
+            stock (str): stock ticker
+
+        Returns:
+            (str): previous close date
+
+        """
         return self.quote_data(stock)['previous_close_date']
 
-    def adjusted_previous_close(self, stock=None):
+    def adjusted_previous_close(self, stock=''):
+        """get adjusted previous closing price for a stock
+
+        Note:
+            queries `quote` endpoint, dict wrapper
+
+        Args:
+            stock (str): stock ticker
+
+        Returns:
+            (float): adjusted previous closing price
+
+        """
         return self.quote_data(stock)['adjusted_previous_close']
 
-    def symbol(self, stock=None):
+    def symbol(self, stock=''):
+        """get symbol for a stock
+
+        Note:
+            queries `quote` endpoint, dict wrapper
+
+        Args:
+            stock (str): stock ticker
+
+        Returns:
+            (str): stock symbol
+
+        """
         return self.quote_data(stock)['symbol']
 
-    def last_updated_at(self, stock=None):
+    def last_updated_at(self, stock=''):
+        """get last update datetime
+
+        Note:
+            queries `quote` endpoint, dict wrapper
+
+        Args:
+            stock (str): stock ticker
+
+        Returns:
+            (str): last update datetime
+
+        """
         return self.quote_data(stock)['updated_at']
+        #TODO: recast to datetime object?
 
     def get_account(self):
+        """fetch account information
+
+        Returns:
+            (:obj:`dict`): `accounts` endpoint payload
+
+        """
         res = self.session.get(self.endpoints['accounts'])
         res = res.json()
         return res['results'][0]
 
     def get_fundamentals(self, stock=''):
+        """find stock fundamentals data
+
+        Args:
+            (str): stock ticker
+
+        Returns:
+            (:obj:`dict`): contents of `fundamentals` endpoint
+
+        """
         #Prompt for stock if not entered
         if not stock:
             stock = input("Symbol: ")
@@ -278,22 +443,17 @@ class Robinhood:
             req.raise_for_status()
             data = req.json()
         except requests.exceptions.HTTPError:
-            raise NameError('Invalid Symbol: ' + stock)
+            raise NameError('Invalid Symbol: ' + stock) #TODO wrap custom exception
 
         return data
-        #try:
-        #    res = json.loads((urllib.request.urlopen(url)).read().decode('utf-8'));
-        #    if len(res) > 0:
-        #        return res;
-        #    else:
-        #        raise NameError("Invalid Symbol: " + stock);
-        #except (ValueError):
-        #    raise NameError("Invalid Symbol: " + stock);
 
-    def fundamentals(self, stock=None):
+
+    def fundamentals(self, stock=''):
+        """wrapper for get_fundamentlals function"""
         return self.get_fundamentals(stock)
 
-    def get_url(self,url):
+    def get_url(self, url):
+        """flat wrapper for fetching URL directly"""
         return self.session.get(url).json()
 
     ##############################
@@ -305,36 +465,91 @@ class Robinhood:
         return self.session.get(self.endpoints['portfolios']).json()['results'][0]
 
     def adjusted_equity_previous_close(self):
+        """wrapper for portfolios
+
+        get `adjusted_equity_previous_close` value
+
+        """
         return float(self.portfolios()['adjusted_equity_previous_close'])
 
     def equity(self):
+        """wrapper for portfolios
+
+        get `equity` value
+
+        """
         return float(self.portfolios()['equity'])
 
     def equity_previous_close(self):
+        """wrapper for portfolios
+
+        get `equity_previous_close` value
+
+        """
         return float(self.portfolios()['equity_previous_close'])
 
     def excess_margin(self):
+        """wrapper for portfolios
+
+        get `excess_margin` value
+
+        """
         return float(self.portfolios()['excess_margin'])
 
     def extended_hours_equity(self):
+        """wrapper for portfolios
+
+        get `extended_hours_equity` value
+
+        """
         return float(self.portfolios()['extended_hours_equity'])
 
     def extended_hours_market_value(self):
+        """wrapper for portfolios
+
+        get `extended_hours_market_value` value
+
+        """
         return float(self.portfolios()['extended_hours_market_value'])
 
     def last_core_equity(self):
+        """wrapper for portfolios
+
+        get `last_core_equity` value
+
+        """
         return float(self.portfolios()['last_core_equity'])
 
     def last_core_market_value(self):
+        """wrapper for portfolios
+
+        get `last_core_market_value` value
+
+        """
         return float(self.portfolios()['last_core_market_value'])
 
     def market_value(self):
+        """wrapper for portfolios
+
+        get `market_value` value
+
+        """
         return float(self.portfolios()['market_value'])
 
     def order_history(self):
+        """wrapper for portfolios
+
+        get orders from account
+
+        """
         return self.session.get(self.endpoints['orders']).json()
 
     def dividends(self):
+        """wrapper for portfolios
+
+        get dividends from account
+
+        """
         return self.session.get(self.endpoints['dividends']).json()
 
     ##############################
@@ -369,6 +584,23 @@ class Robinhood:
             bid_price=0.0,
             transaction=None
         ):
+        """place an order with Robinhood
+
+        Notes:
+            OMFG TEST THIS PLEASE!
+
+        Args:
+            instrument (str): ??
+            quantity (int): quantity of stocks in order
+            bid_price (float): price for order
+            transaction (:enum:`Transaction`): BUY or SELL enum
+
+        Returns:
+            (:obj:`dict`): result from `orders` put command
+
+        """
+        if isinstance(transaction, str):
+            transaction = Transaction(transaction)
         if not bid_price:
             bid_price = self.quote_data(instrument['symbol'])['bid_price']
         payload = {
@@ -376,7 +608,7 @@ class Robinhood:
             'instrument': unquote(instrument['url']),
             'price': float(bid_price),
             'quantity': quantity,
-            'side': transaction,
+            'side': transaction.name.lower(),
             'symbol': instrument['symbol'],
             'time_in_force': 'gfd',
             'trigger': 'immediate',
@@ -402,7 +634,8 @@ class Robinhood:
             quantity,
             bid_price=0.0
         ):
-        transaction = "buy"
+        """wrapper for place_order for placing buy orders"""
+        transaction = Transaction.BUY
         return self.place_order(instrument, quantity, bid_price, transaction)
 
     def place_sell_order(
@@ -411,5 +644,6 @@ class Robinhood:
             quantity,
             bid_price=0.0
         ):
-        transaction = "sell"
+        """wrapper for place_order for placing sell orders"""
+        transaction = Transaction.SELL
         return self.place_order(instrument, quantity, bid_price, transaction)
