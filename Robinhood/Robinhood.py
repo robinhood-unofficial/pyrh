@@ -88,7 +88,7 @@ class Robinhood:
         return self.session.post(self.endpoints['logout'])
 
     ##############################
-    #GET DATA 
+    #GET DATA
     ##############################
 
     def investment_profile(self):
@@ -126,10 +126,10 @@ class Robinhood:
         # bounds can be 'regular' for regular hours or 'extended' for extended hours
         res = self.session.get(self.endpoints['historicals'], params={'symbols':','.join(symbol).upper(), 'interval':interval, 'span':span, 'bounds':bounds})
         return res.json()
-        
+
     def get_news(self, symbol):
         return self.session.get(self.endpoints['news']+symbol.upper()+"/").json()
-        
+
 
     def print_quote(self, stock=None):
         data = self.quote_data(stock)
@@ -168,7 +168,7 @@ class Robinhood:
 
     def last_updated_at(self, stock=None):
         return self.quote_data(stock)['updated_at'];
-    
+
     def get_account(self):
         res = self.session.get(self.endpoints['accounts'])
         res = res.json()
@@ -191,7 +191,7 @@ class Robinhood:
 
     def fundamentals(self, stock=None):
         return self.get_fundamentals(stock)
-        
+
     def get_url(self,url):
         return self.session.get(url).json()
 
@@ -229,10 +229,10 @@ class Robinhood:
 
     def market_value(self):
         return float(self.portfolios()['market_value'])
-        
+
     def order_history(self):
         return self.session.get(self.endpoints['orders']).json()
-        
+
     def dividends(self):
         return self.session.get(self.endpoints['dividends']).json()
 
@@ -271,7 +271,7 @@ class Robinhood:
             quantity,
             transaction,
             instrument['symbol']
-        ) 
+        )
         res = self.session.post(self.endpoints['orders'], data=data)
         return res
 
