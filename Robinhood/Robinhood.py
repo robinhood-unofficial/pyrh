@@ -1,6 +1,7 @@
 
 import getpass
 import logging
+from enum import Enum
 #from urllib.request import getproxies
 #import urllib.request, urllib.parse, urllib.error
 
@@ -9,6 +10,11 @@ import six
 from six.moves.urllib.parse import unquote
 from six.moves.urllib.request import getproxies
 from six.moves import input
+
+class Bounds(Enum):
+    """enum for bounds in `historicals` endpoint"""
+    REGULAR = 'regular'
+    EXTENDED = 'extended'
 
 class Robinhood:
 
@@ -81,6 +87,16 @@ class Robinhood:
             username,
             password
         ):
+        """save and test login info for Robinhood accounts
+
+        Args:
+            username (str): username
+            password (str): password
+
+        Returns:
+            (bool): received valid auth token
+
+        """
         self.username = username
         self.password = password
         #data = urllib.parse.urlencode({"password" : self.password, "username" : self.username})
@@ -99,6 +115,12 @@ class Robinhood:
         return True
 
     def logout(self):
+        """logout from Robinhood
+
+        Returns:
+            (:obj:`requests.request`) result from logout endpoint
+
+        """
         self.headers['Authorization'] = None
         self.auth_token = None
         return self.session.post(self.endpoints['logout'])
@@ -108,9 +130,19 @@ class Robinhood:
     ##############################
 
     def investment_profile(self):
+        """fetch investment_profile"""
         self.session.get(self.endpoints['investment_profile'])
 
     def instruments(self, stock):
+        """fetch instruments endpoint
+
+        Args:
+            stock (str): stock ticker
+
+        Returns:
+            (:obj:`dict`): JSON contents from `instruments` endpoint
+
+        """
         params = {
             'query': stock.upper()
         }
@@ -122,6 +154,15 @@ class Robinhood:
         return res['results']
 
     def quote_data(self, stock=''):
+        """fetch stock quote (prompt if blank)
+
+        Args:
+            stock (str): stock ticker, prompt if blank
+
+        Returns:
+            (:obj:`dict`): JSON contents from `quotes` endpoint
+
+        """
         #Prompt for stock if not entered
         if not stock:
             stock = input("Symbol: ")
@@ -132,31 +173,49 @@ class Robinhood:
             req.raise_for_status()
             data = req.json()
         except requests.exceptions.HTTPError:
-            raise NameError('Invalid Symbol: ' + stock)
+            raise NameError('Invalid Symbol: ' + stock) #TODO: custom exception
 
         return data
 
     def get_quote(self, stock=''):
+        """wrapper for quote_data"""
         data = self.quote_data(stock)
         return data["symbol"]
 
     def get_historical_quotes(
             self,
-            symbol,
+            stock,
             interval,
             span,
             bounds='regular'
         ):
+        """fetch historical data for stock
+
+        Note: valid interval/span configs
+            interval = 5minute | 10minute + span = day, week
+            interval = day + span = year
+            interval = week
+            bounds can be 'regular' for regular hours or 'extended' for extended hours
+        Args:
+            stock (str): stock ticker
+            interval (str): resolution of data
+            span (str): length of data
+            bounds (:enum:`Bounds`, optional): ??
+
+        Returns:
+            (:obj:`dict`) values returned from `historicals` endpoint
+
+        """
         # Valid combination
         # interval = 5minute | 10minute + span = day, week
         # interval = day + span = year
         # interval = week
         # bounds can be 'regular' for regular hours or 'extended' for extended hours
         params = {
-            'symbols': ','.join(symbol).upper,
+            'symbols': ','.join(stock).upper,
             'interval': interval,
             'span': span,
-            'bounds': bounds
+            'bounds': bounds.name.lower()
         }
         res = self.session.get(self.endpoints['historicals'], params=params)
         return res.json()
