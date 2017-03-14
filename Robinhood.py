@@ -8,6 +8,7 @@ class Robinhood:
 
     endpoints = {
             "login": "https://api.robinhood.com/api-token-auth/",
+            "logout": "https://api.robinhood.com/api-token-logout/",
             "investment_profile": "https://api.robinhood.com/user/investment_profile/",
             "accounts":"https://api.robinhood.com/accounts/",
             "ach_iav_auth":"https://api.robinhood.com/ach/iav/auth/",
@@ -80,6 +81,11 @@ class Robinhood:
             return False
         self.headers['Authorization'] = 'Token '+self.auth_token
         return True
+
+    def logout(self):
+        url = str(self.endpoints['quotes'])
+        urllib.request.urlopen(url)
+        return
 
     ##############################
     #GET DATA 
