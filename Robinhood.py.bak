@@ -2,7 +2,7 @@
 import getpass
 import json
 import requests
-import urllib.request, urllib.parse, urllib.error
+import urllib
 
 class Robinhood:
 
@@ -29,8 +29,7 @@ class Robinhood:
             "document_requests":"https://api.robinhood.com/upload/document_requests/",
             "user":"https://api.robinhood.com/user/",
             "watchlists":"https://api.robinhood.com/watchlists/",
-            "news":"https://api.robinhood.com/midlands/news/",
-            "fundamentals":"https://api.robinhood.com/fundamentals/",
+            "news":"https://api.robinhood.com/midlands/news/"
     }
 
     session = None
@@ -64,14 +63,14 @@ class Robinhood:
 
     def login_prompt(self):
         """Prompts user for username and password and calls login()."""
-        username = input("Username: ")
+        username = raw_input("Username: ")
         password = getpass.getpass()
         return self.login(username=username, password=password)
 
     def login(self, username, password):
         self.username = username
         self.password = password
-        data = urllib.parse.urlencode({"password" : self.password, "username" : self.username})
+        data = urllib.urlencode({"password" : self.password, "username" : self.username})
         res = self.session.post(self.endpoints['login'], data=data)
         res = res.json()
         try:
@@ -96,7 +95,7 @@ class Robinhood:
     def quote_data(self, stock=None):
         #Prompt for stock if not entered
         if stock is None:
-            stock = input("Symbol: ");
+            stock = raw_input("Symbol: ");
         url = str(self.endpoints['quotes']) + str(stock) + "/"
         #Check for validity of symbol
         try:
@@ -127,7 +126,7 @@ class Robinhood:
 
     def print_quote(self, stock=None):
         data = self.quote_data(stock)
-        print((data["symbol"] + ": $" + data["last_trade_price"]));
+        print(data["symbol"] + ": $" + data["last_trade_price"]);
 
     def print_quotes(self, stocks):
         for i in range(len(stocks)):
@@ -167,24 +166,6 @@ class Robinhood:
         res = self.session.get(self.endpoints['accounts'])
         res = res.json()
         return res['results'][0]
-
-    def get_fundamentals(self, stock=None):
-        #Prompt for stock if not entered
-        if stock is None:
-            stock = input("Symbol: ");
-        url = str(self.endpoints['fundamentals']) + str(stock.upper()) + "/"
-        #Check for validity of symbol
-        try:
-            res = json.loads((urllib.request.urlopen(url)).read().decode('utf-8'));
-            if len(res) > 0:
-                return res;
-            else:
-                raise NameError("Invalid Symbol: " + stock);
-        except (ValueError):
-            raise NameError("Invalid Symbol: " + stock);
-
-    def fundamentals(self, stock=None):
-        return self.get_fundamentals(stock)
         
     def get_url(self,url):
         return self.session.get(url).json()
@@ -260,7 +241,7 @@ class Robinhood:
             bid_price = self.quote_data(instrument['symbol'])['bid_price']
         data = 'account=%s&instrument=%s&price=%f&quantity=%d&side=%s&symbol=%s&time_in_force=gfd&trigger=immediate&type=market' % (
             self.get_account()['url'],
-            urllib.parse.unquote(instrument['url']),
+            urllib.unquote(instrument['url']),
             float(bid_price),
             quantity,
             transaction,
