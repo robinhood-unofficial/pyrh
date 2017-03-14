@@ -79,7 +79,8 @@ setup(
 
     },
     install_requires=[
-
+        'requests~=2.13.0',
+        'six~=1.10.0'
     ],
     tests_require=[
         'pytest~=3.0.0',
