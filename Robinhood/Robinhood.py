@@ -1,9 +1,7 @@
-
+"""Robinhood.py: a collection of utilities for working with Robinhood's Private API"""
 import getpass
 import logging
 from enum import Enum
-#from urllib.request import getproxies
-#import urllib.request, urllib.parse, urllib.error
 
 import requests
 import six
@@ -21,7 +19,7 @@ class Transaction(Enum):
     SELL = 'sell'
 
 class Robinhood:
-
+    """wrapper class for fetching/parsing Robinhood endpoints"""
     endpoints = {
         "login": "https://api.robinhood.com/api-token-auth/",
         "logout": "https://api.robinhood.com/api-token-logout/",
@@ -103,12 +101,10 @@ class Robinhood:
         """
         self.username = username
         self.password = password
-        #data = urllib.parse.urlencode({"password" : self.password, "username" : self.username})
         params = {
             'password': self.password,
             'username': self.username
         }
-        #res = self.session.post(self.endpoints['login'], data=data)
         res = self.session.post(self.endpoints['login'], params=params)
         res = res.json()
         try:
