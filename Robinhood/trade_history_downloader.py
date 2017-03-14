@@ -1,4 +1,4 @@
-import json                                                                                                                                                                                                         
+import json
 import csv
 import shelve
 
@@ -45,7 +45,7 @@ def get_all_history_orders(rb_client):
 
 
 rb = Robinhood()
-# !!!!!! change the username and passs, be careful when paste the code to public 
+# !!!!!! change the username and passs, be careful when paste the code to public
 rb.login(username="name", password="pass")
 past_orders = get_all_history_orders(rb)
 instruments_db = shelve.open('instruments.db')
