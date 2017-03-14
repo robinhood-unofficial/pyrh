@@ -63,3 +63,6 @@ By default, this module is written in Python 2.  For users who wish to use the m
 
 * [robinhood-ruby](https://github.com/rememberlenny/robinhood-ruby) - RubyGem for interacting with Robinhood API
 * [robinhood-node](https://github.com/aurbano/robinhood-node) - NodeJS module to make trades with Robinhood Private API
+
+This project is a FORK of original code by:
+https://github.com/Jamonek/Robinhood
