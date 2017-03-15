@@ -30,6 +30,7 @@ class TestQuoteHelpers:
     """wrapper to test quote architecture in order"""
     test_ticker = CONFIG.get('FETCH', 'test_ticker')
     fake_ticker = CONFIG.get('FETCH', 'fake_ticker')
+    rh_obj = Robinhood()
     def test_quote_endpoint(self, config=CONFIG):
         """get raw data from Robinhood to test against"""
         global TEST_QUOTE
@@ -47,10 +48,9 @@ class TestQuoteHelpers:
 
         TEST_QUOTE = data
 
-    def test_validate_quote(self, config=CONFIG):
+    def test_validate_quote(self):
         """validate fetcher"""
-        rh_obj = Robinhood()
-        data = rh_obj.quote_data(self.test_ticker)
+        data = self.rh_obj.quote_data(self.test_ticker)
         if data['updated_at'] == TEST_QUOTE['updated_at']:
             assert data == TEST_QUOTE
         else:
@@ -58,22 +58,79 @@ class TestQuoteHelpers:
                 if key in TESTABLE_KEYS:
                     assert data[key] == TEST_QUOTE[key]
 
-    def test_validate_fail_quote(self, config=CONFIG):
+    def test_validate_fail_quote(self):
         """validate bad-path exception"""
-        rh_obj = Robinhood()
+
         with pytest.raises(NameError):
-            data = rh_obj.quote_data(self.fake_ticker)
+            data = self.rh_obj.quote_data(self.fake_ticker)
 
-    def test_validate_get_quote(self, config=CONFIG):
+    def test_validate_get_quote(self):
         """validate `get_quote` call"""
-        pass
+        data = self.rh_obj.get_quote(self.test_ticker)
+        assert data == TEST_QUOTE['symbol']
 
-    def test_validate_ask_price(self, config=CONFIG):
+    def test_validate_ask_price(self):
         """validate `ask_price` call"""
-        pass
+        data = self.rh_obj.ask_price(self.test_ticker)
+        quote = self.rh_obj.quote_data(self.test_ticker)
 
-    def test_ask_size(self, config=CONFIG):
+        assert data == quote['ask_price']
+
+    def test_validate_ask_size(self):
         """validate `ask_size` call"""
-        pass
+        data = self.rh_obj.ask_size(self.test_ticker)
+        quote = self.rh_obj.quote_data(self.test_ticker)
 
+        assert data == quote['ask_size']
 
+    def test_validate_bid_price(self):
+        """validate `bid_price` call"""
+        data = self.rh_obj.bid_price(self.test_ticker)
+        quote = self.rh_obj.quote_data(self.test_ticker)
+
+        assert data == quote['bid_price']
+
+    def test_validate_bid_size(self):
+        """validate `bid_size` call"""
+        data = self.rh_obj.bid_size(self.test_ticker)
+        quote = self.rh_obj.quote_data(self.test_ticker)
+
+        assert data == quote['bid_size']
+
+    def test_validate_last_trade_price(self):
+        """validate `last_trade_price` call"""
+        data = self.rh_obj.last_trade_price(self.test_ticker)
+        quote = self.rh_obj.quote_data(self.test_ticker)
+
+        assert data == quote['last_trade_price']
+
+    def test_validate_previous_close(self):
+        """validate `previous_close` call"""
+        data = self.rh_obj.previous_close(self.test_ticker)
+
+        assert data == TEST_QUOTE['previous_close']
+
+    def test_validate_previous_close_date(self):
+        """validate `previous_close_date` call"""
+        data = self.rh_obj.previous_close_date(self.test_ticker)
+
+        assert data == TEST_QUOTE['previous_close_date']
+
+    def test_validate_adjusted_previous_close(self):
+        """validate `adjusted_previous_close` call"""
+        data = self.rh_obj.adjusted_previous_close(self.test_ticker)
+
+        assert data == TEST_QUOTE['adjusted_previous_close']
+
+    def test_validate_symbol(self):
+        """validate `symbol` call"""
+        data = self.rh_obj.symbol(self.test_ticker)
+
+        assert data == TEST_QUOTE['symbol']
+
+    def test_validate_last_updated_at(self):
+        """validate `last_updated_at` call"""
+        data = self.rh_obj.last_updated_at(self.test_ticker)
+        quote = self.rh_obj.quote_data(self.test_ticker)
+
+        assert data == quote['updated_at']
