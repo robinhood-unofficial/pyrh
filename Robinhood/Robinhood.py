@@ -12,14 +12,37 @@ from six.moves import input
 
 import Robinhood.exceptions as RH_exception
 
+
 class Bounds(Enum):
     """enum for bounds in `historicals` endpoint"""
     REGULAR = 'regular'
     EXTENDED = 'extended'
+
+
 class Transaction(Enum):
     """enum for buy/sell orders"""
     BUY = 'buy'
     SELL = 'sell'
+
+
+class Order(Enum):
+    """enum for order type"""
+    MARKET = 'market'
+    LIMIT = 'limit'
+
+
+class Trigger(Enum):
+    """ enum for order trigger """
+    IMMEDIATE = 'immediate'
+    STOP = 'stop'
+    ONCLOSE = 'on_close'
+
+
+class TimeInForce(Enum):
+    """ enum for order time in force """
+    GOOD_FOR_DAY = 'gfd'
+    GOOD_UNTIL_CANCELLED = 'gtc'
+
 
 class Robinhood:
     """wrapper class for fetching/parsing Robinhood endpoints"""
@@ -598,7 +621,10 @@ class Robinhood:
             instrument,
             quantity=1,
             bid_price=0.0,
-            transaction=None
+            transaction=None,
+            trigger='immediate',
+            order='market',
+            time_in_force = 'gfd'
         ):
         """place an order with Robinhood
 
@@ -626,9 +652,9 @@ class Robinhood:
             'quantity': quantity,
             'side': transaction.name.lower(),
             'symbol': instrument['symbol'],
-            'time_in_force': 'gfd',
-            'trigger': 'immediate',
-            'type': 'market'
+            'time_in_force': time_in_force,
+            'trigger': trigger,
+            'type': order
         }
         #data = 'account=%s&instrument=%s&price=%f&quantity=%d&side=%s&symbol=%s#&time_in_force=gfd&trigger=immediate&type=market' % (
         #    self.get_account()['url'],
@@ -644,7 +670,7 @@ class Robinhood:
         )
         return res
 
-    def place_buy_order(
+    def place_market_buy_order(
             self,
             instrument,
             quantity,
@@ -654,7 +680,7 @@ class Robinhood:
         transaction = Transaction.BUY
         return self.place_order(instrument, quantity, bid_price, transaction)
 
-    def place_sell_order(
+    def place_market_sell_order(
             self,
             instrument,
             quantity,
@@ -663,3 +689,55 @@ class Robinhood:
         """wrapper for place_order for placing sell orders"""
         transaction = Transaction.SELL
         return self.place_order(instrument, quantity, bid_price, transaction)
+
+    def place_limit_buy_order(
+            self,
+            instrument,
+            quantity,
+            price,
+            time_in_force
+        ):
+        """ wrapper for limit order buy """
+        transaction = Transaction.BUY
+        order = Order.LIMIT
+        trigger = Trigger.IMMEDIATE
+        return self.place_order(instrument, quantity, price, transaction, trigger, order, time_in_force)
+
+    def place_limit_sell_order(
+            self,
+            instrument,
+            quantity,
+            price,
+            time_in_force
+        ):
+        """ wrapper for limit order buy """
+        transaction = Transaction.SELL
+        order = Order.LIMIT
+        trigger = Trigger.IMMEDIATE
+        return self.place_order(instrument, quantity, price, transaction, trigger, order, time_in_force)
+
+    def place_stop_loss_order(
+            self,
+            instrument,
+            quantity,
+            price,
+            time_in_force
+        ):
+        """ wrapper for stop loss """
+        transaction = Transaction.SELL
+        order = Order.MARKET
+        trigger = Trigger.STOP
+        return self.place_order(instrument, quantity, price, transaction, trigger, order, time_in_force)
+
+    def place_stop_limit_order(
+            self,
+            instrument,
+            quantity,
+            price,
+            time_in_force
+        ):
+        """ wrapper for limit order buy """
+        transaction = Transaction.SELL
+        order = Order.LIMIT
+        trigger = Trigger.STOP
+        return self.place_order(instrument, quantity, price, transaction, trigger, order, time_in_force)
