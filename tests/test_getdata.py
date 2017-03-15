@@ -152,7 +152,7 @@ class TestFundamentalsHelpers:
             self.test_ticker,
             config
         )
-
+    @flaky
     def test_validate_fundamental(self):
         """validate fetcher"""
         data = self.rh_obj.get_fundamentals(self.test_ticker)

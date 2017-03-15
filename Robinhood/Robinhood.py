@@ -504,7 +504,7 @@ class Robinhood:
         """Returns the user's portfolio data."""
         req = self.session.get(self.endpoints['portfolios'])
         req.raise_for_status()
-        return req.json()
+        return req.json()['results'][0]
 
     def adjusted_equity_previous_close(self):
         """wrapper for portfolios
@@ -544,7 +544,10 @@ class Robinhood:
         get `extended_hours_equity` value
 
         """
-        return float(self.portfolios()['extended_hours_equity'])
+        try:
+            return float(self.portfolios()['extended_hours_equity'])
+        except TypeError:
+            return None
 
     def extended_hours_market_value(self):
         """wrapper for portfolios
@@ -552,7 +555,10 @@ class Robinhood:
         get `extended_hours_market_value` value
 
         """
-        return float(self.portfolios()['extended_hours_market_value'])
+        try:
+            return float(self.portfolios()['extended_hours_market_value'])
+        except TypeError:
+            return None
 
     def last_core_equity(self):
         """wrapper for portfolios
