@@ -1,6 +1,6 @@
 # Testing Robinhood Library
 
-Using [py.test](http://doc.pytest.org/en/latest/contents.html) to validate coverage and behavior of Robinhood methods
+Using [py.test](http://doc.pytest.org/en/latest/contents.html) to validate coverage and behavior of Robinhood methods.  Devs should feel confident that when they use this library, that their data is being handled properly and reliably, especially when real-money could be on the line.
 
 ## Getting Started
 
