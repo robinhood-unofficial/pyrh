@@ -1,3 +1,4 @@
+from os import path
 import configparser
 
 import requests
@@ -20,6 +21,10 @@ def get_config(config_filename):
         delimiters=('='),
         inline_comment_prefixes=('#')
     )
+
+    local_filename = config_filename.replace('.cfg', '_local.cfg')
+    if path.isfile(local_filename):
+        config_filename = local_filename
 
     with open(config_filename, 'r') as file:
         config.read_file(file)
