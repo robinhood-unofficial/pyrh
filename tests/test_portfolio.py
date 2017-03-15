@@ -1,11 +1,14 @@
 from os import path
 from datetime import datetime
+import six
 
 import pytest
 from flaky import flaky
 
 from Robinhood import Robinhood
 import Robinhood.exceptions as RH_exception
+if six.PY2:
+    from Robinhood import RH_exception
 
 import helpers
 
@@ -57,7 +60,7 @@ class TestPortfolioMethods:
     """
     rh_obj = Robinhood()
     rh_obj.login(
-        username=CONFIG.get('LOGIN', 'username'),
+        username=CONFIG.get('LOGIN', 'username'),   #NOTE: py.test fails w/o password
         password=CONFIG.get('LOGIN', 'password')
     )
     def test_portfolios(self):

@@ -10,8 +10,10 @@ from six.moves.urllib.parse import unquote
 from six.moves.urllib.request import getproxies
 from six.moves import input
 
-import Robinhood.exceptions as RH_exception
-
+if six.PY3:
+    import Robinhood.exceptions as RH_exception
+else:
+    import exceptions as RH_exception
 
 class Bounds(Enum):
     """enum for bounds in `historicals` endpoint"""
@@ -84,7 +86,8 @@ class Robinhood:
 
     auth_token = None
 
-    logger = logging.getLogger('Robinhood').addHandler(logging.NullHandler())
+    logger = logging.getLogger('Robinhood')
+    logger.addHandler(logging.NullHandler())
 
     ##############################
     #Logging in and initializing
@@ -748,3 +751,6 @@ class Robinhood:
         order = Order.LIMIT
         trigger = Trigger.STOP
         return self.place_order(instrument, quantity, price, transaction, trigger, order, time_in_force)
+
+class TestException(Exception):
+    pass
