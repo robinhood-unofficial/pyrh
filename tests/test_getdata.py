@@ -152,11 +152,12 @@ class TestFundamentalsHelpers:
             self.test_ticker,
             config
         )
-
+        TEST_FUNDAMENTAL['volume'] = 'OVERWRITE'    #flaky value
     @flaky
     def test_validate_fundamental(self):
         """validate fetcher"""
         data = self.rh_obj.get_fundamentals(self.test_ticker)
+        data['volume'] = 'OVERWRITE'    #flaky value
         assert data == TEST_FUNDAMENTAL
 
     def test_validate_fail_fundamental(self):
@@ -168,6 +169,9 @@ class TestFundamentalsHelpers:
     def test_validate_fundamental_wrapper(self):
         main_data = self.rh_obj.fundamentals(self.test_ticker)
         wrapped_data = self.rh_obj.fundamentals(self.test_ticker)
+
+        main_data['volume'] = 'OVERWRITE'       #flaky value
+        wrapped_data['volume'] = 'OVERWRITE'    #flaky value
 
         assert wrapped_data == main_data
         assert wrapped_data == TEST_FUNDAMENTAL

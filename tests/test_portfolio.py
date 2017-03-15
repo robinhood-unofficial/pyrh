@@ -134,6 +134,11 @@ class TestPortfolioMethods:
         assert isinstance(value, float)
         assert format(value, '.4f') == TEST_PORTFOLIO['market_value']
 
+    def test_investment_profile(self):
+        """test `investment_profile` endpoint"""
+        data = self.rh_obj.investment_profile()
+        #TODO: validate keys
+
 def test_logout(config=CONFIG):
     """make sure logout works"""
     if not LOGIN_OK:

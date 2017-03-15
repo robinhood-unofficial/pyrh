@@ -10,9 +10,9 @@ from six.moves.urllib.parse import unquote
 from six.moves.urllib.request import getproxies
 from six.moves import input
 
-if six.PY3:
+if six.PY3: #pragma: no cover
     import Robinhood.exceptions as RH_exception
-else:
+else:       #pragma: no cover
     import exceptions as RH_exception
 
 class Bounds(Enum):
@@ -145,7 +145,7 @@ class Robinhood:
             raise RH_exception.LoginFailed()
         if 'mfa_required' in data.keys():           #pragma: no cover
             raise RH_exception.TwoFactorRequired()  #requires a second account to enable 2FA
-        if not 'token' in data.keys():
+        if not 'token' in data.keys():              #TODO: testable?  covered by HTTP error?
             return False
         self.auth_token = data['token']
         self.headers['Authorization'] = 'Token ' + self.auth_token
@@ -175,7 +175,10 @@ class Robinhood:
 
     def investment_profile(self):
         """fetch investment_profile"""
-        self.session.get(self.endpoints['investment_profile'])
+        res = self.session.get(self.endpoints['investment_profile'])
+        res.raise_for_status()  #will throw without auth
+        data = res.json()
+        return data
 
     def instruments(self, stock):
         """fetch instruments endpoint
