@@ -5,6 +5,8 @@ import pytest
 from flaky import flaky
 
 from Robinhood import Robinhood
+import Robinhood.exceptions as RH_exception
+
 import helpers
 
 HERE = path.abspath(path.dirname(__file__))
@@ -24,13 +26,13 @@ def test_login_happypath(config=CONFIG):
         pytest.xfail('no login credentials given')
 
     try:
-        LOGIN_OK = Robinhood.login(
+        LOGIN_OK = Robinhood().login(
             username=config.get('LOGIN', 'username'),
             password=config.get('LOGIN', 'password')
         )
     except Exception as err_msg:
         LOGIN_OK = False
-        pytest.xfail('login failed: ' + repr(err_msg))
+        raise err_msg
 
     assert LOGIN_OK
 
@@ -39,8 +41,9 @@ def test_login_badpass(config=CONFIG):
     if not LOGIN_OK:
         pytest.xfail('cannot test without valid user/passwd')
     bad_pass = 'PASSWORD'
-    with pytest.raises(KeyError):
-        Robinhood.login(
+    with pytest.raises(RH_exception.LoginFailed):
+        Robinhood().login(
             username=config.get('LOGIN', 'username'),
             password=bad_pass
         )
+
