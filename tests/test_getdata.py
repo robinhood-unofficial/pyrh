@@ -3,6 +3,7 @@ from datetime import datetime
 
 import pytest
 from flaky import flaky
+import requests
 
 from Robinhood import Robinhood
 import helpers
@@ -13,8 +14,6 @@ ROOT = path.dirname(HERE)
 CONFIG_FILENAME = path.join(HERE, 'test_config.cfg')
 
 CONFIG = helpers.get_config(CONFIG_FILENAME)
-
-STOP_TEST = False
 
 TEST_QUOTE = {}
 
@@ -36,18 +35,11 @@ class TestQuoteHelpers:
         """get raw data from Robinhood to test against"""
         global TEST_QUOTE
 
-        try:
-            data = helpers.fetch_REST_directly(
-                'quotes',
-                self.test_ticker,
-                config
-            )
-        except Exception:
-            global STOP_TEST
-            STOP_TEST = True
-            raise
-
-        TEST_QUOTE = data
+        TEST_QUOTE = helpers.fetch_REST_directly(
+            'quotes',
+            self.test_ticker,
+            config
+        )
 
     def test_validate_quote(self):
         """validate fetcher"""
@@ -61,7 +53,6 @@ class TestQuoteHelpers:
 
     def test_validate_fail_quote(self):
         """validate bad-path exception"""
-
         with pytest.raises(NameError):
             data = self.rh_obj.quote_data(self.fake_ticker)
 
@@ -141,3 +132,58 @@ class TestQuoteHelpers:
         quote = self.rh_obj.quote_data(self.test_ticker)
 
         assert data == quote['updated_at']
+
+TEST_FUNDAMENTAL = {}
+@pytest.mark.incremental
+class TestFundamentalsHelpers:
+    """wrapper to test fundamental architecture in order"""
+    test_ticker = CONFIG.get('FETCH', 'test_ticker')
+    fake_ticker = CONFIG.get('FETCH', 'fake_ticker')
+    rh_obj = Robinhood()
+    def test_fundamental_endpoint(self, config=CONFIG):
+        """get raw data from Robinhood to test against"""
+        global TEST_FUNDAMENTAL
+
+        TEST_FUNDAMENTAL = helpers.fetch_REST_directly(
+            'fundamentals',
+            self.test_ticker,
+            config
+        )
+
+    def test_validate_fundamental(self):
+        """validate fetcher"""
+        data = self.rh_obj.get_fundamentals(self.test_ticker)
+        assert data == TEST_FUNDAMENTAL
+
+    def test_validate_fail_fundamental(self):
+        """validate bad-path exception"""
+        with pytest.raises(NameError):
+            data = self.rh_obj.get_fundamentals(self.fake_ticker)
+
+    def test_validate_fundamental_wrapper(self):
+        main_data = self.rh_obj.fundamentals(self.test_ticker)
+        wrapped_data = self.rh_obj.fundamentals(self.test_ticker)
+
+        assert wrapped_data == main_data
+        assert wrapped_data == TEST_FUNDAMENTAL
+
+TEST_URL_RESULT = {}
+@pytest.mark.incremental
+class TestURLWrapper:
+    """make sure get_url returns expected behavior"""
+    base_url = 'https://api.robinhood.com/'
+    rh_obj = Robinhood()
+    def test_url_endpoint(self):
+        """fetch url directly"""
+        global TEST_URL_RESULT
+
+        req = requests.get(self.base_url)
+        req.raise_for_status()
+
+        TEST_URL_RESULT = req.json()
+
+    def test_get_url(self):
+        """fetch url with get_url"""
+        data = self.rh_obj.get_url(self.base_url)
+        assert data == TEST_URL_RESULT
+
