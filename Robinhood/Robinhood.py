@@ -197,6 +197,7 @@ class Robinhood:
             self.endpoints['instruments'],
             params=params
         )
+        res.raise_for_status()
         res = res.json()
         return res['results']
 

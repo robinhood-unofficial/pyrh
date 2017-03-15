@@ -207,3 +207,25 @@ def test_get_news(config=CONFIG):
     get_news = Robinhood().get_news(test_ticker)
 
     assert get_news == raw_news
+
+def test_intstruments(config=CONFIG):
+    """test `instruments` endpoint"""
+    #TODO: this test is bad, just repeat of code inside endpoint
+    params = {
+        'query': CONFIG.get('FETCH', 'test_ticker')
+    }
+    headers = {
+        'User-Agent': CONFIG.get('FETCH', 'user_agent')
+    }
+    address = Robinhood().endpoints['instruments']
+    res = requests.get(
+        address,
+        headers=headers,
+        params=params
+    )
+    res.raise_for_status()
+    hard_data = res.json()['results']
+
+    data = Robinhood().instruments(CONFIG.get('FETCH', 'test_ticker'))
+
+    assert data == hard_data
