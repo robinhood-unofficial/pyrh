@@ -95,7 +95,7 @@ class PyTest(TestCommand):
 setup(
     name='Robinhood',
     author='Jamone Kelly',
-    author_email='prospermarketshow@gmail.com',
+    author_email='TODO',
     url='https://github.com/lockefox/Robinhood',
     download_url='https://github.com/lockefox/Robinhood/tarball/v' + __version__,
     version=__version__,
