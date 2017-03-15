@@ -27,25 +27,6 @@ class Transaction(Enum):
     SELL = 'sell'
 
 
-class Order(Enum):
-    """enum for order type"""
-    MARKET = 'market'
-    LIMIT = 'limit'
-
-
-class Trigger(Enum):
-    """ enum for order trigger """
-    IMMEDIATE = 'immediate'
-    STOP = 'stop'
-    ONCLOSE = 'on_close'
-
-
-class TimeInForce(Enum):
-    """ enum for order time in force """
-    GOOD_FOR_DAY = 'gfd'
-    GOOD_UNTIL_CANCELLED = 'gtc'
-
-
 class Robinhood:
     """wrapper class for fetching/parsing Robinhood endpoints"""
     endpoints = {
@@ -190,12 +171,9 @@ class Robinhood:
             (:obj:`dict`): JSON contents from `instruments` endpoint
 
         """
-        params = {
-            'query': stock.upper()
-        }
         res = self.session.get(
             self.endpoints['instruments'],
-            params=params
+            params={'query': stock.upper()}
         )
         res.raise_for_status()
         res = res.json()
@@ -264,7 +242,10 @@ class Robinhood:
             'span': span,
             'bounds': bounds.name.lower()
         }
-        res = self.session.get(self.endpoints['historicals'], params=params)
+        res = self.session.get(
+            self.endpoints['historicals'],
+            params=params
+        )
         return res.json()
 
     def get_news(self, stock):
@@ -468,6 +449,14 @@ class Robinhood:
         res = res.json()
         return res['results'][0]
 
+    def get_url(self, url):
+        """flat wrapper for fetching URL directly"""
+        return self.session.get(url).json()
+
+    ##############################
+    #GET FUNDAMENTALS
+    ##############################
+
     def get_fundamentals(self, stock=''):
         """find stock fundamentals data
 
@@ -497,10 +486,6 @@ class Robinhood:
     def fundamentals(self, stock=''):
         """wrapper for get_fundamentlals function"""
         return self.get_fundamentals(stock)
-
-    def get_url(self, url):
-        """flat wrapper for fetching URL directly"""
-        return self.session.get(url).json()
 
     ##############################
     # PORTFOLIOS DATA
@@ -660,7 +645,7 @@ class Robinhood:
             time_in_force (:enum:`TIME_IN_FORCE`): GFD or GTC (day or until cancelled)
 
         Returns:
-            (:obj:`dict`): result from `orders` put command
+            (:obj:`requests.request`): result from `orders` put command
 
         """
         if isinstance(transaction, str):
@@ -690,76 +675,45 @@ class Robinhood:
             self.endpoints['orders'],
             params=payload
         )
+        res.raise_for_status()
         return res
 
-    def place_market_buy_order(
+    def place_buy_order(
             self,
             instrument,
             quantity,
             bid_price=0.0
-        ):
-        """wrapper for place_order for placing buy orders"""
+    ):
+        """wrapper for placing buy orders
+
+        Args:
+            instrument (dict): the RH URL and symbol in dict for the instrument to be traded
+            quantity (int): quantity of stocks in order
+            bid_price (float): price for order
+
+        Returns:
+            (:obj:`requests.request`): result from `orders` put command
+
+        """
         transaction = Transaction.BUY
         return self.place_order(instrument, quantity, bid_price, transaction)
 
-    def place_market_sell_order(
+    def place_sell_order(
             self,
             instrument,
             quantity,
             bid_price=0.0
-        ):
-        """wrapper for place_order for placing sell orders"""
+    ):
+        """wrapper for placing sell orders
+
+        Args:
+            instrument (dict): the RH URL and symbol in dict for the instrument to be traded
+            quantity (int): quantity of stocks in order
+            bid_price (float): price for order
+
+        Returns:
+            (:obj:`requests.request`): result from `orders` put command
+
+        """
         transaction = Transaction.SELL
         return self.place_order(instrument, quantity, bid_price, transaction)
-
-    def place_limit_buy_order(
-            self,
-            instrument,
-            quantity,
-            price,
-            time_in_force
-        ):
-        """ wrapper for limit order buy """
-        transaction = Transaction.BUY
-        order = Order.LIMIT
-        trigger = Trigger.IMMEDIATE
-        return self.place_order(instrument, quantity, price, transaction, trigger, order, time_in_force)
-
-    def place_limit_sell_order(
-            self,
-            instrument,
-            quantity,
-            price,
-            time_in_force
-        ):
-        """ wrapper for limit order buy """
-        transaction = Transaction.SELL
-        order = Order.LIMIT
-        trigger = Trigger.IMMEDIATE
-        return self.place_order(instrument, quantity, price, transaction, trigger, order, time_in_force)
-
-    def place_stop_loss_order(
-            self,
-            instrument,
-            quantity,
-            price,
-            time_in_force
-        ):
-        """ wrapper for stop loss """
-        transaction = Transaction.SELL
-        order = Order.MARKET
-        trigger = Trigger.STOP
-        return self.place_order(instrument, quantity, price, transaction, trigger, order, time_in_force)
-
-    def place_stop_limit_order(
-            self,
-            instrument,
-            quantity,
-            price,
-            time_in_force
-        ):
-        """ wrapper for limit order buy """
-        transaction = Transaction.SELL
-        order = Order.LIMIT
-        trigger = Trigger.STOP
-        return self.place_order(instrument, quantity, price, transaction, trigger, order, time_in_force)
