@@ -751,6 +751,3 @@ class Robinhood:
         order = Order.LIMIT
         trigger = Trigger.STOP
         return self.place_order(instrument, quantity, price, transaction, trigger, order, time_in_force)
-
-class TestException(Exception):
-    pass
