@@ -78,7 +78,7 @@ class Robinhood:
         }
         self.session.headers = self.headers
 
-    def login_prompt(self):
+    def login_prompt(self): #pragma: no cover
         """Prompts user for username and password and calls login()."""
         username = input("Username: ")
         password = getpass.getpass()
@@ -164,7 +164,7 @@ class Robinhood:
 
         """
         #Prompt for stock if not entered
-        if not stock:
+        if not stock:   #pragma: no cover
             stock = input("Symbol: ")
         url = str(self.endpoints['quotes']) + str(stock) + "/"
         #Check for validity of symbol
@@ -429,7 +429,7 @@ class Robinhood:
 
         """
         #Prompt for stock if not entered
-        if not stock:
+        if not stock:   #pragma: no cover
             stock = input("Symbol: ")
 
         url = str(self.endpoints['fundamentals']) + str(stock.upper()) + "/"
