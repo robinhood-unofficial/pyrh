@@ -243,6 +243,7 @@ class Robinhood:
             interval = 5minute | 10minute + span = day, week
             interval = day + span = year
             interval = week
+            TODO: NEEDS TESTS
 
         Args:
             stock (str): stock ticker
@@ -277,7 +278,7 @@ class Robinhood:
         """
         return self.session.get(self.endpoints['news']+stock.upper()+"/").json()
 
-    def print_quote(self, stock=''):
+    def print_quote(self, stock=''):    #pragma: no cover
         """print quote information
         Args:
             stock (str): ticker to fetch
@@ -291,7 +292,7 @@ class Robinhood:
         print(quote_str)
         self.logger.info(quote_str)
 
-    def print_quotes(self, stocks):
+    def print_quotes(self, stocks): #pragma: no cover
         """print a collection of stocks
 
         Args:
@@ -463,6 +464,7 @@ class Robinhood:
 
         """
         res = self.session.get(self.endpoints['accounts'])
+        res.raise_for_status()  #auth required
         res = res.json()
         return res['results'][0]
 

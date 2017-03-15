@@ -139,6 +139,11 @@ class TestPortfolioMethods:
         data = self.rh_obj.investment_profile()
         #TODO: validate keys
 
+    def test_get_account(self):
+        """test `get_account` endpoing"""
+        data = self.rh_obj.get_account()
+        #TODO: validate keys
+
 def test_logout(config=CONFIG):
     """make sure logout works"""
     if not LOGIN_OK:
