@@ -152,6 +152,7 @@ class TestFundamentalsHelpers:
             self.test_ticker,
             config
         )
+
     @flaky
     def test_validate_fundamental(self):
         """validate fetcher"""
@@ -163,6 +164,7 @@ class TestFundamentalsHelpers:
         with pytest.raises(NameError):
             data = self.rh_obj.get_fundamentals(self.fake_ticker)
 
+    @flaky
     def test_validate_fundamental_wrapper(self):
         main_data = self.rh_obj.fundamentals(self.test_ticker)
         wrapped_data = self.rh_obj.fundamentals(self.test_ticker)
@@ -190,3 +192,14 @@ class TestURLWrapper:
         data = self.rh_obj.get_url(self.base_url)
         assert data == TEST_URL_RESULT
 
+def test_get_news(config=CONFIG):
+    """test `get_news` endpoint"""
+    test_ticker = CONFIG.get('FETCH', 'test_ticker')
+    raw_news = helpers.fetch_REST_directly(
+        'news',
+        test_ticker,
+        config
+    )
+    get_news = Robinhood().get_news(test_ticker)
+
+    assert get_news == raw_news
