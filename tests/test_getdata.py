@@ -2,6 +2,7 @@ from os import path
 from datetime import datetime
 
 import pytest
+from flaky import flaky
 
 from Robinhood import Robinhood
 import helpers
@@ -69,6 +70,7 @@ class TestQuoteHelpers:
         data = self.rh_obj.get_quote(self.test_ticker)
         assert data == TEST_QUOTE['symbol']
 
+    @flaky
     def test_validate_ask_price(self):
         """validate `ask_price` call"""
         data = self.rh_obj.ask_price(self.test_ticker)
@@ -76,6 +78,7 @@ class TestQuoteHelpers:
 
         assert data == quote['ask_price']
 
+    @flaky
     def test_validate_ask_size(self):
         """validate `ask_size` call"""
         data = self.rh_obj.ask_size(self.test_ticker)
@@ -83,6 +86,7 @@ class TestQuoteHelpers:
 
         assert data == quote['ask_size']
 
+    @flaky
     def test_validate_bid_price(self):
         """validate `bid_price` call"""
         data = self.rh_obj.bid_price(self.test_ticker)
@@ -90,6 +94,7 @@ class TestQuoteHelpers:
 
         assert data == quote['bid_price']
 
+    @flaky
     def test_validate_bid_size(self):
         """validate `bid_size` call"""
         data = self.rh_obj.bid_size(self.test_ticker)
@@ -97,6 +102,7 @@ class TestQuoteHelpers:
 
         assert data == quote['bid_size']
 
+    @flaky
     def test_validate_last_trade_price(self):
         """validate `last_trade_price` call"""
         data = self.rh_obj.last_trade_price(self.test_ticker)
@@ -128,6 +134,7 @@ class TestQuoteHelpers:
 
         assert data == TEST_QUOTE['symbol']
 
+    @flaky
     def test_validate_last_updated_at(self):
         """validate `last_updated_at` call"""
         data = self.rh_obj.last_updated_at(self.test_ticker)
