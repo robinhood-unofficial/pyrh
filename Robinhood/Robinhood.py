@@ -631,11 +631,18 @@ class Robinhood:
         Notes:
             OMFG TEST THIS PLEASE!
 
+            Just realized this won't work since if type is LIMIT you need to use "price" and if
+            a STOP you need to use "stop_price".  Oops.
+            Reference: https://github.com/sanko/Robinhood/blob/master/Order.md#place-an-order
+
         Args:
-            instrument (str): ??
+            instrument (dict): the RH URL and symbol in dict for the instrument to be traded
             quantity (int): quantity of stocks in order
             bid_price (float): price for order
             transaction (:enum:`Transaction`): BUY or SELL enum
+            trigger (:enum:`Trigger`): IMMEDIATE or STOP enum
+            order (:enum:`Order`): MARKET or LIMIT
+            time_in_force (:enum:`TIME_IN_FORCE`): GFD or GTC (day or until cancelled)
 
         Returns:
             (:obj:`dict`): result from `orders` put command
