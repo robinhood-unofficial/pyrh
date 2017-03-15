@@ -18,3 +18,7 @@ Testing is easy:
 * `@pytest.mark.incremental` allows for sequence/group tests [more info](http://doc.pytest.org/en/latest/example/simple.html#incremental-testing-test-steps)
 * Some tests are squishy due to update windows, may require retry loops
     * [flaky](https://pypi.python.org/pypi/flaky) has been included to retry weird tests
+
+## TODO
+
+* Add test coverage for [`input()` calls](http://stackoverflow.com/a/35851524)
