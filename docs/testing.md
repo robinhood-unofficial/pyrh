@@ -18,6 +18,8 @@ Testing is easy:
 * `@pytest.mark.incremental` allows for sequence/group tests [more info](http://doc.pytest.org/en/latest/example/simple.html#incremental-testing-test-steps)
 * Some tests are squishy due to update windows, may require retry loops
     * [flaky](https://pypi.python.org/pypi/flaky) has been included to retry weird tests
+* **DO NOT TEST DURING TRADING HOURS** will assert on price data
+* `test_portfolio.py` does not fail gracefully w/o valid passwords
 
 ## TODO
 
