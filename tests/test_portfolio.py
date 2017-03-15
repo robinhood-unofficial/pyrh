@@ -47,3 +47,23 @@ def test_login_badpass(config=CONFIG):
             password=bad_pass
         )
 
+def test_logout(config=CONFIG):
+    """make sure logout works"""
+    rh_obj = Robinhood()
+    assert rh_obj.login(
+        username=config.get('LOGIN', 'username'),
+        password=config.get('LOGIN', 'password')
+    )
+    assert rh_obj.auth_token is not None
+    req = rh_obj.logout()
+
+    assert req.status_code == 200
+
+def test_bad_logout():
+    """logout without logging in"""
+    rh_obj = Robinhood()
+    with pytest.warns(UserWarning):
+        req = rh_obj.logout()
+
+    assert req.status_code != 200
+

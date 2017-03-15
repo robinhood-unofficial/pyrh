@@ -1,6 +1,7 @@
 """Robinhood.py: a collection of utilities for working with Robinhood's Private API"""
 import getpass
 import logging
+import warnings
 from enum import Enum
 
 import requests
@@ -116,8 +117,8 @@ class Robinhood:
             data = res.json()
         except requests.exceptions.HTTPError:
             raise RH_exception.LoginFailed()
-        if 'mfa_required' in data.keys():   #pragma: no cover
-            raise RH_exception.TwoFactorRequired()        #requires a second account to enable 2FA on
+        if 'mfa_required' in data.keys():           #pragma: no cover
+            raise RH_exception.TwoFactorRequired()  #requires a second account to enable 2FA
         if not 'token' in data.keys():
             return False
         self.auth_token = data['token']
@@ -131,9 +132,16 @@ class Robinhood:
             (:obj:`requests.request`) result from logout endpoint
 
         """
+        try:
+            req = self.session.post(self.endpoints['logout'])
+            req.raise_for_status()
+        except requests.exceptions.HTTPError as err_msg:
+            warnings.warn('Failed to log out ' + repr(err_msg))
+
         self.headers['Authorization'] = None
         self.auth_token = None
-        return self.session.post(self.endpoints['logout'])
+
+        return req
 
     ##############################
     #GET DATA
