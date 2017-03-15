@@ -56,7 +56,9 @@ def include_all_subfiles(*args):
 
         for file in listdir(local_path):
             file_abspath = path.join(local_path, file)
-            if path.isdir(file_abspath):    #do not include sub folders
+            if path.isdir(file_abspath):        #do not include sub folders
+                continue
+            if '_local.cfg' in file_abspath:    #do not include secret files
                 continue
             file_list.append(path_included + '/' + file)
 
@@ -108,9 +110,6 @@ setup(
         ('docs', include_all_subfiles('docs')),
         ('tests', include_all_subfiles('tests'))
     ],
-    package_data={
-
-    },
     install_requires=get_requirements(),
     tests_require=get_requirements(True),
     cmdclass={
