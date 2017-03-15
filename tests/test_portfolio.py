@@ -58,14 +58,14 @@ class TestPortfolioMethods:
     NOTE: reliant on an active account to pull data from
 
     """
+    rh_obj = Robinhood()
     try:
-        rh_obj = Robinhood()
         rh_obj.login(
             username=CONFIG.get('LOGIN', 'username'),   #NOTE: py.test fails w/o password
             password=CONFIG.get('LOGIN', 'password')
         )
     except Exception:
-        rh_obj = None
+        pass
     def test_portfolios(self):
         """check `portfolio` method"""
         global TEST_PORTFOLIO
