@@ -476,7 +476,9 @@ class Robinhood:
 
     def portfolios(self):
         """Returns the user's portfolio data."""
-        return self.session.get(self.endpoints['portfolios']).json()['results'][0]
+        req = self.session.get(self.endpoints['portfolios'])
+        req.raise_for_status()
+        return req.json()
 
     def adjusted_equity_previous_close(self):
         """wrapper for portfolios

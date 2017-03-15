@@ -47,6 +47,76 @@ def test_login_badpass(config=CONFIG):
             password=bad_pass
         )
 
+TEST_PORTFOLIO = {}
+@pytest.mark.incremental
+class TestPortfolioMethods:
+    """test wrappers on `portfolio` endpoint
+
+    NOTE: reliant on an active account to pull data from
+
+    """
+    rh_obj = Robinhood()
+    rh_obj.login(
+        username=CONFIG.get('LOGIN', 'username'),
+        password=CONFIG.get('LOGIN', 'password')
+    )
+    def test_portfolios(self):
+        """check `portfolio` method"""
+        global TEST_PORTFOLIO
+        if not LOGIN_OK:
+            print('Unable to test Portfolio without auth')
+            assert False
+        print(self.rh_obj.auth_token)
+        data = self.rh_obj.portfolios()
+        #TODO validate data
+
+        TEST_PORTFOLIO = data
+
+    def test_validate_adjusted_equity(self):
+        """test `adjusted_equity_previous_close` method"""
+        value = self.rh_obj.adjusted_equity_previous_close()
+        assert value == TEST_PORTFOLIO['adjusted_equity_previous_close']
+
+    def test_validate_equity(self):
+        """test `equity` method"""
+        value = self.rh_obj.equity()
+        assert value == TEST_PORTFOLIO['equity']
+
+    def test_equity_previous_close(self):
+        """test `equity_previous_close` method"""
+        value = self.rh_obj.equity_previous_close()
+        assert value == TEST_PORTFOLIO['equity_previous_close']
+
+    def test_excess_margin(self):
+        """test `excesss_margin` method"""
+        value = self.rh_obj.excesss_margin()
+        assert value == TEST_PORTFOLIO['excesss_margin']
+
+    def test_ex_hours_equity(self):
+        """test `extended_hours_equity method"""
+        value = self.rh_obj.extended_hours_equity()
+        assert value == TEST_PORTFOLIO['extended_hours_equity']
+
+    def test_ex_hours_market_value(self):
+        """test `extended_hours_market_value` method"""
+        value = self.rh_obj.extended_hours_market_value()
+        assert value == TEST_PORTFOLIO['extended_hours_market_value']
+
+    def test_last_core_equity(self):
+        """test `last_core_equity` method"""
+        value = self.rh_obj.last_core_equity()
+        assert value == TEST_PORTFOLIO['last_core_equity']
+
+    def test_last_core_market_value(self):
+        """test `last_core_market_value` method"""
+        value = self.rh_obj.last_core_market_value()
+        assert value == TEST_PORTFOLIO['last_core_market_value']
+
+    def test_market_value(self):
+        """test `market_value` method"""
+        value = self.rh_obj.market_value()
+        assert value == TEST_PORTFOLIO['market_value']
+
 def test_logout(config=CONFIG):
     """make sure logout works"""
     rh_obj = Robinhood()
@@ -66,4 +136,3 @@ def test_bad_logout():
         req = rh_obj.logout()
 
     assert req.status_code != 200
-
