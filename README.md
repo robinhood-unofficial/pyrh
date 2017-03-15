@@ -16,7 +16,7 @@ See this [blog post](https://medium.com/@rohanpai25/reversing-robinhood-free-acc
 ### Converting to Python 3
 Project will work on both python 2 and python 3
 
-### How to Use (see [example.py](https://github.com/Jamonek/Robinhood/blob/master/example.py))
+### How to Use (see [example.py](https://github.com/Jamonek/Robinhood/blob/master/docs/example.py))
 
     from Robinhood import Robinhood
     my_trader = Robinhood()
