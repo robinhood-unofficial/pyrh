@@ -71,7 +71,7 @@ class TestPortfolioMethods:
         global TEST_PORTFOLIO
         if not LOGIN_OK:
             print('Unable to test Portfolio without auth')
-            assert False
+            pytest.xfail('cannot test without valid user/passwd')
         print(self.rh_obj.auth_token)
         data = self.rh_obj.portfolios()
         #TODO validate data
@@ -125,6 +125,8 @@ class TestPortfolioMethods:
 
 def test_logout(config=CONFIG):
     """make sure logout works"""
+    if not LOGIN_OK:
+        pytest.xfail('cannot test without valid user/passwd')
     rh_obj = Robinhood()
     assert rh_obj.login(
         username=config.get('LOGIN', 'username'),
@@ -137,6 +139,8 @@ def test_logout(config=CONFIG):
 
 def test_bad_logout():
     """logout without logging in"""
+    if not LOGIN_OK:
+        pytest.xfail('cannot test without valid user/passwd')
     rh_obj = Robinhood()
     with pytest.warns(UserWarning):
         req = rh_obj.logout()
