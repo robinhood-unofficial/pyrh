@@ -9,6 +9,8 @@ from six.moves.urllib.parse import unquote
 from six.moves.urllib.request import getproxies
 from six.moves import input
 
+import Robinhood.exceptions as RH_exception
+
 class Bounds(Enum):
     """enum for bounds in `historicals` endpoint"""
     REGULAR = 'regular'
@@ -101,16 +103,24 @@ class Robinhood:
         """
         self.username = username
         self.password = password
-        params = {
+        payload = {
             'password': self.password,
             'username': self.username
         }
-        res = self.session.post(self.endpoints['login'], params=params)
-        res = res.json()
         try:
-            self.auth_token = res['token']
-        except KeyError:
+            res = self.session.post(
+                self.endpoints['login'],
+                data=payload
+            )
+            res.raise_for_status()
+            data = res.json()
+        except requests.exceptions.HTTPError:
+            raise RH_exception.LoginFailed()
+        if 'mfa_required' in data.keys():   #pragma: no cover
+            raise RH_exception.TwoFactorRequired()        #requires a second account to enable 2FA on
+        if not 'token' in data.keys():
             return False
+        self.auth_token = data['token']
         self.headers['Authorization'] = 'Token ' + self.auth_token
         return True
 
