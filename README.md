@@ -61,6 +61,3 @@ Project will work on both python 2 and python 3
 
 * [robinhood-ruby](https://github.com/rememberlenny/robinhood-ruby) - RubyGem for interacting with Robinhood API
 * [robinhood-node](https://github.com/aurbano/robinhood-node) - NodeJS module to make trades with Robinhood Private API
-
-This project is a FORK of original code by:
-https://github.com/Jamonek/Robinhood
