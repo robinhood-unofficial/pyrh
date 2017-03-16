@@ -11,7 +11,7 @@ See this [blog post](https://medium.com/@rohanpai25/reversing-robinhood-free-acc
 - More coming soon
 
 ### How To Install:
-    pip install -r requirements.txt
+    pip install .
     
 ### Converting to Python 3
 Project will work on both python 2 and python 3
