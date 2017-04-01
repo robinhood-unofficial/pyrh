@@ -203,6 +203,26 @@ class Robinhood:
 
         return data
 
+    def quotes_data(self, stocks):
+        """Fetch quote for multiple stocks, in one single Robinhood API call
+
+        Args:
+            stocks (list<str>): stock tickers
+
+        Returns:
+            (:obj:`list` of :obj:`dict`): List of JSON contents from `quotes` endpoint, in the
+            same order of input args. If any ticker is invalid, a None will occur at that position.
+        """
+        url = str(self.endpoints['quotes']) + "?symbols=" + ",".join(stocks)
+        try:
+            req = requests.get(url)
+            req.raise_for_status()
+            data = req.json()
+        except requests.exceptions.HTTPError:
+            raise NameError('Invalid Symbols: ' + ",".join(stocks)) #TODO: custom exception
+
+        return data["results"]
+
     def get_quote(self, stock=''):
         """wrapper for quote_data"""
         data = self.quote_data(stock)
