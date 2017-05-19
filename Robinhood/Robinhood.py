@@ -97,7 +97,8 @@ class Robinhood:
     def login(
             self,
             username,
-            password
+            password,
+            mfa_code=None
         ):
         """save and test login info for Robinhood accounts
 
@@ -115,6 +116,10 @@ class Robinhood:
             'password': self.password,
             'username': self.username
         }
+
+        if mfa_code:
+            payload['mfa_code'] = mfa_code
+
         try:
             res = self.session.post(
                 self.endpoints['login'],
@@ -124,13 +129,16 @@ class Robinhood:
             data = res.json()
         except requests.exceptions.HTTPError:
             raise RH_exception.LoginFailed()
+
         if 'mfa_required' in data.keys():           #pragma: no cover
-            raise RH_exception.TwoFactorRequired()  #requires a second account to enable 2FA
-        if not 'token' in data.keys():              #TODO: testable?  covered by HTTP error?
-            return False
-        self.auth_token = data['token']
-        self.headers['Authorization'] = 'Token ' + self.auth_token
-        return True
+            raise RH_exception.TwoFactorRequired()  #requires a second call to enable 2FA
+
+        if 'token' in data.keys():
+            self.auth_token = data['token']
+            self.headers['Authorization'] = 'Token ' + self.auth_token
+            return True
+
+        return False
 
     def logout(self):
         """logout from Robinhood
