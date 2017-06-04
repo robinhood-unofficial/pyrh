@@ -11,9 +11,9 @@ from six.moves.urllib.request import getproxies
 from six.moves import input
 
 if six.PY3: #pragma: no cover
-    import exceptions as RH_exception
+    from . import exceptions as RH_exception
 else:       #pragma: no cover
-    import exceptions as RH_exception
+    from . import exceptions as RH_exception
 
 class Bounds(Enum):
     """enum for bounds in `historicals` endpoint"""
