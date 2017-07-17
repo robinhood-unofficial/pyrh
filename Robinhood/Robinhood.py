@@ -185,6 +185,11 @@ class Robinhood:
         )
         res.raise_for_status()
         res = res.json()
+        
+        # if requesting all, return entire object so may paginate with ['next'] 
+        if (stock == ""):
+            return res
+        
         return res['results']
 
     def quote_data(self, stock=''):
