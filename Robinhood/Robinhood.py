@@ -650,13 +650,7 @@ class Robinhood:
         Returns a list of symbols of securities of which there are more
         than zero shares in user's portfolio.
         """
-        positions = self.positions()
-        securities = []
-        for position in positions['results']:
-            quantity = float(position['quantity'])
-            if quantity > 0:
-                securities.append(self.session.get(position['instrument']).json()['symbol'])
-        return securities
+        return self.session.get(self.endpoints['positions']+'?nonzero=true').json()
 
     ##############################
     #PLACE ORDER
