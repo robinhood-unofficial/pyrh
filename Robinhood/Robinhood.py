@@ -757,3 +757,26 @@ class Robinhood:
         """
         transaction = Transaction.SELL
         return self.place_order(instrument, quantity, bid_price, transaction)
+    
+    ##############################
+    #CANCEL ORDER(S)
+    ##############################
+
+    def cancel_order(){} #stub
+
+    def cancel_open_orders(self):
+
+        """
+        Cancels all open orders
+
+        TODO: Return order objects that were cancelled
+        """
+        orders = self.order_history()
+        for order in orders['results']:
+            if(order['cancel'] is not None): #If cancel link exists, then it can be cancelled (and is presumably an open/partially filled order)
+                try: 
+                    req = self.session.post(order['cancel'])
+                    req.raise_for_status()
+                except requests.exceptions.HTTPError as err_msg:
+                    warnings.warn('Failed to cancel order ID: '+ order['id'] + repr(err_msg))
+        return
