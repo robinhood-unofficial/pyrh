@@ -762,21 +762,47 @@ class Robinhood:
     #CANCEL ORDER(S)
     ##############################
 
-    def cancel_order(){} #stub
+    def cancel_order(
+            self,
+            orderID
+    ): 
+        """
+        Cancels specified order and returns the response. If order cannot be cancelled, None is returned.
+
+        """
+        order = self.session.get(self.endpoints['orders'] + orderID)
+
+        if order['cancel'] is not None:
+            try: 
+                req = self.session.post(order['cancel'])
+                req.raise_for_status()
+            except requests.exceptions.HTTPError as err_msg:
+                warnings.warn('Failed to cancel order ID: '+ order['id'] + repr(err_msg))
+                return None
+        
+        else: #no cancel link, cannot cancel
+            return None
+
+        return order
+
 
     def cancel_open_orders(self):
 
         """
-        Cancels all open orders
-
-        TODO: Return order objects that were cancelled
+        Cancels all open orders and returns a list of the canelled orders
+      
         """
+        cancelled_orders = []
         orders = self.order_history()
+
         for order in orders['results']:
-            if(order['cancel'] is not None): #If cancel link exists, then it can be cancelled (and is presumably an open/partially filled order)
+            if(order['cancel'] is not None): 
                 try: 
                     req = self.session.post(order['cancel'])
                     req.raise_for_status()
+                    cancelled_orders.append(order)
+
                 except requests.exceptions.HTTPError as err_msg:
                     warnings.warn('Failed to cancel order ID: '+ order['id'] + repr(err_msg))
-        return
+
+        return cancelled_orders
