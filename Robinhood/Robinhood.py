@@ -770,7 +770,7 @@ class Robinhood:
         Cancels specified order and returns the response. If order cannot be cancelled, None is returned.
 
         """
-        order = self.session.get(self.endpoints['orders'] + orderID)
+        order = self.session.get(self.endpoints['orders'] + orderID).json()
 
         if order['cancel'] is not None:
             try: 
@@ -781,6 +781,7 @@ class Robinhood:
                 return None
         
         else: #no cancel link, cannot cancel
+            warnings.warn('Unable to cancel order ID: '+ order['id'])
             return None
 
         return order
