@@ -759,7 +759,27 @@ class Robinhood:
         return self.place_order(instrument, quantity, bid_price, transaction)
     
     ##############################
-    #CANCEL ORDER(S) AND GET OPEN ORDER(S)
+    #GET OPEN ORDER(S)
+    ##############################
+    
+    def get_open_orders(self):
+        """
+        Returns all currently open (cancellable) orders.
+        If not orders are currently open, `None` is returned.
+        TODO: Is there a way to get these from the API endpoint without stepping through order history?
+        """
+
+        open_orders = []
+        orders = self.order_history()
+        for order in orders['results']:
+            if(order['cancel'] is not None): 
+                open_orders.append(order)
+
+        if len(open_orders) > 0:
+            return open_orders
+
+    ##############################
+    #CANCEL ORDER(S)
     ##############################
 
     def cancel_order(
@@ -790,27 +810,7 @@ class Robinhood:
 
         return order
 
-
-    
-    def get_open_orders(self):
-        """
-        Returns all currently open (cancellable) orders.
-        If not orders are currently open, `None` is returned.
-        TODO: Is there a way to get these from the API endpoint without stepping through order history?
-        """
-
-        open_orders = []
-        orders = self.order_history()
-        for order in orders['results']:
-            if(order['cancel'] is not None): 
-                open_orders.append(order)
-
-        if len(open_orders) > 0:
-            return open_orders
-    
-
     def cancel_open_orders(self):
-
         """
         Cancels all open orders and returns the responses from the canelled orders (results from `orders` command). 
         If no orders are open or no orders were cancelled (i.e. failed to cancel), returns `None`
