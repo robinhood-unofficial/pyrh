@@ -759,7 +759,7 @@ class Robinhood:
         return self.place_order(instrument, quantity, bid_price, transaction)
     
     ##############################
-    #CANCEL ORDER(S)
+    #CANCEL ORDER(S) AND GET OPEN ORDER(S)
     ##############################
 
     def cancel_order(
@@ -767,7 +767,11 @@ class Robinhood:
             orderID
     ): 
         """
-        Cancels specified order and returns the response. If order cannot be cancelled, None is returned.
+        Cancels specified order and returns the response (results from `orders` command). 
+        If order cannot be cancelled, `None` is returned.
+
+        Args:
+            orderID (str): Order ID that is to be cancelled
 
         """
         order = self.session.get(self.endpoints['orders'] + orderID).json()
@@ -787,16 +791,37 @@ class Robinhood:
         return order
 
 
+    
+    def get_open_orders(self):
+        """
+        Returns all currently open (cancellable) orders.
+        If not orders are currently open, `None` is returned.
+        TODO: Is there a way to get these from the API endpoint without stepping through order history?
+        """
+
+        open_orders = []
+        orders = self.order_history()
+        for order in orders['results']:
+            if(order['cancel'] is not None): 
+                open_orders.append(order)
+
+        if len(open_orders) > 0:
+            return open_orders
+    
+
     def cancel_open_orders(self):
 
         """
-        Cancels all open orders and returns a list of the canelled orders
-      
+        Cancels all open orders and returns the responses from the canelled orders (results from `orders` command). 
+        If no orders are open or no orders were cancelled (i.e. failed to cancel), returns `None`
         """
         cancelled_orders = []
-        orders = self.order_history()
+        open_orders = self.get_open_orders()
 
-        for order in orders['results']:
+        if open_orders is None: #no open orders
+            return None
+
+        for order in open_orders:
             if(order['cancel'] is not None): 
                 try: 
                     req = self.session.post(order['cancel'])
@@ -806,4 +831,5 @@ class Robinhood:
                 except requests.exceptions.HTTPError as err_msg:
                     warnings.warn('Failed to cancel order ID: '+ order['id'] + repr(err_msg))
 
-        return cancelled_orders
+        if len(cancelled_orders) > 0:
+            return cancelled_orders
