@@ -5,6 +5,7 @@ See this [blog post](https://medium.com/@rohanpai25/reversing-robinhood-free-acc
 ## Current Features 
 - Placing buy orders (`Robinhood.place_buy_order`)
 - Placing sell order (`Robinhood.place_sell_order`)
+- Cancel open orders (`Robinhood.cancel_order` & `Robinhood.cancel_open_orders`)
 - Quote information (`Robinhood.quote_data`)
 - User portfolio data (`Robinhood.portfolios`)
 - User positions data (`Robinhood.positions`)
