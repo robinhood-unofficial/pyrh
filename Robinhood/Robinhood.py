@@ -9,11 +9,7 @@ import six
 from six.moves.urllib.parse import unquote
 from six.moves.urllib.request import getproxies
 from six.moves import input
-
-if six.PY3: #pragma: no cover
-    import Robinhood.exceptions as RH_exception
-else:       #pragma: no cover
-    import exceptions as RH_exception
+from . import exceptions as RH_exception
 
 class Bounds(Enum):
     """enum for bounds in `historicals` endpoint"""
@@ -97,7 +93,8 @@ class Robinhood:
     def login(
             self,
             username,
-            password
+            password,
+            mfa_code=None
         ):
         """save and test login info for Robinhood accounts
 
@@ -115,6 +112,10 @@ class Robinhood:
             'password': self.password,
             'username': self.username
         }
+
+        if mfa_code:
+            payload['mfa_code'] = mfa_code
+
         try:
             res = self.session.post(
                 self.endpoints['login'],
@@ -124,13 +125,16 @@ class Robinhood:
             data = res.json()
         except requests.exceptions.HTTPError:
             raise RH_exception.LoginFailed()
+
         if 'mfa_required' in data.keys():           #pragma: no cover
-            raise RH_exception.TwoFactorRequired()  #requires a second account to enable 2FA
-        if not 'token' in data.keys():              #TODO: testable?  covered by HTTP error?
-            return False
-        self.auth_token = data['token']
-        self.headers['Authorization'] = 'Token ' + self.auth_token
-        return True
+            raise RH_exception.TwoFactorRequired()  #requires a second call to enable 2FA
+
+        if 'token' in data.keys():
+            self.auth_token = data['token']
+            self.headers['Authorization'] = 'Token ' + self.auth_token
+            return True
+
+        return False
 
     def logout(self):
         """logout from Robinhood
@@ -177,10 +181,15 @@ class Robinhood:
         )
         res.raise_for_status()
         res = res.json()
+        
+        # if requesting all, return entire object so may paginate with ['next'] 
+        if (stock == ""):
+            return res
+        
         return res['results']
 
     def quote_data(self, stock=''):
-        """fetch stock quote (prompt if blank)
+        """fetch stock quote
 
         Args:
             stock (str): stock ticker, prompt if blank
@@ -189,10 +198,11 @@ class Robinhood:
             (:obj:`dict`): JSON contents from `quotes` endpoint
 
         """
-        #Prompt for stock if not entered
-        if not stock:   #pragma: no cover
-            stock = input("Symbol: ")
-        url = str(self.endpoints['quotes']) + str(stock) + "/"
+        url = None
+        if stock.find(',') == -1:
+            url = str(self.endpoints['quotes']) + str(stock) + "/"
+        else:
+            url = str(self.endpoints['quotes']) + "?symbols=" + str(stock)
         #Check for validity of symbol
         try:
             req = requests.get(url)
@@ -203,6 +213,7 @@ class Robinhood:
 
         return data
 
+    # We will keep for compatibility until next major release
     def quotes_data(self, stocks):
         """Fetch quote for multiple stocks, in one single Robinhood API call
 
@@ -222,6 +233,41 @@ class Robinhood:
             raise NameError('Invalid Symbols: ' + ",".join(stocks)) #TODO: custom exception
 
         return data["results"]
+
+    def get_quote_list(self, stock='', key=''):
+        """Returns multiple stock info and keys from quote_data (prompt if blank)
+
+        Args:
+            stock (str): stock ticker (or tickers separated by a comma)
+            , prompt if blank
+            key (str): key attributes that the function should return
+
+        Returns:
+            (:obj:`list`): Returns values from each stock or empty list
+                           if none of the stocks were valid
+
+        """
+        #Creates a tuple containing the information we want to retrieve
+        def append_stock(stock):
+            keys = key.split(',')
+            myStr = ''
+            for item in keys:
+                myStr += stock[item] + ","
+            return (myStr.split(','))
+        #Prompt for stock if not entered
+        if not stock:   #pragma: no cover
+            stock = input("Symbol: ")
+        data = self.quote_data(stock)
+        res = []
+        # Handles the case of multple tickers
+        if stock.find(',') != -1:
+            for stock in data['results']:
+                if stock == None:
+                    continue
+                res.append(append_stock(stock))
+        else:
+            res.append(append_stock(data))
+        return res
 
     def get_quote(self, stock=''):
         """wrapper for quote_data"""
@@ -288,10 +334,11 @@ class Robinhood:
             None
 
         """
-        data = self.quote_data(stock)
-        quote_str = data["symbol"] + ": $" + data["last_trade_price"]
-        print(quote_str)
-        self.logger.info(quote_str)
+        data = self.get_quote_list(stock,'symbol,last_trade_price')
+        for item in data:
+            quote_str = item[0] + ": $" + item[1]
+            print(quote_str)
+            self.logger.info(quote_str)
 
     def print_quotes(self, stocks): #pragma: no cover
         """print a collection of stocks
@@ -319,7 +366,7 @@ class Robinhood:
             (float): ask price
 
         """
-        return self.quote_data(stock)['ask_price']
+        return self.get_quote_list(stock,'ask_price')
 
     def ask_size(self, stock=''):
         """get ask size for a stock
@@ -334,7 +381,7 @@ class Robinhood:
             (int): ask size
 
         """
-        return self.quote_data(stock)['ask_size']
+        return self.get_quote_list(stock,'ask_size')
 
     def bid_price(self, stock=''):
         """get bid price for a stock
@@ -349,7 +396,7 @@ class Robinhood:
             (float): bid price
 
         """
-        return self.quote_data(stock)['bid_price']
+        return self.get_quote_list(stock,'bid_price')
 
     def bid_size(self, stock=''):
         """get bid size for a stock
@@ -364,7 +411,7 @@ class Robinhood:
             (int): bid size
 
         """
-        return self.quote_data(stock)['bid_size']
+        return self.get_quote_list(stock,'bid_size')
 
     def last_trade_price(self, stock=''):
         """get last trade price for a stock
@@ -379,7 +426,7 @@ class Robinhood:
             (float): last trade price
 
         """
-        return self.quote_data(stock)['last_trade_price']
+        return self.get_quote_list(stock,'last_trade_price')
 
     def previous_close(self, stock=''):
         """get previous closing price for a stock
@@ -394,7 +441,7 @@ class Robinhood:
             (float): previous closing price
 
         """
-        return self.quote_data(stock)['previous_close']
+        return self.get_quote_list(stock,'previous_close')
 
     def previous_close_date(self, stock=''):
         """get previous closing date for a stock
@@ -409,7 +456,7 @@ class Robinhood:
             (str): previous close date
 
         """
-        return self.quote_data(stock)['previous_close_date']
+        return self.get_quote_list(stock,'previous_close_date')
 
     def adjusted_previous_close(self, stock=''):
         """get adjusted previous closing price for a stock
@@ -424,7 +471,7 @@ class Robinhood:
             (float): adjusted previous closing price
 
         """
-        return self.quote_data(stock)['adjusted_previous_close']
+        return self.get_quote_list(stock,'adjusted_previous_close')
 
     def symbol(self, stock=''):
         """get symbol for a stock
@@ -439,7 +486,7 @@ class Robinhood:
             (str): stock symbol
 
         """
-        return self.quote_data(stock)['symbol']
+        return self.get_quote_list(stock,'symbol')
 
     def last_updated_at(self, stock=''):
         """get last update datetime
@@ -454,7 +501,7 @@ class Robinhood:
             (str): last update datetime
 
         """
-        return self.quote_data(stock)['updated_at']
+        return self.get_quote_list(stock,'last_updated_at')
         #TODO: recast to datetime object?
 
     def get_account(self):
@@ -624,13 +671,7 @@ class Robinhood:
         Returns a list of symbols of securities of which there are more
         than zero shares in user's portfolio.
         """
-        positions = self.positions()
-        securities = []
-        for position in positions['results']:
-            quantity = float(position['quantity'])
-            if quantity > 0:
-                securities.append(self.session.get(position['instrument']).json()['symbol'])
-        return securities
+        return self.session.get(self.endpoints['positions']+'?nonzero=true').json()
 
     ##############################
     #PLACE ORDER
