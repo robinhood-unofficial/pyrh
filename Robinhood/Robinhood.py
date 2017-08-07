@@ -784,17 +784,17 @@ class Robinhood:
 
     def cancel_order(
             self,
-            orderID
+            order_ID
     ): 
         """
         Cancels specified order and returns the response (results from `orders` command). 
         If order cannot be cancelled, `None` is returned.
 
         Args:
-            orderID (str): Order ID that is to be cancelled
+            order_ID (str): Order ID that is to be cancelled
 
         """
-        order = self.session.get(self.endpoints['orders'] + orderID).json()
+        order = self.session.get(self.endpoints['orders'] + order_ID).json()
 
         if order['cancel'] is not None:
             try: 
@@ -804,7 +804,8 @@ class Robinhood:
                 warnings.warn('Failed to cancel order ID: '+ order['id'] + repr(err_msg))
                 return None
         
-        else: #no cancel link, cannot cancel
+        # no cancel link, cannot cancel
+        else: 
             warnings.warn('Unable to cancel order ID: '+ order['id'])
             return None
 
@@ -818,7 +819,8 @@ class Robinhood:
         cancelled_orders = []
         open_orders = self.get_open_orders()
 
-        if open_orders is None: #no open orders
+        # no open orders 
+        if open_orders is None: 
             return None
 
         for order in open_orders:
