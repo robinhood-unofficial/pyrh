@@ -795,19 +795,19 @@ class Robinhood:
 
         """
         order = self.session.get(self.endpoints['orders'] + order_id).json()
-
-        if order['cancel'] is not None:
+    
+        if order.get('cancel') is not None:
             try: 
                 req = self.session.post(order['cancel'])
                 req.raise_for_status()
             except requests.exceptions.HTTPError as err_msg:
-                warnings.warn('Failed to cancel order ID: '+ order['id'] + repr(err_msg))
+                raise ValueError('Failed to cancel order ID: ' + order_id
+                     + '\n Error message: '+ repr(err_msg))
                 return None
         
-        # no cancel link, cannot cancel
+        # no cancel link or invalid order number - cannot cancel
         else: 
-            warnings.warn('Unable to cancel order ID: '+ order['id'])
-            return None
+            raise ValueError('No cancel link - unable to cancel order ID: '+ order_id)
 
         return order
 
@@ -824,14 +824,7 @@ class Robinhood:
             return None
 
         for order in open_orders:
-            if(order['cancel'] is not None): 
-                try: 
-                    req = self.session.post(order['cancel'])
-                    req.raise_for_status()
-                    cancelled_orders.append(order)
-
-                except requests.exceptions.HTTPError as err_msg:
-                    warnings.warn('Failed to cancel order ID: '+ order['id'] + repr(err_msg))
-
-        if len(cancelled_orders) > 0:
-            return cancelled_orders
+            cancel_order(order['id'])
+            cancelled_orders.append(order)
+        
+        return cancelled_orders
