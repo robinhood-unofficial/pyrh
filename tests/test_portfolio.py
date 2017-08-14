@@ -167,6 +167,7 @@ def test_bad_logout():
         req = rh_obj.logout()
 
     assert req.status_code != 200
+    
 def test_cancel_bad_order_id():
     """cancel a naughty order id"""
     bad_id = '1234Dx'

@@ -774,6 +774,7 @@ class Robinhood:
         for order in orders['results']:
             if(order['cancel'] is not None): 
                 open_orders.append(order)
+                print(type(order))
 
         if len(open_orders) > 0:
             return open_orders
@@ -791,21 +792,28 @@ class Robinhood:
         If order cannot be cancelled, `None` is returned.
 
         Args:
-            order_id (str): Order ID that is to be cancelled
+            order_id (str): Order ID that is to be cancelled or order dict returned from
+            order get.
 
         """
-        order = self.session.get(self.endpoints['orders'] + order_id).json()
-    
+        if order_id is str:
+            try:
+                order = self.session.get(self.endpoints['orders'] + order_id).json()
+            except (requests.exceptions.HTTPError)  as err_msg:
+                raise ValueError('Invalid order id: ' + order_id)
+       
         if order.get('cancel') is not None:
             try: 
                 req = self.session.post(order['cancel'])
                 req.raise_for_status()
-            except requests.exceptions.HTTPError as err_msg:
+                #TODO: confirm that the order has been dropped 
+
+            except (requests.exceptions.HTTPError)  as err_msg:
                 raise ValueError('Failed to cancel order ID: ' + order_id
                      + '\n Error message: '+ repr(err_msg))
                 return None
-        
-        # no cancel link or invalid order number - cannot cancel
+            
+        # no cancel link - order type cannot be cancelled
         else: 
             raise ValueError('No cancel link - unable to cancel order ID: '+ order_id)
 
