@@ -181,11 +181,11 @@ class Robinhood:
         )
         res.raise_for_status()
         res = res.json()
-        
-        # if requesting all, return entire object so may paginate with ['next'] 
+
+        # if requesting all, return entire object so may paginate with ['next']
         if (stock == ""):
             return res
-        
+
         return res['results']
 
     def quote_data(self, stock=''):
@@ -720,9 +720,9 @@ class Robinhood:
             'quantity': quantity,
             'side': transaction.name.lower(),
             'symbol': instrument['symbol'],
-            'time_in_force': time_in_force,
+            'time_in_force': time_in_force.lower(),
             'trigger': trigger,
-            'type': order
+            'type': order.lower()
         }
         #data = 'account=%s&instrument=%s&price=%f&quantity=%d&side=%s&symbol=%s#&time_in_force=gfd&trigger=immediate&type=market' % (
         #    self.get_account()['url'],
@@ -734,7 +734,7 @@ class Robinhood:
         #)
         res = self.session.post(
             self.endpoints['orders'],
-            params=payload
+            data=payload
         )
         res.raise_for_status()
         return res
