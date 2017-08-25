@@ -16,12 +16,21 @@ class Bounds(Enum):
     REGULAR = 'regular'
     EXTENDED = 'extended'
 
-
 class Transaction(Enum):
     """enum for buy/sell orders"""
     BUY = 'buy'
     SELL = 'sell'
 
+class OrderState(Enum):
+    """enum for order states"""
+    QUEUED = "queued"
+    UNCONFIRMED = "unconfirmed"
+    CONFIRMED = "confirmed"
+    PARTIALLY_FILLED = "partially_filled"
+    FILLED = "filled"
+    REJECTED = "rejected"
+    CANCELLED = "cancelled"
+    FAILED = "failed"
 
 class Robinhood:
     """wrapper class for fetching/parsing Robinhood endpoints"""
@@ -41,6 +50,7 @@ class Robinhood:
         "markets": "https://api.robinhood.com/markets/",
         "notifications": "https://api.robinhood.com/notifications/",
         "orders": "https://api.robinhood.com/orders/",
+        "cancel": "https://api.robinhood.com/orders/{oid}/cancel/",
         "password_reset": "https://api.robinhood.com/password_reset/request/",
         "portfolios": "https://api.robinhood.com/portfolios/",
         "positions": "https://api.robinhood.com/positions/",
@@ -642,13 +652,29 @@ class Robinhood:
         """
         return float(self.portfolios()['market_value'])
 
-    def order_history(self):
-        """wrapper for portfolios
+    def order_history(self,instrument=None):
+        """
 
         get orders from account
 
+        Args:
+            instrument (string): RH instrument URL to restrict results
         """
-        return self.session.get(self.endpoints['orders']).json()
+        data = {}
+        # API Documentation question:
+        # state or updated_at did not appear to filter the order details,
+        # while this would seem useful over time,  it is not clear if this
+        # truly exists in the RH API.
+        # Will be nice when RH officially supports and documents a public API :)
+        # if state is not None:
+        #     data['state'] = state
+        #
+        # if since is not None:
+        #     data['updated_at'] = since
+        if instrument is not None:
+            data['instrument'] = instrument
+
+        return self.session.get(self.endpoints['orders'], params=data).json()
 
     def dividends(self):
         """wrapper for portfolios
@@ -778,3 +804,43 @@ class Robinhood:
         """
         transaction = Transaction.SELL
         return self.place_order(instrument, quantity, bid_price, transaction)
+
+    ##############################
+    # CANCEL ORDER
+    ##############################
+    def cancel_order(self,oid):
+        """
+        cancel a given order id
+
+        Args:
+            oid (string): the order ID to be cancelled
+        Returns:
+            (:obj:`requests.request`): result from `orders` put command
+            status code 200 signifies success
+
+        """
+        data = {}
+        data['oid'] = oid
+        return self.session.post(self.endpoints['cancel'].format(**data))
+
+    def cancel_orders_all(self,instrument=None):
+        """
+        convenience function to cancel all orders, optionally only for a given instrument
+
+        Args:
+            instrument (string): RH instrument URL to restrict results
+        Returns:
+            (:obj:`dict`): containing keys 'cancelled' or 'error' with the list of order ids
+        """
+        orders = self.order_history(instrument=instrument)
+        res = {'cancelled':[], 'error':[]}
+        stoppedOrderStates = (OrderState.FILLED, OrderState.CANCELLED, OrderState.FAILED, OrderState.REJECTED)
+        print(stoppedOrderStates)
+        for order in orders['results']:
+            if OrderState(order['state']) not in stoppedOrderStates:
+                r = self.cancel_order(oid=order['id'])
+                if r.status_code == 200:
+                    res['cancelled'].append(order['id'])
+                else:
+                    res['error'].append(order['id'])
+        return(res)
