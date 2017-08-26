@@ -46,6 +46,8 @@ class Robinhood:
         "dividends": "https://api.robinhood.com/dividends/",
         "edocuments": "https://api.robinhood.com/documents/",
         "instruments": "https://api.robinhood.com/instruments/",
+        "instrumentid": "https://api.robinhood.com/instruments/{instrumentid}/",
+        "instrumentsplits": "https://api.robinhood.com/instruments/{instrumentid}/splits/",
         "margin_upgrades": "https://api.robinhood.com/margin/upgrades/",
         "markets": "https://api.robinhood.com/markets/",
         "notifications": "https://api.robinhood.com/notifications/",
@@ -175,28 +177,63 @@ class Robinhood:
         data = res.json()
         return data
 
-    def instruments(self, stock):
+    def instruments(self, query=None, symbol=None, instrumentid=None):
         """fetch instruments endpoint
 
         Args:
-            stock (str): stock ticker
+            query (str): search for ticker, e.g. by company name
+            symbol (str): find instrument by it's symbol
+            instrumentid (str): instrumentid [uuid without the rest of URL]
 
         Returns:
             (:obj:`dict`): JSON contents from `instruments` endpoint
 
         """
-        res = self.session.get(
-            self.endpoints['instruments'],
-            params={'query': stock.upper()}
-        )
+        res = None
+        if instrumentid:
+            res = self.session.get(
+                self.endpoints['instrumentid'].format(instrumentid=instrumentid)
+            )
+        else:
+            params = {}
+            if symbol:
+                params['symbol'] = symbol.upper()
+            if query:
+                params['query'] = query
+            res = self.session.get(
+                self.endpoints['instruments'],
+                params=params
+            )
         res.raise_for_status()
         res = res.json()
 
         # if requesting all, return entire object so may paginate with ['next']
-        if (stock == ""):
-            return res
+        # Not sure variable returns types here is the best approach..
+        # API doesn't return pagination though when query is non-empty query=a ??
+        #if query is None and not (symbol or instrumentid):
+        #     return res
 
-        return res['results']
+        return res['results'], res['next'], res['previous']
+
+    def instrument_splits(self, instrumentid=None):
+        """fetch instruments splits endpoint
+
+        Args:
+            instrumentid (str): instrumentid [uuid without the rest of URL]
+
+        Returns:
+            (:obj:`dict`): JSON contents from `instruments splits` endpoint
+
+        """
+        res = None
+        if instrumentid:
+            res = self.session.get(
+                self.endpoints['instrumentsplits'].format(instrumentid=instrumentid)
+            )
+        res.raise_for_status()
+        res = res.json()
+
+        return res
 
     def quote_data(self, stock=''):
         """fetch stock quote
@@ -212,6 +249,7 @@ class Robinhood:
         if stock.find(',') == -1:
             url = str(self.endpoints['quotes']) + str(stock) + "/"
         else:
+            stock = stock.rstrip(',')
             url = str(self.endpoints['quotes']) + "?symbols=" + str(stock)
         #Check for validity of symbol
         try:
@@ -264,10 +302,12 @@ class Robinhood:
             for item in keys:
                 myStr += stock[item] + ","
             return (myStr.split(','))
+
         #Prompt for stock if not entered
         if not stock:   #pragma: no cover
             stock = input("Symbol: ")
         data = self.quote_data(stock)
+        print(data)
         res = []
         # Handles the case of multple tickers
         if stock.find(',') != -1:
@@ -283,6 +323,43 @@ class Robinhood:
         """wrapper for quote_data"""
         data = self.quote_data(stock)
         return data["symbol"]
+
+    def get_quote_fields(self, stocks=None, fields=None):
+        """Returns multiple stock info and fields from quote_data
+
+        Args:
+            stock (str): stock ticker (or tickers separated by a comma)
+            , prompt if blank
+            key (str): key attributes that the function should return
+
+        Returns:
+            (:obj:`list`): Returns values from each stock or empty list
+                           if none of the stocks were valid
+
+        """
+        stock = ",".join(stocks)   # XXX temporary
+        if stock.find(',') == -1:
+            stock += ','
+        if fields is not None and 'symbol' not in fields:
+            fields.append('symbol')
+        data = self.quote_data(stock)
+        # XXX what if symbol is non-unique what does the API return?
+        res = {}
+        for quote in data['results']:
+            print(type(quote))
+            if quote is None:  # XXX temp occurs because of our extra ,
+                print("Quote had None element")
+                continue
+            if not isinstance(quote,dict):
+                print("Quote was not a dict?")
+                continue
+
+            s = quote['symbol']
+            if fields is None:
+                res[s] = quote
+            else:
+                res[s] = {key: value for (key, value) in quote.items() if key in fields}
+        return res
 
     def get_historical_quotes(
             self,
@@ -549,16 +626,17 @@ class Robinhood:
             stock = input("Symbol: ")
 
         url = str(self.endpoints['fundamentals']) + str(stock.upper()) + "/"
+        # XXX endpoint also acccepts POST 'symbols=STOCK1,STOCK2' CSV list of 10 symbols
         #Check for validity of symbol
+        res = None
         try:
             req = requests.get(url)
             req.raise_for_status()
-            data = req.json()
+            res = req.json()
         except requests.exceptions.HTTPError:
             raise NameError('Invalid Symbol: ' + stock) #TODO wrap custom exception
 
-        return data
-
+        return res
 
     def fundamentals(self, stock=''):
         """wrapper for get_fundamentlals function"""
