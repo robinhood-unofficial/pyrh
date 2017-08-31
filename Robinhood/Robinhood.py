@@ -373,11 +373,11 @@ class Robinhood:
                 raise Warning("Returned Quote was not a dict")
 
             # XXX what if symbol is non-unique should we use symbol as key here?
-            s = quote['symbol']
+            symbol = quote['symbol']
             if fields is None:
-                res[s] = quote
+                res[symbol] = quote
             else:
-                res[s] = {key: value for (key, value) in quote.items() if key in fields}
+                res[symbol] = {key: value for (key, value) in quote.items() if key in fields}
         return res
 
     def get_historical_quotes(
