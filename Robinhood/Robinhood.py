@@ -11,45 +11,6 @@ from six.moves.urllib.request import getproxies
 from six.moves import input
 from . import exceptions as RH_exception
 
-class Bounds(Enum):
-    """enum for bounds in `historicals` endpoint"""
-    REGULAR = 'regular'
-    EXTENDED = 'extended'
-
-class Transaction(Enum):
-    """enum for buy/sell orders"""
-    BUY = 'buy'
-    SELL = 'sell'
-
-class Trigger(Enum):
-    """enum for buy/sell orders"""
-    IMMEDIATE = 'immediate'
-    STOP = 'stop'
-
-class Order(Enum):
-    """enum for buy/sell orders"""
-    MARKET = 'market'
-    LIMIT = 'limit'
-
-class TimeForce(Enum):
-    """enum for buy/sell orders"""
-    GTC = 'gtc'
-    GFD = 'gfd'
-    IOC = 'ioc'
-    FOK = 'fok'
-    OPG = 'opg'
-
-class OrderState(Enum):
-    """enum for order states"""
-    QUEUED = "queued"
-    UNCONFIRMED = "unconfirmed"
-    CONFIRMED = "confirmed"
-    PARTIALLY_FILLED = "partially_filled"
-    FILLED = "filled"
-    REJECTED = "rejected"
-    CANCELLED = "cancelled"
-    FAILED = "failed"
-
 class Robinhood:
     """wrapper class for fetching/parsing Robinhood endpoints"""
     endpoints = {
@@ -95,6 +56,52 @@ class Robinhood:
 
     logger = logging.getLogger('Robinhood')
     logger.addHandler(logging.NullHandler())
+
+    class Bounds(Enum):
+        """enum for bounds in `historicals` endpoint"""
+        REGULAR = 'regular'
+        EXTENDED = 'extended'
+
+    class Transaction(Enum):
+        """enum for buy/sell orders"""
+        BUY = 'buy'
+        SELL = 'sell'
+
+    class Trigger(Enum):
+        """enum for buy/sell orders"""
+        IMMEDIATE = 'immediate'
+        STOP = 'stop'
+
+    class Order(Enum):
+        """enum for buy/sell orders"""
+        MARKET = 'market'
+        LIMIT = 'limit'
+
+    class TimeForce(Enum):
+        """enum for buy/sell orders"""
+        GTC = 'gtc'
+        GFD = 'gfd'
+        IOC = 'ioc'
+        FOK = 'fok'
+        OPG = 'opg'
+
+    class OrderState(Enum):
+        """enum for order states"""
+        QUEUED = "queued"
+        UNCONFIRMED = "unconfirmed"
+        CONFIRMED = "confirmed"
+        PARTIALLY_FILLED = "partially_filled"
+        FILLED = "filled"
+        REJECTED = "rejected"
+        CANCELLED = "cancelled"
+        FAILED = "failed"
+
+        def stopped(self):
+            return self.name in ('FILLED', 'CANCELLED', 'REJECTED', 'FAILED')
+        def active(self):
+            return self.name in ('QUEUED', 'CONFIRMED', 'PARTIALLY_FILLED')
+        def other(self):
+            return self.name in ('UNCONFIRMED')
 
     ##############################
     #Logging in and initializing
@@ -802,9 +809,9 @@ class Robinhood:
             transaction,
             bid_price=None,
             stop_price=None,
-            trigger=Trigger('immediate'),
-            order=Order('market'),
-            time_in_force = TimeForce('gfd')
+            trigger='immediate',
+            order='market',
+            time_in_force = 'gfd'
         ):
         """place an order with Robinhood
 
@@ -831,26 +838,25 @@ class Robinhood:
         """
 
         if isinstance(transaction, str):
-            transaction = Transaction(transaction.lower())
+            transaction = self.Transaction(transaction.lower())
         if isinstance(trigger, str):
-            trigger = Trigger(trigger.lower())
+            trigger = self.Trigger(trigger.lower())
         if isinstance(order, str):
-            order = Order(order.lower())
+            order = self.Order(order.lower())
         if isinstance(time_in_force,str):
-            time_in_force = TimeForce(time_in_force.lower())
+            time_in_force = self.TimeForce(time_in_force.lower())
 
-        # NOT SURE why bid_price is being assumed here, this could be bad.
-
-        if order == Order.LIMIT and bid_price is None:
+        if order == self.Order.LIMIT and bid_price is None:
             raise ValueError("Order.LIMIT without bid_price")
 
-        if bid_price is not None and not order == Order.LIMIT:
+        if bid_price is not None and not order == self.Order.LIMIT:
             raise ValueError("bid_price without Order.LIMIT")
 
         # If Order.MARKET the we still need to pass RH a price, RH places market orders
         # automatically as limit orders with a 5% buffer
-        if not bid_price and order == Order.MARKET:
-            bid_price = self.quote_data(instrument['symbol'])['bid_price']
+        if not bid_price and order == self.Order.MARKET:
+            quote = self.quote_data(instrument['symbol'])['results'][0]
+            bid_price = quote['bid_price']
 
         payload = {
             'account': self.get_account()['url'],
@@ -865,7 +871,7 @@ class Robinhood:
             'type': order.value
         }
 
-        if trigger == Trigger.STOP:
+        if trigger == self.Trigger.STOP:
             if stop_price is not None:
                 payload['stop_price'] = float(stop_price)
             else:
@@ -898,7 +904,7 @@ class Robinhood:
             (:obj:`requests.request`): result from `orders` post command
 
         """
-        transaction = Transaction.BUY
+        transaction = self.Transaction.BUY
         return self.place_order(instrument, quantity, bid_price, transaction)
 
     def place_sell_order(
@@ -918,7 +924,7 @@ class Robinhood:
             (:obj:`requests.request`): result from `orders` put command
 
         """
-        transaction = Transaction.SELL
+        transaction = self.Transaction.SELL
         return self.place_order(instrument, quantity, bid_price, transaction)
 
     ##############################
@@ -947,15 +953,15 @@ class Robinhood:
         convenience function to cancel all orders, optionally only for a given instrument
 
         Args:
-            instrument (string): RH instrument URL to restrict results
+            instrument (obj `dict'): RH instrument dict that contains url attr to restrict results
         Returns:
             (:obj:`dict`): containing keys 'cancelled' or 'error' with the list of order ids
         """
-        orders = self.order_history(instrument=instrument)
+        orders = self.order_history(instrument=instrument['url'])
         res = {'cancelled':[], 'error':[]}
-        stoppedOrderStates = (OrderState.FILLED, OrderState.CANCELLED, OrderState.FAILED, OrderState.REJECTED)
+
         for order in orders['results']:
-            if OrderState(order['state']) not in stoppedOrderStates:
+            if not self.OrderState(order['state']).stopped():
                 r = self.cancel_order(oid=order['id'])
                 if r.status_code == 200:
                     res['cancelled'].append(order['id'])
