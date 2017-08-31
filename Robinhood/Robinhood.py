@@ -174,15 +174,15 @@ class Robinhood:
 
         """
         try:
-            req = self.session.post(self.endpoints['logout'])
-            req.raise_for_status()
+            res = self.session.post(self.endpoints['logout'])
+            res.raise_for_status()
         except requests.exceptions.HTTPError as err_msg:
             warnings.warn('Failed to log out ' + repr(err_msg))
 
         self.headers['Authorization'] = None
         self.auth_token = None
 
-        return req
+        return res
 
     ##############################
     #GET DATA
@@ -230,8 +230,8 @@ class Robinhood:
         # API doesn't return pagination though when query is non-empty query=a ??
         #if query is None and not (symbol or instrumentid):
         #     return res
-
-        return res['results'], res['next'], res['previous']
+        # XXX perhaps should return an iterable to hide the pagination, e.g. res['next'], res['previous'] aspects
+        return res['results']
 
     def instrument_splits(self, instrumentid=None):
         """fetch instruments splits endpoint
@@ -249,35 +249,37 @@ class Robinhood:
                 self.endpoints['instrumentsplits'].format(instrumentid=instrumentid)
             )
         res.raise_for_status()
-        res = res.json()
+        return res.json()
 
-        return res
-
-    def quote_data(self, stock=''):
+    def quote_data(self, stock):
         """fetch stock quote
 
         Args:
-            stock (str): stock ticker, prompt if blank
+            stock (list|str): stock ticker, prompt if blank
 
         Returns:
             (:obj:`dict`): JSON contents from `quotes` endpoint
 
         """
         url = None
-        if stock.find(',') == -1:
-            url = str(self.endpoints['quotes']) + str(stock) + "/"
-        else:
-            stock = stock.rstrip(',')
-            url = str(self.endpoints['quotes']) + "?symbols=" + str(stock)
-        #Check for validity of symbol
-        try:
-            req = requests.get(url)
-            req.raise_for_status()
-            data = req.json()
-        except requests.exceptions.HTTPError:
-            raise NameError('Invalid Symbol: ' + stock) #TODO: custom exception
+        stocks = None
+        if isinstance(stock,str):
+            stocks = stock
+        elif isinstance(stock,list):
+            stocks = ','.join(stock)
 
-        return data
+        #if stock.find(',') == -1:
+        #    url = str(self.endpoints['quotes']) + str(stock) + "/"
+        url = str(self.endpoints['quotes']) + "?symbols=" + str(stocks)
+        #Check for validity of symbol
+
+        try:
+            res = requests.get(url)
+            res.raise_for_status()
+        except requests.exceptions.HTTPError:
+            raise NameError('Invalid Symbol: ' + stocks) #TODO: custom exception
+
+        return res.json()
 
     # We will keep for compatibility until next major release
     def quotes_data(self, stocks):
@@ -292,13 +294,12 @@ class Robinhood:
         """
         url = str(self.endpoints['quotes']) + "?symbols=" + ",".join(stocks)
         try:
-            req = requests.get(url)
-            req.raise_for_status()
-            data = req.json()
+            res = requests.get(url)
+            res.raise_for_status()
         except requests.exceptions.HTTPError:
             raise NameError('Invalid Symbols: ' + ",".join(stocks)) #TODO: custom exception
 
-        return data["results"]
+        return res.json()["results"]
 
     def get_quote_list(self, stock='', key=''):
         """Returns multiple stock info and keys from quote_data (prompt if blank)
@@ -346,8 +347,7 @@ class Robinhood:
         """Returns multiple stock info and fields from quote_data
 
         Args:
-            stock (str): stock ticker (or tickers separated by a comma)
-            , prompt if blank
+            stock (str|array): stock ticker(s) (or tickers separated by a comma), prompt if blank
             key (str): key attributes that the function should return
 
         Returns:
@@ -355,23 +355,18 @@ class Robinhood:
                            if none of the stocks were valid
 
         """
-        stock = ",".join(stocks)   # XXX temporary
-        if stock.find(',') == -1:
-            stock += ','
+        data = self.quote_data(stocks)
+
         if fields is not None and 'symbol' not in fields:
             fields.append('symbol')
-        data = self.quote_data(stock)
-        # XXX what if symbol is non-unique what does the API return?
+
         res = {}
         for quote in data['results']:
             print(type(quote))
-            if quote is None:  # XXX temp occurs because of our extra ,
-                print("Quote had None element")
-                continue
             if not isinstance(quote,dict):
-                print("Quote was not a dict?")
-                continue
+                raise Warning("Returned Quote was not a dict")
 
+            # XXX what if symbol is non-unique should we use symbol as key here?
             s = quote['symbol']
             if fields is None:
                 res[s] = quote
@@ -408,7 +403,7 @@ class Robinhood:
             bounds = Bounds(bounds)
 
         params = {
-            'symbols': ','.join(stock).upper,
+            'symbols': ','.join(stock).upper(),
             'interval': interval,
             'span': span,
             'bounds': bounds.name.lower()
@@ -417,6 +412,7 @@ class Robinhood:
             self.endpoints['historicals'],
             params=params
         )
+        res.raise_for_status()
         return res.json()
 
     def get_news(self, stock):
@@ -428,18 +424,20 @@ class Robinhood:
             (:obj:`dict`) values returned from `news` endpoint
 
         """
-        return self.session.get(self.endpoints['news']+stock.upper()+"/").json()
+        res = self.session.get(self.endpoints['news']+stock.upper()+"/")
+        res.raise_for_status()
+        return res.json()
 
-    def print_quote(self, stock=''):    #pragma: no cover
+    def print_quote(self, stock):    #pragma: no cover
         """print quote information
         Args:
-            stock (str): ticker to fetch
+            stock (:obj:`list`): list of symbols to fetch and print quotes
 
         Returns:
             None
 
         """
-        data = self.get_quote_list(stock,'symbol,last_trade_price')
+        data = self.get_quote_list(stock,('symbol','last_trade_price'))
         for item in data:
             quote_str = item[0] + ": $" + item[1]
             print(quote_str)
@@ -455,8 +453,7 @@ class Robinhood:
             None
 
         """
-        for stock in stocks:
-            self.print_quote(stock)
+        self.print_quote(stock)
 
     def ask_price(self, stock=''):
         """get asking price for a stock
@@ -648,13 +645,12 @@ class Robinhood:
         #Check for validity of symbol
         res = None
         try:
-            req = requests.get(url)
-            req.raise_for_status()
-            res = req.json()
+            res = requests.get(url)
+            res.raise_for_status()
         except requests.exceptions.HTTPError:
             raise NameError('Invalid Symbol: ' + stock) #TODO wrap custom exception
 
-        return res
+        return res.json()
 
     def fundamentals(self, stock=''):
         """wrapper for get_fundamentlals function"""
@@ -666,9 +662,9 @@ class Robinhood:
 
     def portfolios(self):
         """Returns the user's portfolio data."""
-        req = self.session.get(self.endpoints['portfolios'])
-        req.raise_for_status()
-        return req.json()['results'][0]
+        res = self.session.get(self.endpoints['portfolios'])
+        res.raise_for_status()
+        return res.json()['results'][0]
 
     def adjusted_equity_previous_close(self):
         """wrapper for portfolios
@@ -769,8 +765,10 @@ class Robinhood:
         #     data['updated_at'] = since
         if instrument is not None:
             data['instrument'] = instrument
+        res = self.session.get(self.endpoints['orders'], params=data)
+        res.raise_for_status()
 
-        return self.session.get(self.endpoints['orders'], params=data).json()
+        return res.json()
 
     def dividends(self):
         """wrapper for portfolios
