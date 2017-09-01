@@ -355,8 +355,11 @@ class Robinhood:
             (:obj:`dict`): Dict with dict of the requested fields for stock
         """
         data = self.quotes_data(stocks)
-        fields = list(fields)
-        print(data)
+
+        # XXX Arguably fields should also be a list of Enum to catch typos
+        if isinstance(fields,str):
+            fields = [fields]
+
         res = {}
         for quote in data:
             if not isinstance(quote,dict):
@@ -437,9 +440,9 @@ class Robinhood:
             None
 
         """
-        data = self.get_quote_list(stock,('symbol','last_trade_price'))
-        for item in data:
-            quote_str = item[0] + ": $" + item[1]
+        quotes = self.get_quotes_fields(stocks=stock,fields=('last_trade_price'))
+        for stock, quote in quotes.items()  :
+            quote_str = stock + ": $" + quote['last_trade_price']
             print(quote_str)
             self.logger.info(quote_str)
 
