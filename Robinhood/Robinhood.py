@@ -453,7 +453,7 @@ class Robinhood:
             None
 
         """
-        self.print_quote(stock)
+        self.print_quote(stocks)
 
     def ask_price(self, stock=''):
         """get asking price for a stock
