@@ -396,8 +396,11 @@ class Robinhood:
             (:obj:`dict`) values returned from `historicals` endpoint
 
         """
-        if isinstance(bounds, str): #recast to Enum
-            bounds = self.Bounds(bounds)
+        # recast to Enum
+        bounds = self.Bounds(bounds)
+
+        if isinstance(stock,str):
+            stock = [stock]
 
         params = {
             'symbols': ','.join(stock).upper(),
@@ -827,15 +830,11 @@ class Robinhood:
             (:obj:`requests.request`): result from `orders` put command
 
         """
-
-        if isinstance(transaction, str):
-            transaction = self.Transaction(transaction.lower())
-        if isinstance(trigger, str):
-            trigger = self.Trigger(trigger.lower())
-        if isinstance(order, str):
-            order = self.Order(order.lower())
-        if isinstance(time_in_force,str):
-            time_in_force = self.TimeForce(time_in_force.lower())
+        # Insure the order instructions are valid
+        transaction = self.Transaction(transaction)
+        trigger = self.Trigger(trigger)
+        order = self.Order(order)
+        time_in_force = self.TimeForce(time_in_force)
 
         if order == self.Order.LIMIT and bid_price is None:
             raise ValueError("Order.LIMIT without bid_price")
