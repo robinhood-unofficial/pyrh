@@ -11,18 +11,6 @@ from six.moves.urllib.request import getproxies
 from six.moves import input
 from . import exceptions as RH_exception
 
-class Bounds(Enum):
-    """enum for bounds in `historicals` endpoint"""
-    REGULAR = 'regular'
-    EXTENDED = 'extended'
-
-
-class Transaction(Enum):
-    """enum for buy/sell orders"""
-    BUY = 'buy'
-    SELL = 'sell'
-
-
 class Robinhood:
     """wrapper class for fetching/parsing Robinhood endpoints"""
     endpoints = {
@@ -37,10 +25,13 @@ class Robinhood:
         "dividends": "https://api.robinhood.com/dividends/",
         "edocuments": "https://api.robinhood.com/documents/",
         "instruments": "https://api.robinhood.com/instruments/",
+        "instrumentid": "https://api.robinhood.com/instruments/{instrumentid}/",
+        "instrumentsplits": "https://api.robinhood.com/instruments/{instrumentid}/splits/",
         "margin_upgrades": "https://api.robinhood.com/margin/upgrades/",
         "markets": "https://api.robinhood.com/markets/",
         "notifications": "https://api.robinhood.com/notifications/",
         "orders": "https://api.robinhood.com/orders/",
+        "cancel": "https://api.robinhood.com/orders/{oid}/cancel/",
         "password_reset": "https://api.robinhood.com/password_reset/request/",
         "portfolios": "https://api.robinhood.com/portfolios/",
         "positions": "https://api.robinhood.com/positions/",
@@ -65,6 +56,52 @@ class Robinhood:
 
     logger = logging.getLogger('Robinhood')
     logger.addHandler(logging.NullHandler())
+
+    class Bounds(Enum):
+        """enum for bounds in `historicals` endpoint"""
+        REGULAR = 'regular'
+        EXTENDED = 'extended'
+
+    class Transaction(Enum):
+        """enum for buy/sell orders"""
+        BUY = 'buy'
+        SELL = 'sell'
+
+    class Trigger(Enum):
+        """enum for buy/sell orders"""
+        IMMEDIATE = 'immediate'
+        STOP = 'stop'
+
+    class Order(Enum):
+        """enum for buy/sell orders"""
+        MARKET = 'market'
+        LIMIT = 'limit'
+
+    class TimeForce(Enum):
+        """enum for buy/sell orders"""
+        GTC = 'gtc'
+        GFD = 'gfd'
+        IOC = 'ioc'
+        FOK = 'fok'
+        OPG = 'opg'
+
+    class OrderState(Enum):
+        """enum for order states"""
+        QUEUED = "queued"
+        UNCONFIRMED = "unconfirmed"
+        CONFIRMED = "confirmed"
+        PARTIALLY_FILLED = "partially_filled"
+        FILLED = "filled"
+        REJECTED = "rejected"
+        CANCELLED = "cancelled"
+        FAILED = "failed"
+
+        def stopped(self):
+            return self.name in ('FILLED', 'CANCELLED', 'REJECTED', 'FAILED')
+        def active(self):
+            return self.name in ('QUEUED', 'CONFIRMED', 'PARTIALLY_FILLED')
+        def other(self):
+            return self.name in ('UNCONFIRMED')
 
     ##############################
     #Logging in and initializing
@@ -144,15 +181,15 @@ class Robinhood:
 
         """
         try:
-            req = self.session.post(self.endpoints['logout'])
-            req.raise_for_status()
+            res = self.session.post(self.endpoints['logout'])
+            res.raise_for_status()
         except requests.exceptions.HTTPError as err_msg:
             warnings.warn('Failed to log out ' + repr(err_msg))
 
         self.headers['Authorization'] = None
         self.auth_token = None
 
-        return req
+        return res
 
     ##############################
     #GET DATA
@@ -165,31 +202,64 @@ class Robinhood:
         data = res.json()
         return data
 
-    def instruments(self, stock):
+    def instruments(self, query=None, symbol=None, instrumentid=None):
         """fetch instruments endpoint
 
         Args:
-            stock (str): stock ticker
+            query (str): search for ticker, e.g. by company name
+            symbol (str): find instrument by it's symbol
+            instrumentid (str): instrumentid [uuid without the rest of URL]
 
         Returns:
             (:obj:`dict`): JSON contents from `instruments` endpoint
 
         """
-        res = self.session.get(
-            self.endpoints['instruments'],
-            params={'query': stock.upper()}
-        )
+        res = None
+        if instrumentid:
+            res = self.session.get(
+                self.endpoints['instrumentid'].format(instrumentid=instrumentid)
+            )
+        else:
+            params = {}
+            if symbol:
+                params['symbol'] = symbol.upper()
+            if query:
+                params['query'] = query
+            res = self.session.get(
+                self.endpoints['instruments'],
+                params=params
+            )
         res.raise_for_status()
         res = res.json()
 
         # if requesting all, return entire object so may paginate with ['next']
-        if (stock == ""):
-            return res
-
+        # Not sure variable returns types here is the best approach..
+        # API doesn't return pagination though when query is non-empty query=a ??
+        #if query is None and not (symbol or instrumentid):
+        #     return res
+        # XXX perhaps should return an iterable to hide the pagination, e.g. res['next'], res['previous'] aspects
         return res['results']
 
-    def quote_data(self, stock=''):
-        """fetch stock quote
+    def instrument_splits(self, instrumentid=None):
+        """fetch instruments splits endpoint
+
+        Args:
+            instrumentid (str): instrumentid [uuid without the rest of URL]
+
+        Returns:
+            (:obj:`dict`): JSON contents from `instruments splits` endpoint
+
+        """
+        res = None
+        if instrumentid:
+            res = self.session.get(
+                self.endpoints['instrumentsplits'].format(instrumentid=instrumentid)
+            )
+        res.raise_for_status()
+        return res.json()
+
+    def quote_data(self, stock):
+        """fetch single stock quote
 
         Args:
             stock (str): stock ticker, prompt if blank
@@ -198,20 +268,16 @@ class Robinhood:
             (:obj:`dict`): JSON contents from `quotes` endpoint
 
         """
-        url = None
-        if stock.find(',') == -1:
-            url = str(self.endpoints['quotes']) + str(stock) + "/"
-        else:
-            url = str(self.endpoints['quotes']) + "?symbols=" + str(stock)
-        #Check for validity of symbol
+        url = str(self.endpoints['quotes']) + str(stock) + "/"
+
+        # Check for validity of symbol
         try:
-            req = requests.get(url)
-            req.raise_for_status()
-            data = req.json()
+            res = requests.get(url)
+            res.raise_for_status()
         except requests.exceptions.HTTPError:
             raise NameError('Invalid Symbol: ' + stock) #TODO: custom exception
 
-        return data
+        return res.json()
 
     # We will keep for compatibility until next major release
     def quotes_data(self, stocks):
@@ -224,15 +290,17 @@ class Robinhood:
             (:obj:`list` of :obj:`dict`): List of JSON contents from `quotes` endpoint, in the
             same order of input args. If any ticker is invalid, a None will occur at that position.
         """
+        if isinstance(stocks,str):
+            stocks = [stocks]
+
         url = str(self.endpoints['quotes']) + "?symbols=" + ",".join(stocks)
         try:
-            req = requests.get(url)
-            req.raise_for_status()
-            data = req.json()
+            res = requests.get(url)
+            res.raise_for_status()
         except requests.exceptions.HTTPError:
             raise NameError('Invalid Symbols: ' + ",".join(stocks)) #TODO: custom exception
 
-        return data["results"]
+        return res.json()["results"]
 
     def get_quote_list(self, stock='', key=''):
         """Returns multiple stock info and keys from quote_data (prompt if blank)
@@ -245,23 +313,31 @@ class Robinhood:
         Returns:
             (:obj:`list`): Returns values from each stock or empty list
                            if none of the stocks were valid
+                           requested fields are returned in an array
 
         """
+
+        if isinstance(key,str):
+            keys = key.split(',')
+        else:
+            keys = [key]
+
         #Creates a tuple containing the information we want to retrieve
         def append_stock(stock):
-            keys = key.split(',')
-            myStr = ''
+            res = []
             for item in keys:
-                myStr += stock[item] + ","
-            return (myStr.split(','))
+                res.append(stock[item])
+            return res
+
         #Prompt for stock if not entered
         if not stock:   #pragma: no cover
             stock = input("Symbol: ")
-        data = self.quote_data(stock)
+        data = self.quotes_data(stock)
+
         res = []
         # Handles the case of multple tickers
-        if stock.find(',') != -1:
-            for stock in data['results']:
+        if isinstance(data, list):
+            for stock in data:
                 if stock == None:
                     continue
                 res.append(append_stock(stock))
@@ -272,14 +348,44 @@ class Robinhood:
     def get_quote(self, stock=''):
         """wrapper for quote_data"""
         data = self.quote_data(stock)
-        return data["symbol"]
+        return data
+
+    def get_quotes_fields(self, stocks=None, fields=''):
+        """Returns multiple stock info and fields from quote_data
+
+        Args:
+            stock (str|list): stock ticker(s) can be one or a list
+            fields (str|list): fields of the quote data that should return
+
+        Returns:
+            (:obj:`dict`): Dict with dict of the requested field values for stock
+        """
+        data = self.quotes_data(stocks)
+
+        # XXX Arguably fields should also be a list of Enum to catch typos
+        if isinstance(fields,str):
+            fields = [fields]
+
+        res = {}
+        for quote in data:
+            if not isinstance(quote,dict):
+                raise Warning("Returned quote was not a dict")
+
+            # XXX what if symbol is non-unique should we use symbol as key here?
+            symbol = quote['symbol']
+            if len(fields):
+                res[symbol] = {key: value for (key, value) in quote.items() if key in fields}
+            else:
+                res[symbol] = quote
+
+        return res
 
     def get_historical_quotes(
             self,
             stock,
             interval,
             span,
-            bounds=Bounds.REGULAR
+            bounds='regular'
         ):
         """fetch historical data for stock
 
@@ -290,7 +396,7 @@ class Robinhood:
             TODO: NEEDS TESTS
 
         Args:
-            stock (str): stock ticker
+            stock (list|str): stock ticker(s)
             interval (str): resolution of data
             span (str): length of data
             bounds (:enum:`Bounds`, optional): 'extended' or 'regular' trading hours
@@ -299,11 +405,14 @@ class Robinhood:
             (:obj:`dict`) values returned from `historicals` endpoint
 
         """
-        if isinstance(bounds, str): #recast to Enum
-            bounds = Bounds(bounds)
+        # recast to Enum
+        bounds = self.Bounds(bounds)
+
+        if isinstance(stock,str):
+            stock = [stock]
 
         params = {
-            'symbols': ','.join(stock).upper,
+            'symbols': ','.join(stock).upper(),
             'interval': interval,
             'span': span,
             'bounds': bounds.name.lower()
@@ -312,6 +421,7 @@ class Robinhood:
             self.endpoints['historicals'],
             params=params
         )
+        res.raise_for_status()
         return res.json()
 
     def get_news(self, stock):
@@ -323,20 +433,22 @@ class Robinhood:
             (:obj:`dict`) values returned from `news` endpoint
 
         """
-        return self.session.get(self.endpoints['news']+stock.upper()+"/").json()
+        res = self.session.get(self.endpoints['news']+stock.upper()+"/")
+        res.raise_for_status()
+        return res.json()
 
-    def print_quote(self, stock=''):    #pragma: no cover
+    def print_quote(self, stock):    #pragma: no cover
         """print quote information
         Args:
-            stock (str): ticker to fetch
+            stock (:obj:`list`): list of symbols to fetch and print quotes
 
         Returns:
             None
 
         """
-        data = self.get_quote_list(stock,'symbol,last_trade_price')
-        for item in data:
-            quote_str = item[0] + ": $" + item[1]
+        quotes = self.get_quotes_fields(stocks=stock,fields=('last_trade_price'))
+        for stock, quote in quotes.items()  :
+            quote_str = stock + ": $" + quote['last_trade_price']
             print(quote_str)
             self.logger.info(quote_str)
 
@@ -350,8 +462,7 @@ class Robinhood:
             None
 
         """
-        for stock in stocks:
-            self.print_quote(stock)
+        self.print_quote(stocks)
 
     def ask_price(self, stock=''):
         """get asking price for a stock
@@ -539,16 +650,16 @@ class Robinhood:
             stock = input("Symbol: ")
 
         url = str(self.endpoints['fundamentals']) + str(stock.upper()) + "/"
+        # XXX endpoint also acccepts POST 'symbols=STOCK1,STOCK2' CSV list of 10 symbols
         #Check for validity of symbol
+        res = None
         try:
-            req = requests.get(url)
-            req.raise_for_status()
-            data = req.json()
+            res = requests.get(url)
+            res.raise_for_status()
         except requests.exceptions.HTTPError:
             raise NameError('Invalid Symbol: ' + stock) #TODO wrap custom exception
 
-        return data
-
+        return res.json()
 
     def fundamentals(self, stock=''):
         """wrapper for get_fundamentlals function"""
@@ -560,9 +671,9 @@ class Robinhood:
 
     def portfolios(self):
         """Returns the user's portfolio data."""
-        req = self.session.get(self.endpoints['portfolios'])
-        req.raise_for_status()
-        return req.json()['results'][0]
+        res = self.session.get(self.endpoints['portfolios'])
+        res.raise_for_status()
+        return res.json()['results'][0]
 
     def adjusted_equity_previous_close(self):
         """wrapper for portfolios
@@ -642,13 +753,30 @@ class Robinhood:
         """
         return float(self.portfolios()['market_value'])
 
-    def order_history(self):
-        """wrapper for portfolios
+    def order_history(self,instrument=None):
+        """
 
         get orders from account
 
+        Args:
+            instrument (string): RH instrument URL to restrict results
         """
-        return self.session.get(self.endpoints['orders']).json()
+        data = {}
+        # API Documentation question:
+        # state or updated_at did not appear to filter the order details,
+        # while this would seem useful over time,  it is not clear if this
+        # truly exists in the RH API.
+        # Will be nice when RH officially supports and documents a public API :)
+        # if state is not None:
+        #     data['state'] = state
+        #
+        # if since is not None:
+        #     data['updated_at'] = since
+        if instrument is not None:
+            data['instrument'] = instrument
+        res = self.session.get(self.endpoints['orders'], params=data)
+        res.raise_for_status()
+        return res.json()
 
     def dividends(self):
         """wrapper for portfolios
@@ -680,9 +808,10 @@ class Robinhood:
     def place_order(
             self,
             instrument,
-            quantity=1,
-            bid_price=0.0,
-            transaction=None,
+            quantity,
+            transaction,
+            bid_price=None,
+            stop_price=None,
             trigger='immediate',
             order='market',
             time_in_force = 'gfd'
@@ -700,38 +829,56 @@ class Robinhood:
             instrument (dict): the RH URL and symbol in dict for the instrument to be traded
             quantity (int): quantity of stocks in order
             bid_price (float): price for order
+            stop_price (float): price at which order is placed
             transaction (:enum:`Transaction`): BUY or SELL enum
             trigger (:enum:`Trigger`): IMMEDIATE or STOP enum
-            order (:enum:`Order`): MARKET or LIMIT
-            time_in_force (:enum:`TIME_IN_FORCE`): GFD or GTC (day or until cancelled)
+            order (:enum:`Order`): MARKET or LIMIT emum
+            time_in_force (:enum:`TIME_IN_FORCE`): GFD or GTC (Good for day or Good 'til Cancelled)
 
         Returns:
             (:obj:`requests.request`): result from `orders` put command
 
         """
-        if isinstance(transaction, str):
-            transaction = Transaction(transaction)
-        if not bid_price:
-            bid_price = self.quote_data(instrument['symbol'])['bid_price']
+        # Insure the order instructions are valid
+        transaction = self.Transaction(transaction)
+        trigger = self.Trigger(trigger)
+        order = self.Order(order)
+        time_in_force = self.TimeForce(time_in_force)
+
+        if order == self.Order.LIMIT and bid_price is None:
+            raise ValueError("Order.LIMIT without bid_price")
+
+        if bid_price is not None and not order == self.Order.LIMIT:
+            raise ValueError("bid_price without Order.LIMIT")
+
+        # If Order.MARKET the we still need to pass RH a price, RH places market orders
+        # automatically as limit orders with a 5% buffer
+        if not bid_price and order == self.Order.MARKET:
+            quote = self.quote_data(instrument['symbol'])['results'][0]
+            bid_price = quote['bid_price']
+
         payload = {
             'account': self.get_account()['url'],
             'instrument': unquote(instrument['url']),
+            'quantity': int(quantity),
             'price': float(bid_price),
-            'quantity': quantity,
-            'side': transaction.name.lower(),
+
+            'side': transaction.value,
             'symbol': instrument['symbol'],
-            'time_in_force': time_in_force.lower(),
-            'trigger': trigger,
-            'type': order.lower()
+            'time_in_force': time_in_force.value,
+            'trigger': trigger.value,
+            'type': order.value
         }
-        #data = 'account=%s&instrument=%s&price=%f&quantity=%d&side=%s&symbol=%s#&time_in_force=gfd&trigger=immediate&type=market' % (
-        #    self.get_account()['url'],
-        #    urllib.parse.unquote(instrument['url']),
-        #    float(bid_price),
-        #    quantity,
-        #    transaction,
-        #    instrument['symbol']
-        #)
+
+        if trigger == self.Trigger.STOP:
+            if stop_price is not None:
+                payload['stop_price'] = float(stop_price)
+            else:
+                raise ValueError("Trigger.STOP without stop_price")
+        elif stop_price is not None:
+            raise ValueError("stop_price without Trigger.STOP")
+
+        # res = payload
         res = self.session.post(
             self.endpoints['orders'],
             data=payload
@@ -753,10 +900,10 @@ class Robinhood:
             bid_price (float): price for order
 
         Returns:
-            (:obj:`requests.request`): result from `orders` put command
+            (:obj:`requests.request`): result from `orders` post command
 
         """
-        transaction = Transaction.BUY
+        transaction = self.Transaction.BUY
         return self.place_order(instrument, quantity, bid_price, transaction)
 
     def place_sell_order(
@@ -776,5 +923,47 @@ class Robinhood:
             (:obj:`requests.request`): result from `orders` put command
 
         """
-        transaction = Transaction.SELL
+        transaction = self.Transaction.SELL
         return self.place_order(instrument, quantity, bid_price, transaction)
+
+    ##############################
+    # CANCEL ORDER
+    ##############################
+    def cancel_order(self,oid):
+        """
+        cancel a given order id
+
+        Args:
+            oid (string): the order ID to be cancelled
+        Returns:
+            (:obj:`requests.request`): result from `orders` put command
+            status code 200 signifies success
+
+        """
+        data = {}
+        data['oid'] = oid
+        res = self.session.post(self.endpoints['cancel'].format(**data))
+        res.raise_for_status()
+        return res
+
+
+    def cancel_orders_all(self,instrument=None):
+        """
+        convenience function to cancel all orders, optionally only for a given instrument
+
+        Args:
+            instrument (obj `dict'): RH instrument dict that contains url attr to restrict results
+        Returns:
+            (:obj:`dict`): containing keys 'cancelled' or 'error' with the list of order ids
+        """
+        orders = self.order_history(instrument=instrument['url'])
+        res = {'cancelled':[], 'error':[]}
+
+        for order in orders['results']:
+            if not self.OrderState(order['state']).stopped():
+                r = self.cancel_order(oid=order['id'])
+                if r.status_code == 200:
+                    res['cancelled'].append(order['id'])
+                else:
+                    res['error'].append(order['id'])
+        return(res)
