@@ -259,32 +259,23 @@ class Robinhood:
         return res.json()
 
     def quote_data(self, stock):
-        """fetch stock quote
+        """fetch single stock quote
 
         Args:
-            stock (list|str): stock ticker, prompt if blank
+            stock (str): stock ticker, prompt if blank
 
         Returns:
             (:obj:`dict`): JSON contents from `quotes` endpoint
 
         """
-        url = None
-        stocks = None
-        if isinstance(stock,str):
-            stocks = stock
-        elif isinstance(stock,list):
-            stocks = ','.join(stock)
+        url = str(self.endpoints['quotes']) + str(stock) + "/"
 
-        #if stock.find(',') == -1:
-        #    url = str(self.endpoints['quotes']) + str(stock) + "/"
-        url = str(self.endpoints['quotes']) + "?symbols=" + str(stocks)
-        #Check for validity of symbol
-
+        # Check for validity of symbol
         try:
             res = requests.get(url)
             res.raise_for_status()
         except requests.exceptions.HTTPError:
-            raise NameError('Invalid Symbol: ' + stocks) #TODO: custom exception
+            raise NameError('Invalid Symbol: ' + stock) #TODO: custom exception
 
         return res.json()
 
@@ -299,6 +290,9 @@ class Robinhood:
             (:obj:`list` of :obj:`dict`): List of JSON contents from `quotes` endpoint, in the
             same order of input args. If any ticker is invalid, a None will occur at that position.
         """
+        if isinstance(stocks,str):
+            stocks = [stocks]
+
         url = str(self.endpoints['quotes']) + "?symbols=" + ",".join(stocks)
         try:
             res = requests.get(url)
@@ -332,7 +326,7 @@ class Robinhood:
         #Prompt for stock if not entered
         if not stock:   #pragma: no cover
             stock = input("Symbol: ")
-        data = self.quote_data(stock)
+        data = self.quotes_data(stock)
 
         res = []
         # Handles the case of multple tickers
@@ -348,36 +342,33 @@ class Robinhood:
     def get_quote(self, stock=''):
         """wrapper for quote_data"""
         data = self.quote_data(stock)
-        return data["symbol"]
+        return data
 
-    def get_quote_fields(self, stocks=None, fields=None):
+    def get_quotes_fields(self, stocks=None, fields=''):
         """Returns multiple stock info and fields from quote_data
 
         Args:
-            stock (str|array): stock ticker(s) (or tickers separated by a comma), prompt if blank
-            key (str): key attributes that the function should return
+            stock (str|list): stock ticker(s) can be one or a list
+            fields (str|list): fields of the quote data that should return
 
         Returns:
-            (:obj:`list`): Returns values from each stock or empty list
-                           if none of the stocks were valid
-
+            (:obj:`dict`): Dict with dict of the requested fields for stock
         """
-        data = self.quote_data(stocks)
-
-        if fields is not None and 'symbol' not in fields:
-            fields.append('symbol')
-
+        data = self.quotes_data(stocks)
+        fields = list(fields)
+        print(data)
         res = {}
-        for quote in data['results']:
+        for quote in data:
             if not isinstance(quote,dict):
-                raise Warning("Returned Quote was not a dict")
+                raise Warning("Returned quote was not a dict")
 
             # XXX what if symbol is non-unique should we use symbol as key here?
             symbol = quote['symbol']
-            if fields is None:
-                res[symbol] = quote
-            else:
+            if len(fields):
                 res[symbol] = {key: value for (key, value) in quote.items() if key in fields}
+            else:
+                res[symbol] = quote
+
         return res
 
     def get_historical_quotes(
@@ -396,7 +387,7 @@ class Robinhood:
             TODO: NEEDS TESTS
 
         Args:
-            stock (str): stock ticker
+            stock (list|str): stock ticker(s)
             interval (str): resolution of data
             span (str): length of data
             bounds (:enum:`Bounds`, optional): 'extended' or 'regular' trading hours
