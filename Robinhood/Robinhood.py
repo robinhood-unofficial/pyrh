@@ -226,10 +226,10 @@ class Robinhood:
         return res.json()
 
     def quote_data(self, stock):
-        """fetch stock quote
+        """fetch single stock quote
 
         Args:
-            stock (list|str): stock ticker, prompt if blank
+            stock (str): stock ticker, prompt if blank
 
             Args:
                 id (str): instrument id
@@ -237,40 +237,9 @@ class Robinhood:
             Returns:
                 (:obj:`dict`): JSON dict of instrument
         """
-        url = str(self.endpoints['instruments']) + str(id) + "/"
+        url = str(self.endpoints['quotes']) + str(stock) + "/"
 
-        try:
-            req = requests.get(url)
-            req.raise_for_status()
-            data = req.json()
-        except requests.exceptions.HTTPError:
-            raise RH_exception.InvalidInstrumentId()
-
-        return data
-
-
-    def quote_data(self, stock=''):
-        """Fetch stock quote
-
-            Args:
-                stock (str): stock ticker, prompt if blank
-
-            Returns:
-                (:obj:`dict`): JSON contents from `quotes` endpoint
-        """
-
-        url = None
-        stocks = None
-        if isinstance(stock,str):
-            stocks = stock
-        elif isinstance(stock,list):
-            stocks = ','.join(stock)
-
-        #if stock.find(',') == -1:
-        #    url = str(self.endpoints['quotes']) + str(stock) + "/"
-        url = str(self.endpoints['quotes']) + "?symbols=" + str(stocks)
-        #Check for validity of symbol
-
+        # Check for validity of symbol
         try:
             res = requests.get(url)
             res.raise_for_status()
@@ -292,6 +261,8 @@ class Robinhood:
                 (:obj:`list` of :obj:`dict`): List of JSON contents from `quotes` endpoint, in the
                     same order of input args. If any ticker is invalid, a None will occur at that position.
         """
+        if isinstance(stocks,str):
+            stocks = [stocks]
 
         url = str(self.endpoints['quotes']) + "?symbols=" + ",".join(stocks)
 
@@ -315,33 +286,36 @@ class Robinhood:
                 , prompt if blank
                 key (str): key attributes that the function should return
 
-            Returns:
-                (:obj:`list`): Returns values from each stock or empty list
-                               if none of the stocks were valid
+        Returns:
+            (:obj:`list`): Returns values from each stock or empty list
+                           if none of the stocks were valid
+                           requested fields are returned in an array
 
         """
 
+        if isinstance(key,str):
+            keys = key.split(',')
+        else:
+            keys = [key]
+
         #Creates a tuple containing the information we want to retrieve
         def append_stock(stock):
-            keys = key.split(',')
-            myStr = ''
+            res = []
             for item in keys:
-                myStr += stock[item] + ","
-
-            return (myStr.split(','))
+                res.append(stock[item])
+            return res
 
         #Prompt for stock if not entered
         if not stock:   #pragma: no cover
             stock = input("Symbol: ")
-
-        data = self.quote_data(stock)
+        data = self.quotes_data(stock)
 
         res = []
 
         # Handles the case of multple tickers
-        if stock.find(',') != -1:
-            for stock in data['results']:
-                if stock is None:
+        if isinstance(data, list):
+            for stock in data:
+                if stock == None:
                     continue
                 res.append(append_stock(stock))
 
@@ -355,36 +329,36 @@ class Robinhood:
         """Wrapper for quote_data """
 
         data = self.quote_data(stock)
-        return data["symbol"]
+        return data
 
-    def get_quote_fields(self, stocks=None, fields=None):
+    def get_quotes_fields(self, stocks=None, fields=''):
         """Returns multiple stock info and fields from quote_data
 
         Args:
-            stock (str|array): stock ticker(s) (or tickers separated by a comma), prompt if blank
-            key (str): key attributes that the function should return
+            stock (str|list): stock ticker(s) can be one or a list
+            fields (str|list): fields of the quote data that should return
 
         Returns:
-            (:obj:`list`): Returns values from each stock or empty list
-                           if none of the stocks were valid
-
+            (:obj:`dict`): Dict with dict of the requested field values for stock
         """
-        data = self.quote_data(stocks)
+        data = self.quotes_data(stocks)
 
-        if fields is not None and 'symbol' not in fields:
-            fields.append('symbol')
+        # XXX Arguably fields should also be a list of Enum to catch typos
+        if isinstance(fields,str):
+            fields = [fields]
 
         res = {}
-        for quote in data['results']:
+        for quote in data:
             if not isinstance(quote,dict):
-                raise Warning("Returned Quote was not a dict")
+                raise Warning("Returned quote was not a dict")
 
             # XXX what if symbol is non-unique should we use symbol as key here?
             symbol = quote['symbol']
-            if fields is None:
-                res[symbol] = quote
-            else:
+            if len(fields):
                 res[symbol] = {key: value for (key, value) in quote.items() if key in fields}
+            else:
+                res[symbol] = quote
+
         return res
 
     def get_historical_quotes(
@@ -402,11 +376,11 @@ class Robinhood:
             interval = week
             TODO: NEEDS TESTS
 
-            Note: valid interval/span configs
-                interval = 5minute | 10minute + span = day, week
-                interval = day + span = year
-                interval = week
-                TODO: NEEDS TESTS
+        Args:
+            stock (list|str): stock ticker(s)
+            interval (str): resolution of data
+            span (str): length of data
+            bounds (:enum:`Bounds`, optional): 'extended' or 'regular' trading hours
 
             Args:
                 stock (str): stock ticker
@@ -417,8 +391,11 @@ class Robinhood:
             Returns:
                 (:obj:`dict`) values returned from `historicals` endpoint
         """
-        if isinstance(bounds, str): #recast to Enum
-            bounds = self.Bounds(bounds)
+        # recast to Enum
+        bounds = self.Bounds(bounds)
+
+        if isinstance(stock,str):
+            stock = [stock]
 
         params = {
             'symbols': ','.join(stock).upper(),
@@ -454,9 +431,9 @@ class Robinhood:
             Returns:
                 None
         """
-        data = self.get_quote_list(stock,('symbol','last_trade_price'))
-        for item in data:
-            quote_str = item[0] + ": $" + item[1]
+        quotes = self.get_quotes_fields(stocks=stock,fields=('last_trade_price'))
+        for stock, quote in quotes.items()  :
+            quote_str = stock + ": $" + quote['last_trade_price']
             print(quote_str)
             self.logger.info(quote_str)
 
@@ -929,15 +906,11 @@ class Robinhood:
             Returns:
                 (:obj:`requests.request`): result from `orders` put command
         """
-
-        if isinstance(transaction, str):
-            transaction = self.Transaction(transaction.lower())
-        if isinstance(trigger, str):
-            trigger = self.Trigger(trigger.lower())
-        if isinstance(order, str):
-            order = self.Order(order.lower())
-        if isinstance(time_in_force,str):
-            time_in_force = self.TimeForce(time_in_force.lower())
+        # Insure the order instructions are valid
+        transaction = self.Transaction(transaction)
+        trigger = self.Trigger(trigger)
+        order = self.Order(order)
+        time_in_force = self.TimeForce(time_in_force)
 
         if order == self.Order.LIMIT and bid_price is None:
             raise ValueError("Order.LIMIT without bid_price")
