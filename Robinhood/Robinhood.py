@@ -313,15 +313,21 @@ class Robinhood:
         Returns:
             (:obj:`list`): Returns values from each stock or empty list
                            if none of the stocks were valid
+                           requested fields are returned in an array
 
         """
+
+        if isinstance(key,str):
+            keys = key.split(',')
+        else:
+            keys = [key]
+
         #Creates a tuple containing the information we want to retrieve
         def append_stock(stock):
-            keys = key.split(',')
-            myStr = ''
+            res = []
             for item in keys:
-                myStr += stock[item] + ","
-            return (myStr.split(','))
+                res.append(stock[item])
+            return res
 
         #Prompt for stock if not entered
         if not stock:   #pragma: no cover
@@ -330,8 +336,8 @@ class Robinhood:
 
         res = []
         # Handles the case of multple tickers
-        if stock.find(',') != -1:
-            for stock in data['results']:
+        if isinstance(data, list):
+            for stock in data:
                 if stock == None:
                     continue
                 res.append(append_stock(stock))
@@ -352,7 +358,7 @@ class Robinhood:
             fields (str|list): fields of the quote data that should return
 
         Returns:
-            (:obj:`dict`): Dict with dict of the requested fields for stock
+            (:obj:`dict`): Dict with dict of the requested field values for stock
         """
         data = self.quotes_data(stocks)
 
