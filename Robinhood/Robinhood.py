@@ -11,6 +11,7 @@ from six.moves.urllib.request import getproxies
 from six.moves import input
 from . import exceptions as RH_exception
 
+
 class Robinhood:
     """wrapper class for fetching/parsing Robinhood endpoints"""
     endpoints = {
@@ -52,7 +53,7 @@ class Robinhood:
 
     headers = None
 
-    auth_token = None
+    _auth_token = None
 
     logger = logging.getLogger('Robinhood')
     logger.addHandler(logging.NullHandler())
@@ -167,8 +168,7 @@ class Robinhood:
             raise RH_exception.TwoFactorRequired()  #requires a second call to enable 2FA
 
         if 'token' in data.keys():
-            self.auth_token = data['token']
-            self.headers['Authorization'] = 'Token ' + self.auth_token
+            self.token = data['token']
             return True
 
         return False
@@ -187,9 +187,18 @@ class Robinhood:
             warnings.warn('Failed to log out ' + repr(err_msg))
 
         self.headers['Authorization'] = None
-        self.auth_token = None
+        self._auth_token = None
 
         return res
+
+    @property
+    def token(self):
+        return self._auth_token
+
+    @token.setter
+    def token(self, token):
+        self._auth_token = token
+        self.headers['Authorization'] = 'Token ' + self._auth_token
 
     ##############################
     #GET DATA
@@ -198,7 +207,7 @@ class Robinhood:
     def investment_profile(self):
         """fetch investment_profile"""
         res = self.session.get(self.endpoints['investment_profile'])
-        res.raise_for_status()  #will throw without auth
+        res.raise_for_status()  # will throw without auth
         data = res.json()
         return data
 
@@ -945,7 +954,6 @@ class Robinhood:
         res = self.session.post(self.endpoints['cancel'].format(**data))
         res.raise_for_status()
         return res
-
 
     def cancel_orders_all(self,instrument=None):
         """
