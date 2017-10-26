@@ -2,18 +2,23 @@
     Robinhood.py: a collection of utilities for working with Robinhood's Private API
 """
 
+#Standard libraries
+import logging
+import warnings
+
 from enum import Enum
+
+#External dependencies
 from six.moves.urllib.parse import unquote
 from six.moves.urllib.request import getproxies
 from six.moves import input
-from . import exceptions as RH_exception
 
 import getpass
 import requests
 import six
 
-import logging
-import warnings
+#Application-specific imports
+from . import exceptions as RH_exception
 
 
 class Bounds(Enum):
@@ -151,7 +156,7 @@ class Robinhood:
 
     def logout(self):
         """
-            Sogout from Robinhood
+            Logout from Robinhood
 
         Returns:
             (:obj:`requests.request`) result from logout endpoint
@@ -196,9 +201,7 @@ class Robinhood:
                 (:obj:`dict`): JSON contents from `instruments` endpoint
         """
 
-        res = self.session.get(self.endpoints['instruments'], 
-                                params={'query': stock.upper()}
-        )
+        res = self.session.get(self.endpoints['instruments'], params={'query': stock.upper()})
         res.raise_for_status()
         res = res.json()
 
@@ -232,7 +235,6 @@ class Robinhood:
             req = requests.get(url)
             req.raise_for_status()
             data = req.json()
-
         except requests.exceptions.HTTPError:
             raise RH_exception.InvalidTickerSymbol()
 
@@ -259,7 +261,6 @@ class Robinhood:
             req = requests.get(url)
             req.raise_for_status()
             data = req.json()
-
         except requests.exceptions.HTTPError:
             raise RH_exception.InvalidTickerSymbol()
 
@@ -577,6 +578,7 @@ class Robinhood:
 
             Note:
                 queries `quote` endpoint, dict wrapper
+                `self.last_updated_at` returns time as `str` in format: 'YYYY-MM-ddTHH:mm:ss:000Z'
 
             Args:
                 stock (str): stock ticker
@@ -642,7 +644,6 @@ class Robinhood:
             req = requests.get(url)
             req.raise_for_status()
             data = req.json()
-
         except requests.exceptions.HTTPError:
             raise RH_exception.InvalidTickerSymbol()
 
@@ -728,7 +729,6 @@ class Robinhood:
 
         try:
             return float(self.portfolios()['extended_hours_equity'])
-
         except TypeError:
             return None
 
@@ -743,7 +743,6 @@ class Robinhood:
 
         try:
             return float(self.portfolios()['extended_hours_market_value'])
-
         except TypeError:
             return None
 
@@ -820,8 +819,7 @@ class Robinhood:
 
     def securities_owned(self):
         """
-            Returns a list of symbols of securities of which there are more
-                than zero shares in user's portfolio.
+            Returns list of securities' symbols that the user has shares in 
 
             Returns:
                 (:object: `dict`): Non-zero positions
