@@ -20,6 +20,7 @@ class Bounds(Enum):
     """
         Enum for bounds in `historicals` endpoint
     """
+
     REGULAR = 'regular'
     EXTENDED = 'extended'
 
@@ -28,6 +29,7 @@ class Transaction(Enum):
     """
         Enum for buy/sell orders
     """
+
     BUY = 'buy'
     SELL = 'sell'
 
@@ -66,13 +68,9 @@ class Robinhood:
     }
 
     session = None
-
     username = None
-
     password = None
-
     headers = None
-
     auth_token = None
 
     logger = logging.getLogger('Robinhood')
@@ -95,13 +93,20 @@ class Robinhood:
             "Connection": "keep-alive",
             "User-Agent": "Robinhood/823 (iPhone; iOS 7.1.2; Scale/2.00)"
         }
+
         self.session.headers = self.headers
 
+
     def login_prompt(self): #pragma: no cover
-        """Prompts user for username and password and calls login()."""
+        """
+            Prompts user for username and password and calls login()
+        """
+
         username = input("Username: ")
         password = getpass.getpass()
+
         return self.login(username=username, password=password)
+
 
     def login(self, username, password, mfa_code=None):
         """
@@ -166,7 +171,7 @@ class Robinhood:
 
 
     ###########################################################################
-    #                       GET DATA
+    #                               GET DATA
     ###########################################################################
     def investment_profile(self):
         """
@@ -176,6 +181,7 @@ class Robinhood:
         res = self.session.get(self.endpoints['investment_profile'])
         res.raise_for_status()  #will throw without auth
         data = res.json()
+
         return data
 
 
@@ -215,6 +221,7 @@ class Robinhood:
         """
 
         url = None
+
         if stock.find(',') == -1:
             url = str(self.endpoints['quotes']) + str(stock) + "/"
         else:
@@ -556,8 +563,29 @@ class Robinhood:
                 (str): last update datetime
         """
 
-        #TODO: recast to datetime object?
-        return self.get_quote_list(stock,'last_updated_at')
+        return self.get_quote_list(stock, 'last_updated_at')
+
+    
+    def last_updated_at_datetime(self, stock=''):
+        """
+            Get last updated datetime
+
+            Note:
+                queries `quote` endpoint, dict wrapper
+
+            Args:
+                stock (str): stock ticker
+
+            Returns:
+                (datetime): last update datetime
+
+        """
+
+        #Will be in format: 'YYYY-MM-ddTHH:mm:ss:000Z'
+        datetime_string = self.last_updated_at(stock)
+        result = dateutil.parser.parse(datetime_string)
+
+        return result
 
 
     def get_account(self):
@@ -571,6 +599,7 @@ class Robinhood:
         res = self.session.get(self.endpoints['accounts'])
         res.raise_for_status()  #auth required
         res = res.json()
+
         return res['results'][0]
 
 
@@ -578,11 +607,12 @@ class Robinhood:
         """
             Flat wrapper for fetching URL directly
         """
+
         return self.session.get(url).json()
 
 
     ###########################################################################
-    #                       GET FUNDAMENTALS
+    #                           GET FUNDAMENTALS
     ###########################################################################
 
     def get_fundamentals(self, stock=''):
@@ -622,7 +652,7 @@ class Robinhood:
 
 
     ###########################################################################
-    #                       PORTFOLIOS DATA
+    #                           PORTFOLIOS DATA
     ###########################################################################
 
     def portfolios(self):
@@ -644,6 +674,7 @@ class Robinhood:
                 (float): `adjusted_equity_previous_close` value
 
         """
+
         return float(self.portfolios()['adjusted_equity_previous_close'])
 
 
@@ -761,11 +792,12 @@ class Robinhood:
             Returns:
                 (:obj: `dict`): JSON dict from getting dividends
         """
+
         return self.session.get(self.endpoints['dividends']).json()
 
 
     ###########################################################################
-    #                       POSITIONS DATA
+    #                           POSITIONS DATA
     ###########################################################################
 
     def positions(self):
@@ -787,11 +819,12 @@ class Robinhood:
             Returns:
                 (:object: `dict`): Non-zero positions
         """
+
         return self.session.get(self.endpoints['positions']+'?nonzero=true').json()
 
 
     ###########################################################################
-    #                       PLACE ORDER
+    #                               PLACE ORDER
     ###########################################################################
 
     def place_order(
@@ -895,3 +928,4 @@ class Robinhood:
         transaction = Transaction.SELL
 
         return self.place_order(instrument, quantity, bid_price, transaction)
+
