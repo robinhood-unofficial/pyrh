@@ -24,3 +24,11 @@ class TwoFactorRequired(LoginFailed):
     """
 
     pass
+
+
+class InvalidTickerSymbol(RobinhoodException):
+    """
+        When an invalid ticker (stock symbol) is given
+    """
+
+    pass
