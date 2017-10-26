@@ -232,8 +232,10 @@ class Robinhood:
             req = requests.get(url)
             req.raise_for_status()
             data = req.json()
+
         except requests.exceptions.HTTPError:
-            raise NameError('Invalid Symbol: ' + stock) #TODO: custom exception
+            raise RH_exception.InvalidTickerSymbol()
+
 
         return data
 
@@ -252,12 +254,15 @@ class Robinhood:
         """
 
         url = str(self.endpoints['quotes']) + "?symbols=" + ",".join(stocks)
+
         try:
             req = requests.get(url)
             req.raise_for_status()
             data = req.json()
+
         except requests.exceptions.HTTPError:
-            raise NameError('Invalid Symbols: ' + ",".join(stocks)) #TODO: custom exception
+            raise RH_exception.InvalidTickerSymbol()
+
 
         return data["results"]
 
@@ -637,8 +642,10 @@ class Robinhood:
             req = requests.get(url)
             req.raise_for_status()
             data = req.json()
+
         except requests.exceptions.HTTPError:
-            raise NameError('Invalid Symbol: ' + stock) #TODO wrap custom exception
+            raise RH_exception.InvalidTickerSymbol()
+
 
         return data
 
