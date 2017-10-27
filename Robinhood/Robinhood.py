@@ -1,6 +1,4 @@
-"""
-    Robinhood.py: a collection of utilities for working with Robinhood's Private API
-"""
+""" Robinhood.py: a collection of utilities for working with Robinhood's Private API """
 
 #Standard libraries
 import logging
@@ -22,18 +20,14 @@ from . import exceptions as RH_exception
 
 
 class Bounds(Enum):
-    """
-        Enum for bounds in `historicals` endpoint
-    """
+    """ Enum for bounds in `historicals` endpoint """
 
     REGULAR = 'regular'
     EXTENDED = 'extended'
 
 
 class Transaction(Enum):
-    """
-        Enum for buy/sell orders
-    """
+    """ Enum for buy/sell orders """
 
     BUY = 'buy'
     SELL = 'sell'
@@ -103,9 +97,7 @@ class Robinhood:
 
 
     def login_prompt(self): #pragma: no cover
-        """
-            Prompts user for username and password and calls login()
-        """
+        """ Prompts user for username and password and calls login() """
 
         username = input("Username: ")
         password = getpass.getpass()
@@ -113,9 +105,11 @@ class Robinhood:
         return self.login(username=username, password=password)
 
 
-    def login(self, username, password, mfa_code=None):
-        """
-            Save and test login info for Robinhood accounts
+    def login(self, 
+              username, 
+              password, 
+              mfa_code=None):
+        """ Save and test login info for Robinhood accounts
 
         Args:
             username (str): username
@@ -155,8 +149,7 @@ class Robinhood:
 
 
     def logout(self):
-        """
-            Logout from Robinhood
+        """ Logout from Robinhood
 
         Returns:
             (:obj:`requests.request`) result from logout endpoint
@@ -178,10 +171,9 @@ class Robinhood:
     ###########################################################################
     #                               GET DATA
     ###########################################################################
+
     def investment_profile(self):
-        """
-            Fetch investment_profile
-        """
+        """ Fetch investment_profile """
 
         res = self.session.get(self.endpoints['investment_profile'])
         res.raise_for_status()  #will throw without auth
@@ -191,8 +183,7 @@ class Robinhood:
 
 
     def instruments(self, stock):
-        """
-            Fetch instruments endpoint
+        """ Fetch instruments endpoint
 
             Args:
                 stock (str): stock ticker
@@ -213,8 +204,7 @@ class Robinhood:
 
 
     def quote_data(self, stock=''):
-        """
-            Fetch stock quote
+        """ Fetch stock quote
 
             Args:
                 stock (str): stock ticker, prompt if blank
@@ -244,8 +234,7 @@ class Robinhood:
 
     # We will keep for compatibility until next major release
     def quotes_data(self, stocks):
-        """
-            Fetch quote for multiple stocks, in one single Robinhood API call
+        """ Fetch quote for multiple stocks, in one single Robinhood API call
 
             Args:
                 stocks (list<str>): stock tickers
@@ -268,9 +257,10 @@ class Robinhood:
         return data["results"]
 
 
-    def get_quote_list(self, stock='', key=''):
-        """
-            Returns multiple stock info and keys from quote_data (prompt if blank)
+    def get_quote_list(self, 
+                       stock='', 
+                       key=''):
+        """ Returns multiple stock info and keys from quote_data (prompt if blank)
 
             Args:
                 stock (str): stock ticker (or tickers separated by a comma)
@@ -289,7 +279,9 @@ class Robinhood:
             myStr = ''
             for item in keys:
                 myStr += stock[item] + ","
+
             return (myStr.split(','))
+
 
         #Prompt for stock if not entered
         if not stock:   #pragma: no cover
@@ -312,17 +304,14 @@ class Robinhood:
 
 
     def get_quote(self, stock=''):
-        """
-            Wrapper for quote_data
-        """
+        """ Wrapper for quote_data """
 
         data = self.quote_data(stock)
         return data["symbol"]
 
 
     def get_historical_quotes(self, stock, interval, span, bounds=Bounds.REGULAR):
-        """
-            Fetch historical data for stock
+        """ Fetch historical data for stock
 
             Note: valid interval/span configs
                 interval = 5minute | 10minute + span = day, week
@@ -355,8 +344,7 @@ class Robinhood:
 
 
     def get_news(self, stock):
-        """
-            Fetch news endpoint
+        """ Fetch news endpoint
             Args:
                 stock (str): stock ticker
 
@@ -368,8 +356,7 @@ class Robinhood:
 
 
     def print_quote(self, stock=''):    #pragma: no cover
-        """
-            Print quote information
+        """ Print quote information
             Args:
                 stock (str): ticker to fetch
 
@@ -385,8 +372,7 @@ class Robinhood:
 
 
     def print_quotes(self, stocks): #pragma: no cover
-        """
-            Print a collection of stocks
+        """ Print a collection of stocks
 
             Args:
                 stocks (:obj:`list`): list of stocks to pirnt
@@ -403,8 +389,7 @@ class Robinhood:
 
 
     def ask_price(self, stock=''):
-        """
-            Get asking price for a stock
+        """ Get asking price for a stock
 
             Note:
                 queries `quote` endpoint, dict wrapper
@@ -420,8 +405,7 @@ class Robinhood:
 
 
     def ask_size(self, stock=''):
-        """
-            Get ask size for a stock
+        """ Get ask size for a stock
 
             Note:
                 queries `quote` endpoint, dict wrapper
@@ -437,8 +421,7 @@ class Robinhood:
 
 
     def bid_price(self, stock=''):
-        """
-            Get bid price for a stock
+        """ Get bid price for a stock
 
             Note:
                 queries `quote` endpoint, dict wrapper
@@ -454,8 +437,7 @@ class Robinhood:
 
 
     def bid_size(self, stock=''):
-        """
-            Get bid size for a stock
+        """ Get bid size for a stock
 
             Note:
                 queries `quote` endpoint, dict wrapper
@@ -471,8 +453,7 @@ class Robinhood:
 
 
     def last_trade_price(self, stock=''):
-        """
-            Get last trade price for a stock
+        """ Get last trade price for a stock
 
             Note:
                 queries `quote` endpoint, dict wrapper
@@ -488,8 +469,7 @@ class Robinhood:
 
 
     def previous_close(self, stock=''):
-        """
-            Get previous closing price for a stock
+        """ Get previous closing price for a stock
 
             Note:
                 queries `quote` endpoint, dict wrapper
@@ -505,8 +485,7 @@ class Robinhood:
 
 
     def previous_close_date(self, stock=''):
-        """
-            Get previous closing date for a stock
+        """ Get previous closing date for a stock
 
             Note:
                 queries `quote` endpoint, dict wrapper
@@ -522,8 +501,7 @@ class Robinhood:
 
 
     def adjusted_previous_close(self, stock=''):
-        """
-            Get adjusted previous closing price for a stock
+        """ Get adjusted previous closing price for a stock
 
             Note:
                 queries `quote` endpoint, dict wrapper
@@ -539,8 +517,7 @@ class Robinhood:
 
 
     def symbol(self, stock=''):
-        """
-            Get symbol for a stock
+        """ Get symbol for a stock
 
             Note:
                 queries `quote` endpoint, dict wrapper
@@ -556,8 +533,7 @@ class Robinhood:
 
 
     def last_updated_at(self, stock=''):
-        """
-            Get last update datetime
+        """ Get last update datetime
 
             Note:
                 queries `quote` endpoint, dict wrapper
@@ -573,8 +549,7 @@ class Robinhood:
 
     
     def last_updated_at_datetime(self, stock=''):
-        """
-            Get last updated datetime
+        """ Get last updated datetime
 
             Note:
                 queries `quote` endpoint, dict wrapper
@@ -596,8 +571,7 @@ class Robinhood:
 
 
     def get_account(self):
-        """
-            Fetch account information
+        """ Fetch account information
 
             Returns:
                 (:obj:`dict`): `accounts` endpoint payload
@@ -623,8 +597,7 @@ class Robinhood:
     ###########################################################################
 
     def get_fundamentals(self, stock=''):
-        """
-            Find stock fundamentals data
+        """ Find stock fundamentals data
 
             Args:
                 (str): stock ticker
@@ -652,9 +625,7 @@ class Robinhood:
 
 
     def fundamentals(self, stock=''):
-        """
-            Wrapper for get_fundamentlals function
-        """
+        """ Wrapper for get_fundamentlals function """
 
         return self.get_fundamentals(stock)
 
@@ -664,9 +635,7 @@ class Robinhood:
     ###########################################################################
 
     def portfolios(self):
-        """
-            Returns the user's portfolio data
-        """
+        """ Returns the user's portfolio data """
 
         req = self.session.get(self.endpoints['portfolios'])
         req.raise_for_status()
@@ -675,8 +644,7 @@ class Robinhood:
 
 
     def adjusted_equity_previous_close(self):
-        """
-            Wrapper for portfolios
+        """ Wrapper for portfolios
 
             Returns:
                 (float): `adjusted_equity_previous_close` value
@@ -687,8 +655,7 @@ class Robinhood:
 
 
     def equity(self):
-        """
-            Wrapper for portfolios
+        """ Wrapper for portfolios
 
             Returns:
                 (float): `equity` value
@@ -698,8 +665,7 @@ class Robinhood:
 
 
     def equity_previous_close(self):
-        """
-            Wrapper for portfolios
+        """ Wrapper for portfolios
 
             Returns:
                 (float): `equity_previous_close` value
@@ -709,8 +675,7 @@ class Robinhood:
 
 
     def excess_margin(self):
-        """
-            Wrapper for portfolios
+        """ Wrapper for portfolios
 
             Returns:
                 (float): `excess_margin` value
@@ -720,8 +685,7 @@ class Robinhood:
 
 
     def extended_hours_equity(self):
-        """
-            Wrapper for portfolios
+        """ Wrapper for portfolios
 
             Returns:
                 (float): `extended_hours_equity` value
@@ -734,8 +698,7 @@ class Robinhood:
 
 
     def extended_hours_market_value(self):
-        """
-            Wrapper for portfolios
+        """ Wrapper for portfolios
 
             Returns:
                 (float): `extended_hours_market_value` value
@@ -748,8 +711,7 @@ class Robinhood:
 
 
     def last_core_equity(self):
-        """
-            Wrapper for portfolios
+        """ Wrapper for portfolios
 
             Returns:
                 (float): `last_core_equity` value
@@ -759,8 +721,7 @@ class Robinhood:
 
 
     def last_core_market_value(self):
-        """
-            Wrapper for portfolios
+        """ Wrapper for portfolios
 
             Returns:
                 (float): `last_core_market_value` value
@@ -770,8 +731,7 @@ class Robinhood:
 
 
     def market_value(self):
-        """
-            Wrapper for portfolios
+        """ Wrapper for portfolios
 
             Returns:
                 (float): `market_value` value
@@ -781,8 +741,7 @@ class Robinhood:
 
 
     def order_history(self):
-        """
-            Wrapper for portfolios
+        """ Wrapper for portfolios
 
             Returns:
                 (:obj:`dict`): JSON dict from getting orders
@@ -792,8 +751,7 @@ class Robinhood:
 
 
     def dividends(self):
-        """
-            Wrapper for portfolios
+        """ Wrapper for portfolios
 
             Returns:
                 (:obj: `dict`): JSON dict from getting dividends
@@ -807,8 +765,7 @@ class Robinhood:
     ###########################################################################
 
     def positions(self):
-        """
-            Returns the user's positions data
+        """ Returns the user's positions data
             
             Returns:
                 (:object: `dict`): JSON dict from getting positions
@@ -818,8 +775,7 @@ class Robinhood:
 
 
     def securities_owned(self):
-        """
-            Returns list of securities' symbols that the user has shares in 
+        """ Returns list of securities' symbols that the user has shares in 
 
             Returns:
                 (:object: `dict`): Non-zero positions
@@ -832,18 +788,15 @@ class Robinhood:
     #                               PLACE ORDER
     ###########################################################################
 
-    def place_order(
-            self,
-            instrument,
-            quantity=1,
-            bid_price=0.0,
-            transaction=None,
-            trigger='immediate',
-            order='market',
-            time_in_force = 'gfd'
-        ):
-        """
-            Place an order with Robinhood
+    def place_order(self,
+                    instrument,
+                    quantity=1,
+                    bid_price=0.0,
+                    transaction=None,
+                    trigger='immediate',
+                    order='market',
+                    time_in_force = 'gfd'):
+        """ Place an order with Robinhood
 
             Notes:
                 OMFG TEST THIS PLEASE!
@@ -898,9 +851,11 @@ class Robinhood:
         return res
 
 
-    def place_buy_order(self, instrument, quantity, bid_price=0.0):
-        """
-            Wrapper for placing buy orders
+    def place_buy_order(self, 
+                        instrument, 
+                        quantity, 
+                        bid_price=0.0):
+        """ Wrapper for placing buy orders
 
             Args:
                 instrument (dict): the RH URL and symbol in dict for the instrument to be traded
@@ -917,9 +872,11 @@ class Robinhood:
         return self.place_order(instrument, quantity, bid_price, transaction)
 
 
-    def place_sell_order(self, instrument, quantity, bid_price=0.0):
-        """
-            Wrapper for placing sell orders
+    def place_sell_order(self, 
+                         instrument, 
+                         quantity, 
+                         bid_price=0.0):
+        """ Wrapper for placing sell orders
 
             Args:
                 instrument (dict): the RH URL and symbol in dict for the instrument to be traded
