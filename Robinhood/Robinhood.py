@@ -307,7 +307,6 @@ class Robinhood:
         data = self.quote_data(stock)
         return data["symbol"]
 
-
     def get_historical_quotes(self, stock, interval, span, bounds=Bounds.REGULAR):
         """Fetch historical data for stock
 
@@ -326,12 +325,14 @@ class Robinhood:
             Returns:
                 (:obj:`dict`) values returned from `historicals` endpoint
         """
+        if type(stock) is str:
+            stock = [stock]
 
-        if isinstance(bounds, str): #recast to Enum
+        if isinstance(bounds, str):  # recast to Enum
             bounds = Bounds(bounds)
 
         params = {
-            'symbols': ','.join(stock).upper,
+            'symbols': ','.join(stock).upper(),
             'interval': interval,
             'span': span,
             'bounds': bounds.name.lower()

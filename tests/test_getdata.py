@@ -229,3 +229,30 @@ def test_intstruments(config=CONFIG):
     data = Robinhood().instruments(CONFIG.get('FETCH', 'test_ticker'))
 
     assert data == hard_data
+
+def test_get_historical_data(config=CONFIG):
+    headers = {
+        'User-Agent': CONFIG.get('FETCH', 'user_agent')
+    }
+
+    address = Robinhood().endpoints['historicals']
+    res = requests.get(
+        address,
+        headers=headers,
+        params={
+            'symbols': ','.join([CONFIG.get('FETCH', 'test_ticker')]).upper(),
+            'interval': 'day',
+            'span': 'year',
+            'bounds': 'regular'
+        }
+    )
+
+    hard_data = res.json()['results']
+
+    data = Robinhood().get_historical_quotes(
+        [CONFIG.get('FETCH', 'test_ticker')],
+        'day',
+        'year'
+    )
+
+    assert data == hard_data
