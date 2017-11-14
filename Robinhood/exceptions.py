@@ -32,3 +32,10 @@ class InvalidTickerSymbol(RobinhoodException):
     """
 
     pass
+
+
+class InvalidInstrumentId(RobinhoodException):
+    """
+        When an invalid instrument id is given
+    """
+    pass
