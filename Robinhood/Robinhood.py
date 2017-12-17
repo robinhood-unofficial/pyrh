@@ -331,7 +331,7 @@ class Robinhood:
             bounds = Bounds(bounds)
 
         params = {
-            'symbols': ','.join(stock).upper,
+            'symbols': ','.join(stock).upper(),
             'interval': interval,
             'span': span,
             'bounds': bounds.name.lower()
