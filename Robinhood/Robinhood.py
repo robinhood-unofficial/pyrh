@@ -1,21 +1,18 @@
 """Robinhood.py: a collection of utilities for working with Robinhood's Private API """
 
-#Standard libraries
 import logging
 import warnings
 
-from enum import Enum
-
-#External dependencies
 from six.moves.urllib.parse import unquote
 from six.moves.urllib.request import getproxies
 from six.moves import input
+
+from enum import Enum
 
 import getpass
 import requests
 import six
 
-#Application-specific imports
 from . import exceptions as RH_exception
 
 class Robinhood:
@@ -61,6 +58,51 @@ class Robinhood:
     logger = logging.getLogger('Robinhood')
     logger.addHandler(logging.NullHandler())
 
+    class Bounds(Enum):
+        """enum for bounds in `historicals` endpoint"""
+        REGULAR = 'regular'
+        EXTENDED = 'extended'
+
+    class Transaction(Enum):
+        """enum for buy/sell orders"""
+        BUY = 'buy'
+        SELL = 'sell'
+
+    class Trigger(Enum):
+        """enum for buy/sell orders"""
+        IMMEDIATE = 'immediate'
+        STOP = 'stop'
+
+    class Order(Enum):
+        """enum for buy/sell orders"""
+        MARKET = 'market'
+        LIMIT = 'limit'
+
+    class TimeForce(Enum):
+        """enum for buy/sell orders"""
+        GTC = 'gtc'
+        GFD = 'gfd'
+        IOC = 'ioc'
+        FOK = 'fok'
+        OPG = 'opg'
+
+    class OrderState(Enum):
+        """enum for order states"""
+        QUEUED = "queued"
+        UNCONFIRMED = "unconfirmed"
+        CONFIRMED = "confirmed"
+        PARTIALLY_FILLED = "partially_filled"
+        FILLED = "filled"
+        REJECTED = "rejected"
+        CANCELLED = "cancelled"
+        FAILED = "failed"
+
+        def stopped(self):
+            return self.name in ('FILLED', 'CANCELLED', 'REJECTED', 'FAILED')
+        def active(self):
+            return self.name in ('QUEUED', 'CONFIRMED', 'PARTIALLY_FILLED')
+        def other(self):
+            return self.name in ('UNCONFIRMED')
 
     ###########################################################################
     #                       Logging in and initializing
@@ -224,8 +266,9 @@ class Robinhood:
             res = self.session.get(
                 self.endpoints['instrumentsplits'].format(instrumentid=instrumentid)
             )
-        res.raise_for_status()
-        return res.json()
+            res.raise_for_status()
+            return res.json()
+        raise ValueError("Invalid instrumentid passed")
 
     def quote_data(self, stock):
         """fetch single stock quote
@@ -831,9 +874,6 @@ class Robinhood:
         return url
 
     def order_history(self,instrument=None):
-        """
-
-    def order_history(self):
         """Wrapper for portfolios
 
         Args:
@@ -887,16 +927,7 @@ class Robinhood:
                 (:object: `dict`): Non-zero positions
         """
 
-        Args:
-            instrument (dict): the RH URL and symbol in dict for the instrument to be traded
-            quantity (int): quantity of stocks in order
-            bid_price (float): price for order
-            stop_price (float): price at which order is placed
-            transaction (:enum:`Transaction`): BUY or SELL enum
-            trigger (:enum:`Trigger`): IMMEDIATE or STOP enum
-            order (:enum:`Order`): MARKET or LIMIT emum
-            time_in_force (:enum:`TIME_IN_FORCE`): GFD or GTC (Good for day or Good 'til Cancelled)
-
+        return self.session.get(self.endpoints['positions']+'?nonzero=true').json()
 
     ###########################################################################
     #                               PLACE ORDER
@@ -925,10 +956,11 @@ class Robinhood:
                 instrument (dict): the RH URL and symbol in dict for the instrument to be traded
                 quantity (int): quantity of stocks in order
                 bid_price (float): price for order
-                transaction (:enum:`Transaction`): BUY or SELL enum
-                trigger (:enum:`Trigger`): IMMEDIATE or STOP enum
+                stop_price (float): price at which order is placed
+                transaction (:enum:`Transaction`): BUY or SELL
+                trigger (:enum:`Trigger`): IMMEDIATE or STOP
                 order (:enum:`Order`): MARKET or LIMIT
-                time_in_force (:enum:`TIME_IN_FORCE`): GFD or GTC (day or until cancelled)
+                time_in_force (:enum:`TimeForce`): GFD or GTC (day or until cancelled)
 
             Returns:
                 (:obj:`requests.request`): result from `orders` put command
@@ -986,8 +1018,6 @@ class Robinhood:
             quantity,
             bid_price
     ):
-        """wrapper for placing buy orders
-
         """Wrapper for placing buy orders
 
             Args:
@@ -1002,18 +1032,10 @@ class Robinhood:
         transaction = self.Transaction.BUY
         return self.place_order(instrument, quantity, bid_price, transaction)
 
-    def place_sell_order(
-            self,
-            instrument,
-            quantity,
-            bid_price
-    ):
-        """wrapper for placing sell orders
-
     def place_sell_order(self,
                          instrument,
                          quantity,
-                         bid_price=0.0):
+                         bid_price):
         """Wrapper for placing sell orders
 
             Args:
