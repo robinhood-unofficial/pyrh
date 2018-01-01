@@ -238,6 +238,8 @@ class Robinhood:
         #if query is None and not (symbol or instrumentid):
         #     return res
         # XXX perhaps should return an iterable to hide the pagination, e.g. res['next'], res['previous'] aspects
+        if 'results' not in res:
+            return res
         return res['results']
 
     def instrument_splits(self, instrumentid=None):
@@ -371,7 +373,7 @@ class Robinhood:
             if not isinstance(quote,dict):
                 raise Warning("Returned quote was not a dict")
 
-            # XXX what if symbol is non-unique should we use symbol as key here?
+            # XXX what if symbol is non-unique should we use instrument as key here?
             symbol = quote['symbol']
             if len(fields):
                 res[symbol] = {key: value for (key, value) in quote.items() if key in fields}
@@ -874,11 +876,10 @@ class Robinhood:
         if bid_price is not None and not order == self.Order.LIMIT:
             raise ValueError("bid_price without Order.LIMIT")
 
-        # If Order.MARKET the we still need to pass RH a price, RH places market orders
+        # If Order.MARKET then we still need to pass RH a price, RH places market orders
         # automatically as limit orders with a 5% buffer
         if not bid_price and order == self.Order.MARKET:
-            quote = self.quote_data(instrument['symbol'])['results'][0]
-            bid_price = quote['bid_price']
+            bid_price = bid_price(instrument['symbol'])
 
         payload = {
             'account': self.get_account()['url'],
@@ -913,7 +914,7 @@ class Robinhood:
             self,
             instrument,
             quantity,
-            bid_price=0.0
+            bid_price
     ):
         """wrapper for placing buy orders
 
@@ -933,7 +934,7 @@ class Robinhood:
             self,
             instrument,
             quantity,
-            bid_price=0.0
+            bid_price
     ):
         """wrapper for placing sell orders
 
