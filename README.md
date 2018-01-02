@@ -26,6 +26,13 @@ Project will work on both python 2 and python 3
     buy_order = my_trader.place_buy_order(stock_instrument, 1)
     sell_order = my_trader.place_sell_order(stock_instrument, 1)
 
+    # save the token so you don't need user/password again
+    # should probably encrypt this if saving to a file
+    token = my_trader.token
+
+    # load from token rather than login
+    my_trader.token = token
+
 ### Data returned
 * Quote data
   + Ask Price
