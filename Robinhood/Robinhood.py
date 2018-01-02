@@ -446,8 +446,8 @@ class Robinhood:
             'symbols': ','.join(stock).upper(),
             'interval': interval,
             'span': span,
-            'bounds': bounds.name.lower()
-        }
+            'bounds': bounds.value
+                    }
         res = self.session.get(
             self.endpoints['historicals'],
             params=params
@@ -1434,7 +1434,7 @@ class Robinhood:
         Args:
             oid (string): the order ID to be cancelled
         Returns:
-            (:obj:`requests.request`): result from `orders` put command
+            (:obj:`requests.request`): result from `orders` post command
             status code 200 signifies success
 
         """
@@ -1445,7 +1445,7 @@ class Robinhood:
         return res
 
 
-    def cancel_orders_all(self,instrument=None):
+    def cancel_all_orders(self,instrument=None):
         """
         Convenience function to cancel all orders, optionally only for a given instrument
 
