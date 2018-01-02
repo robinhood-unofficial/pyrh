@@ -1429,7 +1429,7 @@ class Robinhood:
     ##############################
     def cancel_order(self,oid):
         """
-        cancel a given order id
+        Cancel a given order id
 
         Args:
             oid (string): the order ID to be cancelled
@@ -1447,7 +1447,7 @@ class Robinhood:
 
     def cancel_orders_all(self,instrument=None):
         """
-        convenience function to cancel all orders, optionally only for a given instrument
+        Convenience function to cancel all orders, optionally only for a given instrument
 
         Args:
             instrument (dict|str): valid instrument representation
@@ -1455,7 +1455,7 @@ class Robinhood:
         Returns:
             (:obj:`dict`): containing keys 'cancelled' or 'error' with the list of order ids
         """
-        orders = self.order_history(instrument=self.instrument_url(instrument))
+        orders = self.order_history(instrument=instrument)
         res = {'cancelled':[], 'error':[]}
 
         for order in orders['results']:
