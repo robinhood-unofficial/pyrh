@@ -46,13 +46,9 @@ class Robinhood:
     }
 
     session = None
-
     username = None
-
     password = None
-
     headers = None
-
     _auth_token = None
 
     logger = logging.getLogger('Robinhood')
@@ -211,22 +207,22 @@ class Robinhood:
         data = res.json()
         return data
 
-    def instruments(self, query=None, symbol=None, instrumentid=None):
+    def instruments(self, query=None, symbol=None, instrument=None):
         """fetch instruments endpoint
 
         Args:
             query (str): search for ticker, e.g. by company name
             symbol (str): find instrument by it's symbol
-            instrumentid (str): instrumentid [uuid without the rest of URL]
+            instrument (dict|str): valid instrument representation
 
         Returns:
             (:obj:`dict`): JSON contents from `instruments` endpoint
 
         """
         res = None
-        if instrumentid:
+        if instrument:
             res = self.session.get(
-                self.endpoints['instrumentid'].format(instrumentid=instrumentid)
+                self.instrument_url(instrument)
             )
         else:
             params = {}
@@ -247,6 +243,8 @@ class Robinhood:
         #if query is None and not (symbol or instrumentid):
         #     return res
         # XXX perhaps should return an iterable to hide the pagination, e.g. res['next'], res['previous'] aspects
+        if 'results' not in res:
+            return res
         return res['results']
 
     def instrument_splits(self, instrumentid=None):
@@ -264,8 +262,9 @@ class Robinhood:
             res = self.session.get(
                 self.endpoints['instrumentsplits'].format(instrumentid=instrumentid)
             )
-        res.raise_for_status()
-        return res.json()
+            res.raise_for_status()
+            return res.json()
+        raise ValueError("Invalid instrumentid passed")
 
     def quote_data(self, stock):
         """fetch single stock quote
@@ -380,7 +379,7 @@ class Robinhood:
             if not isinstance(quote,dict):
                 raise Warning("Returned quote was not a dict")
 
-            # XXX what if symbol is non-unique should we use symbol as key here?
+            # XXX what if symbol is non-unique should we use instrument as key here?
             symbol = quote['symbol']
             if len(fields):
                 res[symbol] = {key: value for (key, value) in quote.items() if key in fields}
@@ -762,13 +761,36 @@ class Robinhood:
         """
         return float(self.portfolios()['market_value'])
 
+    def instrument_url(self,instrument=None):
+        """
+
+        return the canonical instrument URL given either an instrument dict object or string
+        that represents and instrument
+
+        Args:
+            instrument (string): RH instrument URL, instrumentid or instrument object
+        """
+        url = None
+        if isinstance(instrument, dict) and 'url' in instrument:
+            url = instrument['url']
+        elif isinstance(instrument, str) and instrument is not None:
+            if instrument.startswith( self.endpoints['instruments'] ):
+                url = instrument
+            if len(instrument) >= 36 and not "/" in instrument:
+                url = self.endpoints['instrumentid'].format(instrumentid=instrument)
+
+        if not url:
+            raise ValueError("Invalid instrument reference passed: %s %s " % (type(instrument), instrument))
+
+        return url
+
     def order_history(self,instrument=None):
         """
 
         get orders from account
 
         Args:
-            instrument (string): RH instrument URL to restrict results
+            instrument (dict|str): valid instrument representation
         """
         data = {}
         # API Documentation question:
@@ -782,7 +804,7 @@ class Robinhood:
         # if since is not None:
         #     data['updated_at'] = since
         if instrument is not None:
-            data['instrument'] = instrument
+            data['instrument'] = self.instrument_url(instrument)
         res = self.session.get(self.endpoints['orders'], params=data)
         res.raise_for_status()
         return res.json()
@@ -860,11 +882,10 @@ class Robinhood:
         if bid_price is not None and not order == self.Order.LIMIT:
             raise ValueError("bid_price without Order.LIMIT")
 
-        # If Order.MARKET the we still need to pass RH a price, RH places market orders
+        # If Order.MARKET then we still need to pass RH a price, RH places market orders
         # automatically as limit orders with a 5% buffer
         if not bid_price and order == self.Order.MARKET:
-            quote = self.quote_data(instrument['symbol'])['results'][0]
-            bid_price = quote['bid_price']
+            bid_price = bid_price(instrument['symbol'])
 
         payload = {
             'account': self.get_account()['url'],
@@ -899,7 +920,7 @@ class Robinhood:
             self,
             instrument,
             quantity,
-            bid_price=0.0
+            bid_price
     ):
         """wrapper for placing buy orders
 
@@ -919,7 +940,7 @@ class Robinhood:
             self,
             instrument,
             quantity,
-            bid_price=0.0
+            bid_price
     ):
         """wrapper for placing sell orders
 
@@ -960,11 +981,12 @@ class Robinhood:
         convenience function to cancel all orders, optionally only for a given instrument
 
         Args:
-            instrument (obj `dict'): RH instrument dict that contains url attr to restrict results
+            instrument (dict|str): valid instrument representation
+
         Returns:
             (:obj:`dict`): containing keys 'cancelled' or 'error' with the list of order ids
         """
-        orders = self.order_history(instrument=instrument['url'])
+        orders = self.order_history(instrument=self.instrument_url(instrument))
         res = {'cancelled':[], 'error':[]}
 
         for order in orders['results']:
