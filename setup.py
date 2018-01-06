@@ -15,7 +15,8 @@ REQUIRES = [
 TEST = [
     'pytest~=3.0.0',
     'pytest_cov~=2.4.0',
-    'flaky~=3.3.0'
+    'flaky~=3.3.0',
+    'pep8~=1.7.1'
 ]
 
 def get_requirements(test_or_prod=False):
@@ -77,7 +78,8 @@ class PyTest(TestCommand):
         self.pytest_args = [
             'tests',
             '--cov=Robinhood/',
-            '--cov-report=term-missing'
+            '--cov-report=term-missing',
+	    '--pep8'
         ]    #load defaults here
 
     def run_tests(self):
