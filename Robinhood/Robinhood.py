@@ -13,8 +13,6 @@ import getpass
 import requests
 import six
 
-from . import exceptions as RH_exception
-
 class Robinhood:
     """Wrapper class for fetching/parsing Robinhood endpoints """
 
@@ -57,6 +55,8 @@ class Robinhood:
 
     logger = logging.getLogger('Robinhood')
     logger.addHandler(logging.NullHandler())
+
+    from . import exceptions
 
     class Bounds(Enum):
         """enum for bounds in `historicals` endpoint"""
@@ -108,6 +108,23 @@ class Robinhood:
     #                       Logging in and initializing
     ###########################################################################
 
+    def raiseForStatus(self,res):
+        """Helper to wrap requests.raise_for_status that returns the content as well
+
+            The Robinhood API often returns useful hints about what params are
+            out of bounds.  This wrapper helps expose those to the client
+            """
+        try:
+            res.raise_for_status()
+        except requests.exceptions.HTTPError as error:
+            # HTTPError expected to use args, if it isn't this needs fixing anyway
+            if error.args is not None:
+                args = error.args
+                if error.response.text:
+                    apitext = "API Returned: " + error.response.text
+                    error.args = args, apitext
+            raise
+
     def __init__(self):
         self.session = requests.session()
         self.session.proxies = getproxies()
@@ -158,17 +175,14 @@ class Robinhood:
         if mfa_code:
             payload['mfa_code'] = mfa_code
 
-        try:
-            res = self.session.post(self.endpoints['login'], data=payload)
-            res.raise_for_status()
-            data = res.json()
-        except requests.exceptions.HTTPError:
-            raise RH_exception.LoginFailed()
+        res = self.session.post(self.endpoints['login'], data=payload)
+        self.raiseForStatus(res)
+        data = res.json()
 
-        if 'mfa_required' in data.keys():           #pragma: no cover
-            raise RH_exception.TwoFactorRequired()  #requires a second call to enable 2FA
+        if 'mfa_required' in data:                     # pragma: no cover
+            raise self.exceptions.TwoFactorRequired()  # requires a second call to enable 2FA
 
-        if 'token' in data.keys():
+        if 'token' in data:
             self.auth_token = data['token']
             self.headers['Authorization'] = 'Token ' + self.auth_token
             return True
@@ -186,7 +200,7 @@ class Robinhood:
 
         try:
             res = self.session.post(self.endpoints['logout'])
-            res.raise_for_status()
+            self.raiseForStatus(res)
         except requests.exceptions.HTTPError as err_msg:
             warnings.warn('Failed to log out ' + repr(err_msg))
 
@@ -204,7 +218,7 @@ class Robinhood:
         """Fetch investment_profile """
 
         res = self.session.get(self.endpoints['investment_profile'])
-        res.raise_for_status()  #will throw without auth
+        self.raiseForStatus(res)
         data = res.json()
 
         return data
@@ -238,7 +252,7 @@ class Robinhood:
                 self.endpoints['instruments'],
                 params=params
             )
-        res.raise_for_status()
+        self.raiseForStatus(res)
         res = res.json()
 
         # if requesting all, return entire object so may paginate with ['next']
@@ -266,7 +280,7 @@ class Robinhood:
             res = self.session.get(
                 self.endpoints['instrumentsplits'].format(instrumentid=instrumentid)
             )
-            res.raise_for_status()
+            self.raiseForStatus(res)
             return res.json()
         raise ValueError("Invalid instrumentid passed")
 
@@ -287,10 +301,9 @@ class Robinhood:
         # Check for validity of symbol
         try:
             res = requests.get(url)
-            res.raise_for_status()
+            self.raiseForStatus(res)
         except requests.exceptions.HTTPError:
-            raise RH_exception.InvalidTickerSymbol()
-
+            raise self.exceptions.InvalidTickerSymbol()
 
         return res.json()
 
@@ -313,10 +326,9 @@ class Robinhood:
 
         try:
             res = requests.get(url)
-            res.raise_for_status()
+            self.raiseForStatus(res)
         except requests.exceptions.HTTPError:
-            raise RH_exception.InvalidTickerSymbol()
-
+            raise self.exceptions.InvalidTickerSymbol()
 
         return res.json()["results"]
 
@@ -452,7 +464,7 @@ class Robinhood:
             self.endpoints['historicals'],
             params=params
         )
-        res.raise_for_status()
+        self.raiseForStatus(res)
         return res.json()
 
 
@@ -465,7 +477,7 @@ class Robinhood:
                 (:obj:`dict`) values returned from `news` endpoint
         """
         res = self.session.get(self.endpoints['news']+stock.upper()+"/")
-        res.raise_for_status()
+        self.raiseForStatus(res)
         return res.json()
 
     def print_quote(self, stock=''):    #pragma: no cover
@@ -690,7 +702,7 @@ class Robinhood:
         """
 
         res = self.session.get(self.endpoints['accounts'])
-        res.raise_for_status()  #auth required
+        self.raiseForStatus(res)  #auth required
         res = res.json()
 
         return res['results'][0]
@@ -728,10 +740,9 @@ class Robinhood:
         res = None
         try:
             res = requests.get(url)
-            res.raise_for_status()
+            self.raiseForStatus(res)
         except requests.exceptions.HTTPError:
-            raise RH_exception.InvalidTickerSymbol()
-
+            raise self.exceptions.InvalidTickerSymbol()
 
         return res.json()
 
@@ -893,7 +904,7 @@ class Robinhood:
         if instrument is not None:
             data['instrument'] = self.instrument_url(instrument)
         res = self.session.get(self.endpoints['orders'], params=data)
-        res.raise_for_status()
+        self.raiseForStatus(res)
         return res.json()
 
 
@@ -1008,7 +1019,7 @@ class Robinhood:
             self.endpoints['orders'],
             data=payload
         )
-        res.raise_for_status()
+        self.raiseForStatus(res)
 
         return res
 
@@ -1420,7 +1431,7 @@ class Robinhood:
                 payload[field] = value
 
         res = self.session.post(self.endpoints['orders'], data=payload)
-        res.raise_for_status()
+        self.raiseForStatus(res)
 
         return res
 
@@ -1441,7 +1452,7 @@ class Robinhood:
         data = {}
         data['oid'] = oid
         res = self.session.post(self.endpoints['cancel'].format(**data))
-        res.raise_for_status()
+        self.raiseForStatus(res)
         return res
 
 

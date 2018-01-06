@@ -75,7 +75,7 @@ class PyTest(TestCommand):
     def initialize_options(self):
         TestCommand.initialize_options(self)
         self.pytest_args = [
-            'Tests',
+            'tests',
             '--cov=Robinhood/',
             '--cov-report=term-missing'
         ]    #load defaults here

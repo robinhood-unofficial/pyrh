@@ -140,7 +140,7 @@ class TestPortfolioMethods:
         #TODO: validate keys
 
     def test_get_account(self):
-        """test `get_account` endpoing"""
+        """test `get_account` endpoint"""
         data = self.rh_obj.get_account()
         #TODO: validate keys
 
