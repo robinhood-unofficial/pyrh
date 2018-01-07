@@ -322,9 +322,12 @@ class Robinhood:
                     occur at that position.
         """
         if isinstance(stocks, str):
-            stocks = [stocks]
+            stocks = stocks.split(',')
 
-        url = str(self.endpoints['quotes']) + "?symbols=" + ",".join(stocks)
+        if not stocks:
+            raise ValueError("Must provide a stock to obtain quote")
+
+        url = self.endpoints['quotes'] + "?symbols=" + ",".join(stocks)
 
         try:
             res = requests.get(url)
@@ -335,8 +338,8 @@ class Robinhood:
         return res.json()["results"]
 
     def get_quote_list(self,
-                       stock='',
-                       key=''):
+                       stock,
+                       key=None):
         """Returns multiple stock info and keys from quote_data (prompt if blank)
 
             Args:
@@ -351,10 +354,12 @@ class Robinhood:
 
         """
 
-        if isinstance(key, str):
-            keys = key.split(',')
-        else:
-            keys = [key]
+        keys = None
+        if key is not None:
+            if isinstance(key, str):
+                keys = key.split(',')
+            else:
+                keys = [key]
 
         # Creates a tuple containing the information we want to retrieve
         def append_stock(stock):
@@ -369,53 +374,53 @@ class Robinhood:
         data = self.quotes_data(stock)
 
         res = []
-
         # Handles the case of multple tickers
         if isinstance(data, list):
             for stock in data:
-                if stock is None:
-                    continue
+                if not keys:
+                    res.append(stock)
+                    keys = stock.keys()
                 res.append(append_stock(stock))
-
         else:
+            if not keys:
+                keys = data.keys()
+
             res.append(append_stock(data))
 
         return res
 
-    def get_quote(self, stock=''):
+    def get_quote(self, stock):
         """Wrapper for quote_data """
 
         data = self.quote_data(stock)
         return data
 
-    def get_quotes_fields(self, stocks=None, fields=''):
-        """Returns multiple stock info and fields from quote_data
+    def get_quotes_fields(self, stocks, fields=None):
+        """Returns one or more quotes with optionally filtered fields
 
         Args:
-            stock (str|list): stock ticker(s) can be one or a list
-            fields (str|list): fields of the quote data that should return
+            stocks (str|list): stock ticker(s) can be one, csv or a list
+            fields (str|list): fields of the quote data that should be returned
 
         Returns:
-            (:obj:`dict`): Dict with dict of the requested field values for stock
+            (:obj:`dict`): Dict of stock(s) with sub dict of the requested field values
         """
         data = self.quotes_data(stocks)
 
-        # XXX Arguably fields should also be a list of Enum to catch typos
         if isinstance(fields, str):
-            fields = [fields]
+            fields = fields.split(',')
 
         res = {}
         for quote in data:
             if not isinstance(quote, dict):
-                raise Warning("Returned quote was not a dict")
+                raise ValueError("Returned quote was not a dict")
 
-            # XXX what if symbol is non-unique should we use instrument as key here?
             symbol = quote['symbol']
-            if len(fields):
-                res[symbol] = {key: value for (
-                    key, value) in quote.items() if key in fields}
-            else:
+            if fields is None:
                 res[symbol] = quote
+            else:
+                res[symbol] = {key: value for
+                                (key, value) in quote.items() if key in fields}
 
         return res
 
