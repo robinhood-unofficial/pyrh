@@ -16,7 +16,7 @@ TEST = [
     'pytest~=3.0.0',
     'pytest_cov~=2.4.0',
     'flaky~=3.3.0',
-    'pep8~=1.7.1'
+    'pytest_pep8~=1.0.6'
 ]
 
 def get_requirements(test_or_prod=False):

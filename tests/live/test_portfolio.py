@@ -4,6 +4,7 @@ import six
 
 import pytest
 from flaky import flaky
+import requests
 
 from Robinhood import Robinhood
 import Robinhood.exceptions as RH_exception
@@ -47,7 +48,7 @@ def test_login_badpass(config=CONFIG):
     if not LOGIN_OK:
         pytest.xfail('cannot test without valid user/passwd')
     bad_pass = 'PASSWORD'
-    with pytest.raises(RH_exception.LoginFailed):
+    with pytest.raises(requests.exceptions.HTTPError):
         Robinhood().login(
             username=config.get('LOGIN', 'username'),
             password=bad_pass
