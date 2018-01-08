@@ -647,7 +647,25 @@ class Robinhood:
         return self.get_quote_list(stock, 'symbol')
 
     def last_updated_at(self, stock=''):
-        """Get last update datetime
+        """Wrapper to get update datetime
+
+            Note:
+                This wrapper ccallses updated_at() instead
+                The field name is 'updated_at'  last_updated_at() will be deprecated.
+
+                queries `quote` endpoint, dict wrapper
+
+            Args:
+                stock (str): stock ticker
+
+            Returns:
+                (str): last update datetime
+        """
+
+        return self.updated_at(stock)
+
+    def updated_at(self, stock=''):
+        """Get last updated datetime
 
             Note:
                 queries `quote` endpoint, dict wrapper
@@ -659,7 +677,7 @@ class Robinhood:
                 (str): last update datetime
         """
 
-        return self.get_quote_list(stock, 'last_updated_at')
+        return self.get_quote_list(stock, 'updated_at')
 
     def last_updated_at_datetime(self, stock=''):
         """Get last updated datetime

@@ -129,9 +129,9 @@ class TestQuoteHelpers:
         assert data[0][0] == TEST_QUOTE['symbol']
 
     @flaky
-    def test_validate_last_updated_at(self):
-        """validate `last_updated_at` call"""
-        data = self.rh_obj.last_updated_at(self.test_ticker)
+    def test_validate_updated_at(self):
+        """validate `updated_at` call"""
+        data = self.rh_obj.updated_at(self.test_ticker)
         quote = self.rh_obj.quote_data(self.test_ticker)
 
         assert data[0][0] == quote['updated_at']
