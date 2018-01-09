@@ -56,13 +56,13 @@ class TestQuoteHelpers:
 
     def test_validate_fail_quote(self):
         """validate bad-path exception"""
-        with pytest.raises(NameError):
+        with pytest.raises(Robinhood.exceptions.InvalidTickerSymbol):
             data = self.rh_obj.quote_data(self.fake_ticker)
 
     def test_validate_get_quote(self):
         """validate `get_quote` call"""
         data = self.rh_obj.get_quote(self.test_ticker)
-        assert data == TEST_QUOTE['symbol']
+        assert data['symbol'] == TEST_QUOTE['symbol']
 
     @flaky
     def test_validate_ask_price(self):
@@ -70,7 +70,7 @@ class TestQuoteHelpers:
         data = self.rh_obj.ask_price(self.test_ticker)
         quote = self.rh_obj.quote_data(self.test_ticker)
 
-        assert data == quote['ask_price']
+        assert data[0][0] == quote['ask_price']
 
     @flaky
     def test_validate_ask_size(self):
@@ -78,7 +78,7 @@ class TestQuoteHelpers:
         data = self.rh_obj.ask_size(self.test_ticker)
         quote = self.rh_obj.quote_data(self.test_ticker)
 
-        assert data == quote['ask_size']
+        assert data[0][0] == quote['ask_size']
 
     @flaky
     def test_validate_bid_price(self):
@@ -86,7 +86,7 @@ class TestQuoteHelpers:
         data = self.rh_obj.bid_price(self.test_ticker)
         quote = self.rh_obj.quote_data(self.test_ticker)
 
-        assert data == quote['bid_price']
+        assert data[0][0] == quote['bid_price']
 
     @flaky
     def test_validate_bid_size(self):
@@ -94,7 +94,7 @@ class TestQuoteHelpers:
         data = self.rh_obj.bid_size(self.test_ticker)
         quote = self.rh_obj.quote_data(self.test_ticker)
 
-        assert data == quote['bid_size']
+        assert data[0][0] == quote['bid_size']
 
     @flaky
     def test_validate_last_trade_price(self):
@@ -102,39 +102,39 @@ class TestQuoteHelpers:
         data = self.rh_obj.last_trade_price(self.test_ticker)
         quote = self.rh_obj.quote_data(self.test_ticker)
 
-        assert data == quote['last_trade_price']
+        assert data[0][0] == quote['last_trade_price']
 
     def test_validate_previous_close(self):
         """validate `previous_close` call"""
         data = self.rh_obj.previous_close(self.test_ticker)
 
-        assert data == TEST_QUOTE['previous_close']
+        assert data[0][0] == TEST_QUOTE['previous_close']
 
     def test_validate_previous_close_date(self):
         """validate `previous_close_date` call"""
         data = self.rh_obj.previous_close_date(self.test_ticker)
 
-        assert data == TEST_QUOTE['previous_close_date']
+        assert data[0][0] == TEST_QUOTE['previous_close_date']
 
     def test_validate_adjusted_previous_close(self):
         """validate `adjusted_previous_close` call"""
         data = self.rh_obj.adjusted_previous_close(self.test_ticker)
 
-        assert data == TEST_QUOTE['adjusted_previous_close']
+        assert data[0][0] == TEST_QUOTE['adjusted_previous_close']
 
     def test_validate_symbol(self):
         """validate `symbol` call"""
         data = self.rh_obj.symbol(self.test_ticker)
 
-        assert data == TEST_QUOTE['symbol']
+        assert data[0][0] == TEST_QUOTE['symbol']
 
     @flaky
-    def test_validate_last_updated_at(self):
-        """validate `last_updated_at` call"""
-        data = self.rh_obj.last_updated_at(self.test_ticker)
+    def test_validate_updated_at(self):
+        """validate `updated_at` call"""
+        data = self.rh_obj.updated_at(self.test_ticker)
         quote = self.rh_obj.quote_data(self.test_ticker)
 
-        assert data == quote['updated_at']
+        assert data[0][0] == quote['updated_at']
 
 TEST_FUNDAMENTAL = {}
 @pytest.mark.incremental
@@ -162,7 +162,7 @@ class TestFundamentalsHelpers:
 
     def test_validate_fail_fundamental(self):
         """validate bad-path exception"""
-        with pytest.raises(NameError):
+        with pytest.raises(Robinhood.exceptions.InvalidTickerSymbol):
             data = self.rh_obj.get_fundamentals(self.fake_ticker)
 
     @flaky
@@ -212,7 +212,7 @@ def test_intstruments(config=CONFIG):
     """test `instruments` endpoint"""
     #TODO: this test is bad, just repeat of code inside endpoint
     params = {
-        'query': CONFIG.get('FETCH', 'test_ticker')
+        'symbol': CONFIG.get('FETCH', 'test_ticker')
     }
     headers = {
         'User-Agent': CONFIG.get('FETCH', 'user_agent')
@@ -224,9 +224,10 @@ def test_intstruments(config=CONFIG):
         params=params
     )
     res.raise_for_status()
+
     hard_data = res.json()['results']
 
-    data = Robinhood().instruments(CONFIG.get('FETCH', 'test_ticker'))
+    data = Robinhood().instruments(symbol=CONFIG.get('FETCH', 'test_ticker'))
 
     assert data == hard_data
 
@@ -247,7 +248,7 @@ def test_get_historical_data(config=CONFIG):
         }
     )
 
-    hard_data = res.json()['results']
+    hard_data = res.json()   # Not sure why ['results'] was here, as get_historical_quotes returns the raw json
 
     data = Robinhood().get_historical_quotes(
         [CONFIG.get('FETCH', 'test_ticker')],
