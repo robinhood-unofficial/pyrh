@@ -6,6 +6,8 @@ import pytest
 from flaky import flaky
 import requests
 
+from decimal import Decimal
+
 from Robinhood import Robinhood
 import Robinhood.exceptions as RH_exception
 if six.PY2:
@@ -90,32 +92,32 @@ class TestPortfolioMethods:
     def test_validate_adjusted_equity(self):
         """test `adjusted_equity_previous_close` method"""
         value = self.rh_obj.adjusted_equity_previous_close()
-        assert isinstance(value, float)
+        assert isinstance(value, Decimal)
         assert format(
             value, '.4f') == TEST_PORTFOLIO['adjusted_equity_previous_close']
 
     def test_validate_equity(self):
         """test `equity` method"""
         value = self.rh_obj.equity()
-        assert isinstance(value, float)
+        assert isinstance(value, Decimal)
         assert format(value, '.4f') == TEST_PORTFOLIO['equity']
 
     def test_equity_previous_close(self):
         """test `equity_previous_close` method"""
         value = self.rh_obj.equity_previous_close()
-        assert isinstance(value, float)
+        assert isinstance(value, Decimal)
         assert format(value, '.4f') == TEST_PORTFOLIO['equity_previous_close']
 
     def test_excess_margin(self):
         """test `excess_margin` method"""
         value = self.rh_obj.excess_margin()
-        assert isinstance(value, float)
+        assert isinstance(value, Decimal)
         assert format(value, '.4f') == TEST_PORTFOLIO['excess_margin']
 
     def test_ex_hours_equity(self):
         """test `extended_hours_equity method"""
         value = self.rh_obj.extended_hours_equity()
-        assert isinstance(value, float) or (value is None)
+        assert isinstance(value, Decimal) or (value is None)
         if value:
             assert format(
                 value, '.4f') == TEST_PORTFOLIO['extended_hours_equity']
@@ -123,7 +125,7 @@ class TestPortfolioMethods:
     def test_ex_hours_market_value(self):
         """test `extended_hours_market_value` method"""
         value = self.rh_obj.extended_hours_market_value()
-        assert isinstance(value, float) or (value is None)
+        assert isinstance(value, Decimal) or (value is None)
         if value:
             assert format(
                 value, '.4f') == TEST_PORTFOLIO['extended_hours_market_value']
@@ -131,19 +133,19 @@ class TestPortfolioMethods:
     def test_last_core_equity(self):
         """test `last_core_equity` method"""
         value = self.rh_obj.last_core_equity()
-        assert isinstance(value, float)
+        assert isinstance(value, Decimal)
         assert format(value, '.4f') == TEST_PORTFOLIO['last_core_equity']
 
     def test_last_core_market_value(self):
         """test `last_core_market_value` method"""
         value = self.rh_obj.last_core_market_value()
-        assert isinstance(value, float)
+        assert isinstance(value, Decimal)
         assert format(value, '.4f') == TEST_PORTFOLIO['last_core_market_value']
 
     def test_market_value(self):
         """test `market_value` method"""
         value = self.rh_obj.market_value()
-        assert isinstance(value, float)
+        assert isinstance(value, Decimal)
         assert format(value, '.4f') == TEST_PORTFOLIO['market_value']
 
     def test_investment_profile(self):
