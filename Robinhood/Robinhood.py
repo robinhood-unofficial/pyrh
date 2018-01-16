@@ -68,7 +68,7 @@ class Robinhood:
     username = None
     password = None
     headers = None
-    auth_token = None
+    _auth_token = None
 
     logger = logging.getLogger('Robinhood')
     logger.addHandler(logging.NullHandler())
@@ -139,8 +139,8 @@ class Robinhood:
             raise RH_exception.TwoFactorRequired()  #requires a second call to enable 2FA
 
         if 'token' in data.keys():
-            self.auth_token = data['token']
-            self.headers['Authorization'] = 'Token ' + self.auth_token
+            self._auth_token = data['token']
+            self.headers['Authorization'] = 'Token ' + self._auth_token
             return True
 
         return False
@@ -161,9 +161,18 @@ class Robinhood:
             warnings.warn('Failed to log out ' + repr(err_msg))
 
         self.headers['Authorization'] = None
-        self.auth_token = None
+        self._auth_token = None
 
         return req
+
+    @property
+    def token(self):
+        return self._auth_token
+
+    @token.setter
+    def token(self, token):
+        self._auth_token = token
+        self.headers['Authorization'] = 'Token ' + self._auth_token
 
 
     ###########################################################################

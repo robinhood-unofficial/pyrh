@@ -2,7 +2,7 @@
 Python Framework to make trades with Robinhood Private API.
 See this [blog post](https://medium.com/@rohanpai25/reversing-robinhood-free-accessible-automated-stock-trading-f40fba1e7d8b).
 
-## Current Features 
+## Current Features
 - Placing buy orders (`Robinhood.place_buy_order`)
 - Placing sell order (`Robinhood.place_sell_order`)
 - Quote information (`Robinhood.quote_data`)
@@ -12,7 +12,7 @@ See this [blog post](https://medium.com/@rohanpai25/reversing-robinhood-free-acc
 
 ### How To Install:
     pip install .
-    
+
 ### Converting to Python 3
 Project will work on both python 2 and python 3
 
@@ -25,6 +25,18 @@ Project will work on both python 2 and python 3
     quote_info = my_trader.quote_data("GEVO")
     buy_order = my_trader.place_buy_order(stock_instrument, 1)
     sell_order = my_trader.place_sell_order(stock_instrument, 1)
+
+    # save the token so you don't need user/password again
+    # should probably encrypt this if saving to a file
+    # or use an environment variable: https://docs.python.org/3/library/os.html
+    token = my_trader.token
+    with open('mytoken.pleasesecurethis', 'w') as f:
+        f.write(token)
+
+    # load from token rather than login
+    with open('mytoken.pleasesecurethis') as f:
+      my_trader.token = f.read()
+
 
 ### Data returned
 * Quote data
