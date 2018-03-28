@@ -61,7 +61,7 @@ class Robinhood:
         "user": "https://api.robinhood.com/user/",
         "watchlists": "https://api.robinhood.com/watchlists/",
         "news": "https://api.robinhood.com/midlands/news/",
-        "fundamentals": "https://api.robinhood.com/fundamentals/",
+        "fundamentals": "https://api.robinhood.com/fundamentals/"
     }
 
     session = None
@@ -610,7 +610,19 @@ class Robinhood:
         """
 
         return self.session.get(url, timeout=15).json()
+    
+    def get_popularity(self, stock=''):
+        """Get the number of robinhood users who own the given stock
+            
+            Args:
+                stock (str): stock ticker
 
+            Returns:
+                (int): number of users who own the stock
+        """
+        stock_instrument = self.instruments(stock)[0]["id"]
+        url = "{base}{instrument}/popularity/".format(base=self.endpoints['instruments'],instrument=stock_instrument)
+        return self.session.get(url, timeout=15).json()["num_open_positions"]
 
     ###########################################################################
     #                           GET FUNDAMENTALS
