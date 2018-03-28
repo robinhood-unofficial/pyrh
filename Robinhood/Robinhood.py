@@ -621,7 +621,7 @@ class Robinhood:
             Returns:
                 (int): number of users who own the stock
         """
-        stock_instrument = self.instruments(stock)[0]["id"]
+        stock_instrument = self.get_url(self.quote_data(stock)["instrument"])["id"]
         return self.get_url("{base}{instrument}/popularity/".format(base=self.endpoints['instruments'], instrument=stock_instrument))["num_open_positions"]
 
     def get_tickers_by_tag(self, tag=None):
