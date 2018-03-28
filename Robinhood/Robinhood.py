@@ -61,7 +61,8 @@ class Robinhood:
         "user": "https://api.robinhood.com/user/",
         "watchlists": "https://api.robinhood.com/watchlists/",
         "news": "https://api.robinhood.com/midlands/news/",
-        "fundamentals": "https://api.robinhood.com/fundamentals/"
+        "fundamentals": "https://api.robinhood.com/fundamentals/",
+        "top_movers": "https://api.robinhood.com/midlands/tags/tag/top-movers/"
     }
 
     session = None
@@ -623,6 +624,18 @@ class Robinhood:
         stock_instrument = self.instruments(stock)[0]["id"]
         url = "{base}{instrument}/popularity/".format(base=self.endpoints['instruments'],instrument=stock_instrument)
         return self.session.get(url, timeout=15).json()["num_open_positions"]
+
+    def top_movers(self):
+        """Get a list of the top movers
+            
+            Args: None
+
+            Returns:
+                (List): a list of Ticker strings
+        """
+        instrument_list = self.session.get(self.endpoints['top_movers'], timeout=15).json()["instruments"]
+        return [self.session.get(instrument, timeout=15).json()["symbol"] for instrument in instrument_list]
+
 
     ###########################################################################
     #                           GET FUNDAMENTALS
