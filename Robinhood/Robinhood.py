@@ -654,8 +654,7 @@ class Robinhood:
             Args: instrument id (str), list of expiration dates to filter on (YYYY-MM-DD), and whether or not its a 'put' or a 'call' option type (str).
 
             Returns:
-                Options Contracts (List): a list (chain) of contract ids that can be queried for additional 
-                information about that options contract.
+                Options Contracts (List): a list (chain) of contracts for a given underlying equity instrument
         """
         if(type(expiration_dates) == list):
             _expiration_dates_string = expiration_dates.join(",")
@@ -663,7 +662,7 @@ class Robinhood:
             _expiration_dates_string = expiration_dates
         chain_id = self.get_url("{base}chains/?equity_instrument_ids={_instrument}".format(base=self.endpoints['options'], _instrument=instrument))["results"][0]["id"]
         options_url = "{base}instruments/?chain_id={_chainid}&expiration_dates={_dates}&state=active&tradability=tradable&type={_type}".format(base=self.endpoints['options'], _chainid=chain_id, _dates=_expiration_dates_string, _type=option_type)
-        return [contract["id"] for contract in self.get_url(options_url)["results"]]
+        return [contract for contract in self.get_url(options_url)["results"]]
 
 
     ###########################################################################
