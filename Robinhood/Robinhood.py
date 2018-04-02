@@ -62,6 +62,7 @@ class Robinhood:
         "watchlists": "https://api.robinhood.com/watchlists/",
         "news": "https://api.robinhood.com/midlands/news/",
         "fundamentals": "https://api.robinhood.com/fundamentals/",
+        "tags": "https://api.robinhood.com/midlands/tags/tag/"
     }
 
     session = None
@@ -610,6 +611,36 @@ class Robinhood:
         """
 
         return self.session.get(url, timeout=15).json()
+    
+    def get_popularity(self, stock=''):
+        """Get the number of robinhood users who own the given stock
+            
+            Args:
+                stock (str): stock ticker
+
+            Returns:
+                (int): number of users who own the stock
+        """
+        stock_instrument = self.get_url(self.quote_data(stock)["instrument"])["id"]
+        return self.get_url("{base}{instrument}/popularity/".format(base=self.endpoints['instruments'], instrument=stock_instrument))["num_open_positions"]
+
+    def get_tickers_by_tag(self, tag=None):
+        """Get a list of instruments belonging to a tag
+            
+            Args: tag - a string that equals one of the following:
+                * top-movers
+                * etf
+                * 100-most-popular
+                * mutual-fund
+                * finance
+                * cap-weighted
+                * investment-trust-or-fund
+
+            Returns:
+                (List): a list of Ticker strings
+        """
+        instrument_list = self.get_url("{base}{_tag}/".format(base=self.endpoints['tags'], _tag=tag))["instruments"]
+        return [self.get_url(instrument)["symbol"] for instrument in instrument_list]
 
 
     ###########################################################################
