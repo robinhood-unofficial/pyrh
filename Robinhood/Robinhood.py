@@ -62,7 +62,9 @@ class Robinhood:
         "watchlists": "https://api.robinhood.com/watchlists/",
         "news": "https://api.robinhood.com/midlands/news/",
         "fundamentals": "https://api.robinhood.com/fundamentals/",
-        "tags": "https://api.robinhood.com/midlands/tags/tag/"
+        "tags": "https://api.robinhood.com/midlands/tags/tag/",
+        "oath2": "https://api.robinhood.com/oauth2/migrate_token/",
+        "options": "https://api.robinhood.com/options/"
     }
 
     session = None
@@ -641,6 +643,27 @@ class Robinhood:
         """
         instrument_list = self.get_url("{base}{_tag}/".format(base=self.endpoints['tags'], _tag=tag))["instruments"]
         return [self.get_url(instrument)["symbol"] for instrument in instrument_list]
+
+    ###########################################################################
+    #                           GET OPTIONS INFO
+    ###########################################################################
+
+    def get_options(self, instrument, expiration_dates, option_type):
+        """Get a list (chain) of options contracts belonging to a particular instrument
+            
+            Args: instrument id (str), list of expiration dates to filter on (YYYY-MM-DD), and whether or not its a 'put' or a 'call' option type (str).
+
+            Returns:
+                Options Contracts (List): a list (chain) of contract ids that can be queried for additional 
+                information about that options contract.
+        """
+        if(type(expiration_dates) == list):
+            _expiration_dates_string = expiration_dates.join(",")
+        else:
+            _expiration_dates_string = expiration_dates
+        chain_id = self.get_url("{base}chains/?equity_instrument_ids={_instrument}".format(base=self.endpoints['options'], _instrument=instrument))["results"][0]["id"]
+        options_url = "{base}instruments/?chain_id={_chainid}&expiration_dates={_dates}&state=active&tradability=tradable&type={_type}".format(base=self.endpoints['options'], _chainid=chain_id, _dates=_expiration_dates_string, _type=option_type)
+        return [contract["id"] for contract in self.get_url(options_url)["results"]]
 
 
     ###########################################################################
