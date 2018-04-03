@@ -17,10 +17,7 @@ def ach(option):
         * relationships
         * transfers
     '''
-    if(option == "iav"):
-        return "https://api.robinhood.com/ach/iav/auth/"
-    else:
-        return "https://api.robinhood.com/ach/{_option}/".format(_option=option)
+    return "https://api.robinhood.com/ach/iav/auth/" if option == "iav" else "https://api.robinhood.com/ach/{_option}/".format(_option=option)
 
 def applications():
     return "https://api.robinhood.com/applications/"
@@ -36,7 +33,7 @@ def instruments(instrumentId=None, option=None):
     Return information about a specific instrument by providing its instrument id. 
     Add extra options for additional information such as "popularity"
     '''
-    return "https://api.robinhood.com/instruments/{id}/{_option}/".format(id=instrumentId, _option=option) if option else "https://api.robinhood.com/instruments/{id}/".format(id=instrumentId) 
+    return "https://api.robinhood.com/instruments/{id}/".format(id=instrumentId) + "{_option}/".format(_option=option) if option else ""
 
 def margin_upgrades():
     return "https://api.robinhood.com/margin/upgrades/"
