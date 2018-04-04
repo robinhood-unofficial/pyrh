@@ -91,3 +91,6 @@ def options(chainid, dates, option_type):
 
 def market_data(optionid):
     return "https://api.robinhood.com/marketdata/options/{_optionid}/".format(_optionid=optionid)
+
+def convert_token():
+    return "https://api.robinhood.com/oauth2/migrate_token/"
