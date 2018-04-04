@@ -133,7 +133,7 @@ class Robinhood:
             payload['mfa_code'] = mfa_code
 
         try:
-            res = self.session.post(self.endpoints['login'], data=payload, timeout=15)
+            res = self.session.post(endpoints.login(), data=payload, timeout=15)
             res.raise_for_status()
             data = res.json()
         except requests.exceptions.HTTPError:
@@ -159,7 +159,7 @@ class Robinhood:
         """
 
         try:
-            req = self.session.post(self.endpoints['logout'], timeout=15)
+            req = self.session.post(endpoints.logout(), timeout=15)
             req.raise_for_status()
         except requests.exceptions.HTTPError as err_msg:
             warnings.warn('Failed to log out ' + repr(err_msg))
@@ -177,7 +177,7 @@ class Robinhood:
     def investment_profile(self):
         """Fetch investment_profile """
 
-        res = self.session.get(self.endpoints['investment_profile'], timeout=15)
+        res = self.session.get(endpoints.investment_profile(), timeout=15)
         res.raise_for_status()  #will throw without auth
         data = res.json()
 
@@ -194,7 +194,7 @@ class Robinhood:
                 (:obj:`dict`): JSON contents from `instruments` endpoint
         """
 
-        res = self.session.get(self.endpoints['instruments'], params={'query': stock.upper()}, timeout=15)
+        res = self.session.get(endpoints.instruments(), params={'query': stock.upper()}, timeout=15)
         res.raise_for_status()
         res = res.json()
 
@@ -214,7 +214,7 @@ class Robinhood:
             Returns:
                 (:obj:`dict`): JSON dict of instrument
         """
-        url = str(self.endpoints['instruments']) + str(id) + "/"
+        url = str(endpoints.instruments()) + str(id) + "/"
 
         try:
             req = requests.get(url, timeout=15)
@@ -239,9 +239,9 @@ class Robinhood:
         url = None
 
         if stock.find(',') == -1:
-            url = str(self.endpoints['quotes']) + str(stock) + "/"
+            url = str(endpoints.quotes()) + str(stock) + "/"
         else:
-            url = str(self.endpoints['quotes']) + "?symbols=" + str(stock)
+            url = str(endpoints.quotes()) + "?symbols=" + str(stock)
 
         #Check for validity of symbol
         try:
@@ -267,7 +267,7 @@ class Robinhood:
                     same order of input args. If any ticker is invalid, a None will occur at that position.
         """
 
-        url = str(self.endpoints['quotes']) + "?symbols=" + ",".join(stocks)
+        url = str(endpoints.quotes()) + "?symbols=" + ",".join(stocks)
 
         try:
             req = requests.get(url, timeout=15)
@@ -363,7 +363,7 @@ class Robinhood:
             'bounds': bounds.name.lower()
         }
 
-        res = self.session.get(self.endpoints['historicals'], params=params, timeout=15)
+        res = self.session.get(endpoints.historicals(), params=params, timeout=15)
         return res.json()
 
 
@@ -376,7 +376,7 @@ class Robinhood:
                 (:obj:`dict`) values returned from `news` endpoint
         """
 
-        return self.session.get(self.endpoints['news'] + stock.upper() + "/", timeout=15).json()
+        return self.session.get(endpoints.news(stock.upper()), timeout=15).json()
 
 
     def print_quote(self, stock=''):    #pragma: no cover
@@ -601,7 +601,7 @@ class Robinhood:
                 (:obj:`dict`): `accounts` endpoint payload
         """
 
-        res = self.session.get(self.endpoints['accounts'], timeout=15)
+        res = self.session.get(endpoints.accounts(), timeout=15)
         res.raise_for_status()  #auth required
         res = res.json()
 
@@ -684,7 +684,7 @@ class Robinhood:
         if not stock:   #pragma: no cover
             stock = input("Symbol: ")
 
-        url = str(self.endpoints['fundamentals']) + str(stock.upper()) + "/"
+        url = str(endpoints.fundamentals(str(stock.upper())))
 
         #Check for validity of symbol
         try:
@@ -711,7 +711,7 @@ class Robinhood:
     def portfolios(self):
         """Returns the user's portfolio data """
 
-        req = self.session.get(self.endpoints['portfolios'], timeout=15)
+        req = self.session.get(endpoints.portfolios(), timeout=15)
         req.raise_for_status()
 
         return req.json()['results'][0]
@@ -821,7 +821,7 @@ class Robinhood:
                 (:obj:`dict`): JSON dict from getting orders
         """
 
-        return self.session.get(self.endpoints['orders'], timeout=15).json()
+        return self.session.get(endpoints.orders(), timeout=15).json()
 
 
     def dividends(self):
@@ -831,7 +831,7 @@ class Robinhood:
                 (:obj: `dict`): JSON dict from getting dividends
         """
 
-        return self.session.get(self.endpoints['dividends'], timeout=15).json()
+        return self.session.get(endpoints.dividends(), timeout=15).json()
 
 
     ###########################################################################
@@ -845,7 +845,7 @@ class Robinhood:
                 (:object: `dict`): JSON dict from getting positions
         """
 
-        return self.session.get(self.endpoints['positions'], timeout=15).json()
+        return self.session.get(endpoints.positions(), timeout=15).json()
 
 
     def securities_owned(self):
@@ -855,7 +855,7 @@ class Robinhood:
                 (:object: `dict`): Non-zero positions
         """
 
-        return self.session.get(self.endpoints['positions']+'?nonzero=true', timeout=15).json()
+        return self.session.get(endpoints.positions()+'?nonzero=true', timeout=15).json()
 
 
     ###########################################################################
@@ -919,7 +919,7 @@ class Robinhood:
         #    instrument['symbol']
         #)
 
-        res = self.session.post(self.endpoints['orders'], data=payload, timeout=15)
+        res = self.session.post(endpoints.orders(), data=payload, timeout=15)
         res.raise_for_status()
 
         return res
@@ -1335,7 +1335,7 @@ class Robinhood:
             if(value is not None):
                 payload[field] = value
 
-        res = self.session.post(self.endpoints['orders'], data=payload, timeout=15)
+        res = self.session.post(endpoints.orders(), data=payload, timeout=15)
         res.raise_for_status()
 
         return res

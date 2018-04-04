@@ -71,11 +71,11 @@ def user():
 def watchlists():
     return "https://api.robinhood.com/watchlists/"
 
-def news():
-    return "https://api.robinhood.com/midlands/news/"
+def news(stock):
+    return "https://api.robinhood.com/midlands/news/{_stock}/".format(_stock=stock)
 
-def fundamentals():
-    return "https://api.robinhood.com/fundamentals/"
+def fundamentals(stock):
+    return "https://api.robinhood.com/fundamentals/{_stock}/".format(_stock=stock)
 
 def tags(tag=None):
     '''
