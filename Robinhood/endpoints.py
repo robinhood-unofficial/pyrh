@@ -82,3 +82,12 @@ def tags(tag=None):
     Returns endpoint with tag concatenated.
     '''
     return "https://api.robinhood.com/midlands/tags/tag/{_tag}/".format(_tag=tag)
+
+def chain(instrumentid):
+    return "https://api.robinhood.com/options/chains/?equity_instrument_ids={_instrumentid}".format(_instrumentid=instrumentid)
+
+def options(chainid, dates, option_type):
+    return "https://api.robinhood.com/options/instruments/?chain_id={_chainid}&expiration_dates={_dates}&state=active&tradability=tradable&type={_type}".format(_chainid=chainid, _dates=dates, _type=option_type)
+
+def market_data(optionid):
+    return "https://api.robinhood.com/marketdata/options/{_optionid}/".format(_optionid=optionid)
