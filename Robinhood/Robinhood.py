@@ -73,6 +73,7 @@ class Robinhood:
     password = None
     headers = None
     auth_token = None
+    oauth_token = None
 
     logger = logging.getLogger('Robinhood')
     logger.addHandler(logging.NullHandler())
@@ -649,22 +650,31 @@ class Robinhood:
     #                           GET OPTIONS INFO
     ###########################################################################
 
-    def get_options(self, instrument, expiration_dates, option_type):
-        """Get a list (chain) of options contracts belonging to a particular instrument
+    def get_options(self, stock, expiration_dates, option_type):
+        """Get a list (chain) of options contracts belonging to a particular stock
             
-            Args: instrument id (str), list of expiration dates to filter on (YYYY-MM-DD), and whether or not its a 'put' or a 'call' option type (str).
+            Args: stock ticker (str), list of expiration dates to filter on (YYYY-MM-DD), and whether or not its a 'put' or a 'call' option type (str).
 
             Returns:
                 Options Contracts (List): a list (chain) of contracts for a given underlying equity instrument
         """
+        instrumentid = self.get_url(self.quote_data(stock)["instrument"])["id"]
         if(type(expiration_dates) == list):
             _expiration_dates_string = expiration_dates.join(",")
         else:
             _expiration_dates_string = expiration_dates
-        chain_id = self.get_url("{base}chains/?equity_instrument_ids={_instrument}".format(base=self.endpoints['options'], _instrument=instrument))["results"][0]["id"]
-        options_url = "{base}instruments/?chain_id={_chainid}&expiration_dates={_dates}&state=active&tradability=tradable&type={_type}".format(base=self.endpoints['options'], _chainid=chain_id, _dates=_expiration_dates_string, _type=option_type)
-        return [contract for contract in self.get_url(options_url)["results"]]
+        chain_id = self.get_url(endpoints.chain(instrumentid))["results"][0]["id"]
+        return [contract for contract in self.get_url(endpoints.options(chain_id, _expiration_dates_string, option_type))["results"]]
 
+    def get_option_market_data(self, optionid):
+        if not self.oauth_token:
+            res = self.session.post(endpoints.convert_token(), timeout=15)
+            res.raise_for_status()
+            res = res.json()
+            self.oauth_token = res["access_token"]
+            self.headers['Authorization'] = 'Bearer ' + self.oauth_token
+        return self.get_url(endpoints.market_data(optionid))
+        
 
     ###########################################################################
     #                           GET FUNDAMENTALS
