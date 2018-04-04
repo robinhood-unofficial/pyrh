@@ -667,6 +667,12 @@ class Robinhood:
         return [contract for contract in self.get_url(endpoints.options(chain_id, _expiration_dates_string, option_type))["results"]]
 
     def get_option_market_data(self, optionid):
+        """Gets a list of market data for a given optionid.
+
+        Args: (str) option id
+
+        Returns: dictionary of options market data.
+        """
         if not self.oauth_token:
             res = self.session.post(endpoints.convert_token(), timeout=15)
             res.raise_for_status()
