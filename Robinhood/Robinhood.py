@@ -17,6 +17,7 @@ import six
 
 #Application-specific imports
 from . import exceptions as RH_exception
+from . import endpoints
 
 
 class Bounds(Enum):
@@ -624,12 +625,12 @@ class Robinhood:
                 (int): number of users who own the stock
         """
         stock_instrument = self.get_url(self.quote_data(stock)["instrument"])["id"]
-        return self.get_url("{base}{instrument}/popularity/".format(base=self.endpoints['instruments'], instrument=stock_instrument))["num_open_positions"]
+        return self.get_url(endpoints.instruments(stock_instrument, "popularity"))["num_open_positions"]
 
     def get_tickers_by_tag(self, tag=None):
         """Get a list of instruments belonging to a tag
             
-            Args: tag - a string that equals one of the following:
+            Args: tag - Tags may include but are not limited to:
                 * top-movers
                 * etf
                 * 100-most-popular
@@ -641,7 +642,7 @@ class Robinhood:
             Returns:
                 (List): a list of Ticker strings
         """
-        instrument_list = self.get_url("{base}{_tag}/".format(base=self.endpoints['tags'], _tag=tag))["instruments"]
+        instrument_list = self.get_url(endpoints.tags(tag))["instruments"]
         return [self.get_url(instrument)["symbol"] for instrument in instrument_list]
 
     ###########################################################################
