@@ -69,10 +69,10 @@ class Robinhood:
 
     def login_required(function):
         """ Decorator function that prompts user for login if they are not logged in already. Can be applied to any function using the @ notation. """
-        def wrapper(self, *args):
+        def wrapper(self, *args, **kwargs):
             if 'Authorization' not in self.headers:
                 self.login_prompt()
-            return function(self, *args)
+            return function(self, *args, **kwargs)
         return wrapper
 
 
