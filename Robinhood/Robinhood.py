@@ -806,7 +806,7 @@ class Robinhood:
 
         return float(self.portfolios()['market_value'])
 
-
+    @login_required
     def order_history(self):
         """Wrapper for portfolios
 
@@ -815,6 +815,17 @@ class Robinhood:
         """
 
         return self.session.get(endpoints.orders(), timeout=15).json()
+    
+    @login_required
+    def order_info(self, orderId):
+        """Wrapper for portfolios
+            Args:
+                orderId: String: individual order id
+            Returns:
+                (:obj:`dict`): JSON dict from getting orders
+        """
+
+        return self.session.get(endpoints.orders(orderId), timeout=15).json()
 
 
     def dividends(self):
