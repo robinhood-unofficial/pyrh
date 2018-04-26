@@ -151,7 +151,7 @@ class Robinhood:
     ###########################################################################
     #                               GET DATA
     ###########################################################################
-    
+
     def investment_profile(self):
         """Fetch investment_profile """
 
@@ -591,10 +591,10 @@ class Robinhood:
         """
 
         return self.session.get(url, timeout=15).json()
-    
+
     def get_popularity(self, stock=''):
         """Get the number of robinhood users who own the given stock
-            
+
             Args:
                 stock (str): stock ticker
 
@@ -606,7 +606,7 @@ class Robinhood:
 
     def get_tickers_by_tag(self, tag=None):
         """Get a list of instruments belonging to a tag
-            
+
             Args: tag - Tags may include but are not limited to:
                 * top-movers
                 * etf
@@ -628,7 +628,7 @@ class Robinhood:
 
     def get_options(self, stock, expiration_dates, option_type):
         """Get a list (chain) of options contracts belonging to a particular stock
-            
+
             Args: stock ticker (str), list of expiration dates to filter on (YYYY-MM-DD), and whether or not its a 'put' or a 'call' option type (str).
 
             Returns:
@@ -657,7 +657,7 @@ class Robinhood:
             self.oauth_token = res["access_token"]
             self.headers['Authorization'] = 'Bearer ' + self.oauth_token
         return self.get_url(endpoints.market_data(optionid))
-        
+
 
     ###########################################################################
     #                           GET FUNDAMENTALS
