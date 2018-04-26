@@ -37,37 +37,6 @@ class Transaction(Enum):
 class Robinhood:
     """Wrapper class for fetching/parsing Robinhood endpoints """
 
-    endpoints = {
-        "login": "https://api.robinhood.com/api-token-auth/",
-        "logout": "https://api.robinhood.com/api-token-logout/",
-        "investment_profile": "https://api.robinhood.com/user/investment_profile/",
-        "accounts": "https://api.robinhood.com/accounts/",
-        "ach_iav_auth": "https://api.robinhood.com/ach/iav/auth/",
-        "ach_relationships": "https://api.robinhood.com/ach/relationships/",
-        "ach_transfers": "https://api.robinhood.com/ach/transfers/",
-        "applications": "https://api.robinhood.com/applications/",
-        "dividends": "https://api.robinhood.com/dividends/",
-        "edocuments": "https://api.robinhood.com/documents/",
-        "instruments": "https://api.robinhood.com/instruments/",
-        "margin_upgrades": "https://api.robinhood.com/margin/upgrades/",
-        "markets": "https://api.robinhood.com/markets/",
-        "notifications": "https://api.robinhood.com/notifications/",
-        "orders": "https://api.robinhood.com/orders/",
-        "password_reset": "https://api.robinhood.com/password_reset/request/",
-        "portfolios": "https://api.robinhood.com/portfolios/",
-        "positions": "https://api.robinhood.com/positions/",
-        "quotes": "https://api.robinhood.com/quotes/",
-        "historicals": "https://api.robinhood.com/quotes/historicals/",
-        "document_requests": "https://api.robinhood.com/upload/document_requests/",
-        "user": "https://api.robinhood.com/user/",
-        "watchlists": "https://api.robinhood.com/watchlists/",
-        "news": "https://api.robinhood.com/midlands/news/",
-        "fundamentals": "https://api.robinhood.com/fundamentals/",
-        "tags": "https://api.robinhood.com/midlands/tags/tag/",
-        "oath2": "https://api.robinhood.com/oauth2/migrate_token/",
-        "options": "https://api.robinhood.com/options/"
-    }
-
     session = None
     username = None
     password = None
@@ -97,6 +66,14 @@ class Robinhood:
         }
 
         self.session.headers = self.headers
+
+    def login_required(function):
+        """ Decorator function that prompts user for login if they are not logged in already. Can be applied to any function using the @ notation. """
+        def wrapper(self, *args):
+            if 'Authorization' not in self.headers:
+                self.login_prompt()
+            return function(self, *args)
+        return wrapper
 
 
     def login_prompt(self): #pragma: no cover
@@ -594,7 +571,6 @@ class Robinhood:
 
         return result
 
-
     def get_account(self):
         """Fetch account information
 
@@ -666,6 +642,7 @@ class Robinhood:
         chain_id = self.get_url(endpoints.chain(instrumentid))["results"][0]["id"]
         return [contract for contract in self.get_url(endpoints.options(chain_id, _expiration_dates_string, option_type))["results"]]
 
+    @login_required
     def get_option_market_data(self, optionid):
         """Gets a list of market data for a given optionid.
 
