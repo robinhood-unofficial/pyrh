@@ -65,14 +65,14 @@ class Robinhood:
             "Connection": "keep-alive",
             "User-Agent": "Robinhood/823 (iPhone; iOS 7.1.2; Scale/2.00)"
         }
-
         self.session.headers = self.headers
+        self.auth_method = self.login_prompt
 
     def login_required(function):  # pylint: disable=E0213
         """ Decorator function that prompts user for login if they are not logged in already. Can be applied to any function using the @ notation. """
         def wrapper(self, *args, **kwargs):
             if 'Authorization' not in self.headers:
-                self.login_prompt()
+                self.auth_method()
             return function(self, *args, **kwargs)  # pylint: disable=E1102
         return wrapper
 
