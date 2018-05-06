@@ -880,19 +880,14 @@ class Robinhood:
 
     def place_order(self,
                     instrument,
-                    quantity=1,
+                    quantity,
                     bid_price=0.0,
+                    stop_price=0.0,
                     transaction=None,
-                    trigger='immediate',
-                    order='market',
                     time_in_force = 'gfd'):
         """Place an order with Robinhood
 
             Notes:
-                OMFG TEST THIS PLEASE!
-
-                Just realized this won't work since if type is LIMIT you need to use "price" and if
-                a STOP you need to use "stop_price".  Oops.
                 Reference: https://github.com/sanko/Robinhood/blob/master/Order.md#place-an-order
 
             Args:
@@ -911,29 +906,33 @@ class Robinhood:
         if isinstance(transaction, str):
             transaction = Transaction(transaction)
 
-        if not bid_price:
-            bid_price = self.quote_data(instrument['symbol'])['bid_price']
-
+        # common payload data
         payload = {
             'account': self.get_account()['url'],
             'instrument': unquote(instrument['url']),
-            'price': float(bid_price),
             'quantity': quantity,
             'side': transaction.name.lower(),
             'symbol': instrument['symbol'],
-            'time_in_force': time_in_force.lower(),
-            'trigger': trigger,
-            'type': order.lower()
+            'time_in_force': time_in_force.lower()
         }
 
-        #data = 'account=%s&instrument=%s&price=%f&quantity=%d&side=%s&symbol=%s#&time_in_force=gfd&trigger=immediate&type=market' % (
-        #    self.get_account()['url'],
-        #    urllib.parse.unquote(instrument['url']),
-        #    float(bid_price),
-        #    quantity,
-        #    transaction,
-        #    instrument['symbol']
-        #)
+        if bid_price and bid_price > 0.0:
+            order = "limit"
+            payload['price'] = float(bid_price)
+        else:
+            order='market'
+            payload['price'] = float(self.quote_data(instrument['symbol'])['bid_price'])
+
+        if stop_price and stop_price > 0.0:
+            trigger = 'stop'
+            payload['stop_price'] = float(stop_price)
+        else:
+            trigger = 'immediate'
+
+        payload['trigger'] = trigger
+        payload['type'] = order
+
+        print payload
 
         res = self.session.post(endpoints.orders(), data=payload, timeout=15)
         res.raise_for_status()
@@ -944,13 +943,15 @@ class Robinhood:
     def place_buy_order(self,
                         instrument,
                         quantity,
-                        bid_price=0.0):
+                        bid_price=0.0,
+                        stop_price=0.0):
         """Wrapper for placing buy orders
 
             Args:
                 instrument (dict): the RH URL and symbol in dict for the instrument to be traded
                 quantity (int): quantity of stocks in order
-                bid_price (float): price for order
+                bid_price (float): price for order. Only set for limit order.
+                stop_price (float): stop price for order. Only set for stop order.
 
             Returns:
                 (:obj:`requests.request`): result from `orders` put command
@@ -959,19 +960,25 @@ class Robinhood:
 
         transaction = Transaction.BUY
 
-        return self.place_order(instrument, quantity, bid_price, transaction)
+        return self.place_order(instrument=instrument,
+                                quantity=quantity,
+                                bid_price=bid_price,
+                                stop_price=stop_price,
+                                transaction=transaction)
 
 
     def place_sell_order(self,
                          instrument,
                          quantity,
-                         bid_price=0.0):
+                         bid_price=0.0,
+                         stop_price=0.0):
         """Wrapper for placing sell orders
 
             Args:
                 instrument (dict): the RH URL and symbol in dict for the instrument to be traded
                 quantity (int): quantity of stocks in order
-                bid_price (float): price for order
+                bid_price (float): price for order. Only set for limit order.
+                stop_price (float): stop price for order. Only set for stop order.
 
             Returns:
                 (:obj:`requests.request`): result from `orders` put command
@@ -979,7 +986,11 @@ class Robinhood:
 
         transaction = Transaction.SELL
 
-        return self.place_order(instrument, quantity, bid_price, transaction)
+        return self.place_order(instrument=instrument,
+                                quantity=quantity,
+                                bid_price=bid_price,
+                                stop_price=stop_price,
+                                transaction=transaction)
 
     # Methods below here are a complete rewrite for buying and selling
     # These are new. Use at your own risk!
