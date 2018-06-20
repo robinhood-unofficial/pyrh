@@ -1354,7 +1354,7 @@ class Robinhood:
         """
         if isinstance(order_id, str):
             try:
-                order = self.session.get(self.endpoints['orders'] + order_id, timeout=15).json()
+                order = self.session.get(self.endpoints.orders() + order_id, timeout=15).json()
             except (requests.exceptions.HTTPError) as err_msg:
                 raise ValueError('Failed to get Order for ID: ' + order_id
                     + '\n Error message: '+ repr(err_msg))
@@ -1371,7 +1371,7 @@ class Robinhood:
         if isinstance(order_id, dict):
             order_id = order_id['id']
             try:
-                order = self.session.get(self.endpoints['orders'] + order_id, timeout=15).json()
+                order = self.session.get(self.endpoints.orders() + order_id, timeout=15).json()
             except (requests.exceptions.HTTPError) as err_msg:
                 raise ValueError('Failed to get Order for ID: ' + order_id
                     + '\n Error message: '+ repr(err_msg))
