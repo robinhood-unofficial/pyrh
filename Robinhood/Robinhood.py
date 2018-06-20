@@ -1368,11 +1368,7 @@ class Robinhood:
                          + '\n Error message: '+ repr(err_msg))
                     return None
 
-<<<<<<< HEAD
         if isinstance(order_id, dict):
-=======
-        if order_id is dict:
->>>>>>> b14fa61add1489befd402e0812c5a9a01e2502ec
             order_id = order_id['id']
             try:
                 order = self.session.get(self.endpoints['orders'] + order_id, timeout=15).json()
