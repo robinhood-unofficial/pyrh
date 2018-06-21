@@ -1386,7 +1386,7 @@ class Robinhood:
                          + '\n Error message: '+ repr(err_msg))
                     return None
 
-        elif order_id is not str or dict:
+        elif not isinstance(order_id, str) or not isinstance(order_id, dict):
             raise ValueError('Cancelling orders requires a valid order_id string or open order dictionary')
 
 
