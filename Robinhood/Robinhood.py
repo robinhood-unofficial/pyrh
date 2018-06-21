@@ -1362,6 +1362,7 @@ class Robinhood:
                 try:
                     res = self.session.post(order['cancel'], timeout=15)
                     res.raise_for_status()
+                    return res
                 except (requests.exceptions.HTTPError) as err_msg:
                     raise ValueError('Failed to cancel order ID: ' + order_id
                          + '\n Error message: '+ repr(err_msg))
@@ -1379,6 +1380,7 @@ class Robinhood:
                 try:
                     res = self.session.post(order['cancel'], timeout=15)
                     res.raise_for_status()
+                    return res
                 except (requests.exceptions.HTTPError) as err_msg:
                     raise ValueError('Failed to cancel order ID: ' + order_id
                          + '\n Error message: '+ repr(err_msg))
@@ -1391,5 +1393,3 @@ class Robinhood:
         # Order type cannot be cancelled without a valid cancel link
         else:
             raise ValueError('Unable to cancel order ID: ' + order_id)
-
-        return res
