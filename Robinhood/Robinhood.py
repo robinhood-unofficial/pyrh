@@ -152,6 +152,7 @@ class Robinhood:
     #                               GET DATA
     ###########################################################################
 
+    @property
     def investment_profile(self):
         """Fetch investment_profile """
 
@@ -571,6 +572,10 @@ class Robinhood:
 
         return result
 
+    @property
+    def account(self):
+      return self.get_account()
+
     def get_account(self):
         """Fetch account information
 
@@ -701,6 +706,7 @@ class Robinhood:
     #                           PORTFOLIOS DATA
     ###########################################################################
 
+    @property
     def portfolios(self):
         """Returns the user's portfolio data """
 
@@ -710,6 +716,7 @@ class Robinhood:
         return req.json()['results'][0]
 
 
+    @property
     def adjusted_equity_previous_close(self):
         """Wrapper for portfolios
 
@@ -718,9 +725,10 @@ class Robinhood:
 
         """
 
-        return float(self.portfolios()['adjusted_equity_previous_close'])
+        return float(self.portfolios['adjusted_equity_previous_close'])
 
 
+    @property
     def equity(self):
         """Wrapper for portfolios
 
@@ -728,9 +736,10 @@ class Robinhood:
                 (float): `equity` value
         """
 
-        return float(self.portfolios()['equity'])
+        return float(self.portfolios['equity'])
 
 
+    @property
     def equity_previous_close(self):
         """Wrapper for portfolios
 
@@ -738,9 +747,10 @@ class Robinhood:
                 (float): `equity_previous_close` value
         """
 
-        return float(self.portfolios()['equity_previous_close'])
+        return float(self.portfolios['equity_previous_close'])
 
 
+    @property
     def excess_margin(self):
         """Wrapper for portfolios
 
@@ -748,9 +758,10 @@ class Robinhood:
                 (float): `excess_margin` value
         """
 
-        return float(self.portfolios()['excess_margin'])
+        return float(self.portfolios['excess_margin'])
 
 
+    @property
     def extended_hours_equity(self):
         """Wrapper for portfolios
 
@@ -759,11 +770,12 @@ class Robinhood:
         """
 
         try:
-            return float(self.portfolios()['extended_hours_equity'])
+            return float(self.portfolios['extended_hours_equity'])
         except TypeError:
             return None
 
 
+    @property
     def extended_hours_market_value(self):
         """Wrapper for portfolios
 
@@ -772,11 +784,12 @@ class Robinhood:
         """
 
         try:
-            return float(self.portfolios()['extended_hours_market_value'])
+            return float(self.portfolios['extended_hours_market_value'])
         except TypeError:
             return None
 
 
+    @property
     def last_core_equity(self):
         """Wrapper for portfolios
 
@@ -784,9 +797,10 @@ class Robinhood:
                 (float): `last_core_equity` value
         """
 
-        return float(self.portfolios()['last_core_equity'])
+        return float(self.portfolios['last_core_equity'])
 
 
+    @property
     def last_core_market_value(self):
         """Wrapper for portfolios
 
@@ -794,9 +808,10 @@ class Robinhood:
                 (float): `last_core_market_value` value
         """
 
-        return float(self.portfolios()['last_core_market_value'])
+        return float(self.portfolios['last_core_market_value'])
 
 
+    @property
     def market_value(self):
         """Wrapper for portfolios
 
@@ -804,8 +819,9 @@ class Robinhood:
                 (float): `market_value` value
         """
 
-        return float(self.portfolios()['market_value'])
+        return float(self.portfolios['market_value'])
 
+    @property
     @login_required
     def order_history(self, orderId=None):
         """Wrapper for portfolios
@@ -817,6 +833,7 @@ class Robinhood:
         return self.session.get(endpoints.orders(orderId), timeout=15).json()
 
 
+    @property
     def dividends(self):
         """Wrapper for portfolios
 
@@ -831,6 +848,7 @@ class Robinhood:
     #                           POSITIONS DATA
     ###########################################################################
 
+    @property
     def positions(self):
         """Returns the user's positions data
 
@@ -841,6 +859,7 @@ class Robinhood:
         return self.session.get(endpoints.positions(), timeout=15).json()
 
 
+    @property
     def securities_owned(self):
         """Returns list of securities' symbols that the user has shares in
 
@@ -892,7 +911,7 @@ class Robinhood:
             bid_price = self.quote_data(instrument['symbol'])['bid_price']
 
         payload = {
-            'account': self.get_account()['url'],
+            'account': self.account['url'],
             'instrument': unquote(instrument['url']),
             'price': float(bid_price),
             'quantity': quantity,
@@ -1316,7 +1335,7 @@ class Robinhood:
         payload = {}
 
         for field, value in [
-                                ('account', self.get_account()['url']),
+                                ('account', self.account['url']),
                                 ('instrument', instrument_URL),
                                 ('symbol', symbol),
                                 ('type', order_type),
