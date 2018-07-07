@@ -152,6 +152,7 @@ class Robinhood:
     #                               GET DATA
     ###########################################################################
 
+    @property
     def investment_profile(self):
         """Fetch investment_profile """
 
@@ -571,6 +572,10 @@ class Robinhood:
 
         return result
 
+    @property
+    def account(self):
+      return self.get_account()
+
     def get_account(self):
         """Fetch account information
 
@@ -701,6 +706,7 @@ class Robinhood:
     #                           PORTFOLIOS DATA
     ###########################################################################
 
+    @property
     def portfolios(self):
         """Returns the user's portfolio data """
 
@@ -710,6 +716,7 @@ class Robinhood:
         return req.json()['results'][0]
 
 
+    @property
     def adjusted_equity_previous_close(self):
         """Wrapper for portfolios
 
@@ -721,6 +728,7 @@ class Robinhood:
         return float(self.portfolios()['adjusted_equity_previous_close'])
 
 
+    @property
     def equity(self):
         """Wrapper for portfolios
 
@@ -731,6 +739,7 @@ class Robinhood:
         return float(self.portfolios()['equity'])
 
 
+    @property
     def equity_previous_close(self):
         """Wrapper for portfolios
 
@@ -741,6 +750,7 @@ class Robinhood:
         return float(self.portfolios()['equity_previous_close'])
 
 
+    @property
     def excess_margin(self):
         """Wrapper for portfolios
 
@@ -751,6 +761,7 @@ class Robinhood:
         return float(self.portfolios()['excess_margin'])
 
 
+    @property
     def extended_hours_equity(self):
         """Wrapper for portfolios
 
@@ -764,6 +775,7 @@ class Robinhood:
             return None
 
 
+    @property
     def extended_hours_market_value(self):
         """Wrapper for portfolios
 
@@ -777,6 +789,7 @@ class Robinhood:
             return None
 
 
+    @property
     def last_core_equity(self):
         """Wrapper for portfolios
 
@@ -787,6 +800,7 @@ class Robinhood:
         return float(self.portfolios()['last_core_equity'])
 
 
+    @property
     def last_core_market_value(self):
         """Wrapper for portfolios
 
@@ -797,6 +811,7 @@ class Robinhood:
         return float(self.portfolios()['last_core_market_value'])
 
 
+    @property
     def market_value(self):
         """Wrapper for portfolios
 
@@ -817,6 +832,7 @@ class Robinhood:
         return self.session.get(endpoints.orders(orderId), timeout=15).json()
 
 
+    @property
     def dividends(self):
         """Wrapper for portfolios
 
@@ -831,6 +847,7 @@ class Robinhood:
     #                           POSITIONS DATA
     ###########################################################################
 
+    @property
     def positions(self):
         """Returns the user's positions data
 
@@ -841,6 +858,7 @@ class Robinhood:
         return self.session.get(endpoints.positions(), timeout=15).json()
 
 
+    @property
     def securities_owned(self):
         """Returns list of securities' symbols that the user has shares in
 
