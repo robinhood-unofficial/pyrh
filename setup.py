@@ -11,6 +11,7 @@ __version__ = '1.0.1'
 REQUIRES = [
     'requests>=2.13.0,<=2.18.4',
     'six>=1.10.0,<=1.11.0',
+    'python-dateutil'
 ]
 TEST = [
     'pytest~=3.0.0',
