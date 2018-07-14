@@ -53,6 +53,7 @@ Project will work on both python 2 and python 3
   + Last core market value
   + Market value
   + Order history
+  + Option order history
   + Dividend history
 * User positions data
   + Securities owned

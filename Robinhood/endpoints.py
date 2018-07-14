@@ -83,6 +83,9 @@ def tags(tag=None):
     '''
     return "https://api.robinhood.com/midlands/tags/tag/{_tag}/".format(_tag=tag)
 
+def option_orders(orderId=None):
+    return "https://api.robinhood.com/options/orders/" + ("{_id}/".format(_id=orderId) if orderId else "")
+
 def chain(instrumentid):
     return "https://api.robinhood.com/options/chains/?equity_instrument_ids={_instrumentid}".format(_instrumentid=instrumentid)
 
