@@ -3,6 +3,7 @@
 #Standard libraries
 import logging
 import warnings
+import unicodedata
 
 from enum import Enum
 
@@ -193,6 +194,26 @@ class Robinhood:
                 (:obj:`dict`): JSON dict of instrument
         """
         url = str(endpoints.instruments()) + str(id) + "/"
+
+        try:
+            req = requests.get(url, timeout=15)
+            req.raise_for_status()
+            data = req.json()
+        except requests.exceptions.HTTPError:
+            raise RH_exception.InvalidInstrumentId()
+
+        return data
+
+    def instrument_by_url(self, instrument_url):
+        """Fetch instrument info
+
+            Args:
+                id (str): instrument id
+
+            Returns:
+                (:obj:`dict`): JSON dict of instrument
+        """
+        url = instrument_url
 
         try:
             req = requests.get(url, timeout=15)
@@ -1376,3 +1397,108 @@ class Robinhood:
             raise ValueError('Unable to cancel order ID: ' + order_id)
 
         return res
+
+
+    def compare_to_benchmark(self):
+
+        benchmark = "SPY"
+
+        # FETCHES PAST ORDERS
+        my_orders = self.order_history()
+        past_results = my_orders.get("results")
+        all_trades = []
+
+        for trade in past_results:
+
+            trade_info = {}
+
+            instrument_url = trade["instrument"]
+            this_instrument = self.instrument_by_url(instrument_url)
+
+            symbol = this_instrument["symbol"]
+            # symbol = unicodedata.normalize('NFKD', symbol).encode('ascii', 'ignore')
+            trade_info["symbol"] = symbol
+
+            timestamp = trade["created_at"]
+            # timestamp = unicodedata.normalize('NFKD', timestamp).encode('ascii', 'ignore')
+            date = timestamp[:10]
+            trade_info["date"] = date
+
+            this_price = trade["average_price"]
+            # this_price = unicodedata.normalize('NFKD', this_price).encode('ascii', 'ignore')
+            trade_info["price"] = this_price
+
+            shares = trade["quantity"]
+            # shares = unicodedata.normalize('NFKD', shares).encode('ascii', 'ignore')
+            trade_info["shares"] = shares
+
+            side = trade["side"]
+            trade_info["side"] = side
+
+            state = trade["state"]
+            trade_info["state"] = state
+
+            if shares != None and this_price != None and state == "filled":
+                shares_as_float = float(unicodedata.normalize('NFKD', shares).encode('ascii', 'ignore'))
+                price_as_float = float(unicodedata.normalize('NFKD', this_price).encode('ascii', 'ignore'))
+
+                total_cost = shares_as_float * price_as_float
+                trade_info["total"] = total_cost
+
+                # print trade_info
+
+                # print ""
+
+                all_trades.append(trade_info)
+            pass
+
+        # FETCHES BENCHMARK PRICES BY DAY
+        spy_prices = {}
+
+        history_json = self.get_historical_quotes(benchmark, "day", 'year', 'regular')  # can also use 5year
+        price_history = history_json["results"]
+        price_history = price_history[0]
+        price_history = price_history["historicals"]
+
+        for historical in price_history:
+            date = (historical["begins_at"])[:10]
+            price = historical["high_price"]
+            spy_prices[date] = price
+            pass
+
+        portfolio_cost = 0.00
+        portfolio_value = self.last_core_equity()
+        spy_portfolio_value = 0.00
+
+        current_spy_price = float(self.quote_data(benchmark)["previous_close"])
+
+        # Simulate if trader had only traded SPY
+        for trade in all_trades:
+
+            current_security_price = float(self.quote_data(trade["symbol"])["previous_close"])
+            thisdate = unicodedata.normalize('NFKD', trade["date"]).encode('ascii', 'ignore')
+            price_return = current_security_price / float(trade["price"])
+
+            if thisdate == '2018-02-03':
+                thisdate = '2018-02-05'
+
+            past_spy_price = float(spy_prices[thisdate])
+            spy_return = current_spy_price / past_spy_price
+            trade["price_return"] = price_return
+            trade["spy_return"] = spy_return
+            if trade["side"] == "buy":
+                spy_portfolio_value += (trade["total"] * spy_return)
+                portfolio_cost += trade["total"]
+            else:
+                spy_portfolio_value -= (trade["total"] * (1 - spy_return))
+                portfolio_cost -= trade["total"]
+            pass
+
+        print "Your portfolio value if you had invested in " + benchmark + ":",
+        print spy_portfolio_value
+        print "Your portfolio value:",
+        print portfolio_value
+        print "Difference as %:",
+        print (portfolio_value / spy_portfolio_value - 1) * 100
+
+        pass
