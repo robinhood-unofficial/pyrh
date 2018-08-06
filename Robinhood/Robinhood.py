@@ -1399,9 +1399,9 @@ class Robinhood:
         return res
 
 
-    def compare_to_benchmark(self):
+    def compare_to_benchmark(self, benchmark_ticker="SPY"):
 
-        benchmark = "SPY"
+        benchmark = benchmark_ticker
 
         # FETCHES PAST ORDERS
         my_orders = self.order_history()
