@@ -277,11 +277,11 @@ class Robinhood:
         #Creates a tuple containing the information we want to retrieve
         def append_stock(stock):
             keys = key.split(',')
-            myStr = ''
+            myArr = []
             for item in keys:
-                myStr += stock[item] + ","
+                myArr.append(stock[item])
 
-            return (myStr.split(','))
+            return (myArr)
 
 
         #Prompt for stock if not entered
