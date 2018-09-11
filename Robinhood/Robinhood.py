@@ -8,6 +8,7 @@ import unicodedata
 from enum import Enum
 
 #External dependencies
+import datetime
 from six.moves.urllib.parse import unquote  # pylint: disable=E0401
 from six.moves.urllib.request import getproxies  # pylint: disable=E0401
 from six.moves import input
@@ -1398,8 +1399,14 @@ class Robinhood:
 
         return res
 
-
     def compare_to_benchmark(self, benchmark_ticker="SPY"):
+
+        stdev = 0
+        beta = 0
+        alpha = 0
+        sharpe = 0
+
+        historical_changes = []
 
         benchmark = benchmark_ticker
 
@@ -1419,7 +1426,7 @@ class Robinhood:
             # symbol = unicodedata.normalize('NFKD', symbol).encode('ascii', 'ignore')
             trade_info["symbol"] = symbol
 
-            timestamp = trade["created_at"]
+            timestamp = trade["last_transaction_at"]
             # timestamp = unicodedata.normalize('NFKD', timestamp).encode('ascii', 'ignore')
             date = timestamp[:10]
             trade_info["date"] = date
@@ -1472,6 +1479,8 @@ class Robinhood:
 
         current_spy_price = float(self.quote_data(benchmark)["previous_close"])
 
+        #This loop throws issues if orders are placed during non-week days. Change to order fill?
+
         # Simulate if trader had only traded SPY
         for trade in all_trades:
 
@@ -1479,19 +1488,26 @@ class Robinhood:
             thisdate = unicodedata.normalize('NFKD', trade["date"]).encode('ascii', 'ignore')
             price_return = current_security_price / float(trade["price"])
 
-            if thisdate == '2018-02-03':
-                thisdate = '2018-02-05'
-
-            past_spy_price = float(spy_prices[thisdate])
-            spy_return = current_spy_price / past_spy_price
-            trade["price_return"] = price_return
-            trade["spy_return"] = spy_return
-            if trade["side"] == "buy":
-                spy_portfolio_value += (trade["total"] * spy_return)
-                portfolio_cost += trade["total"]
+            #Robinhood API apparently does not support calls for the last close of today.
+            #This would break the program, so we must add special handling here.
+            todays_date = str(datetime.datetime.today()).split()[0]
+            if thisdate == todays_date:
+                if trade["side"] == "buy":
+                    spy_portfolio_value += (trade["total"])
+                else:
+                    spy_portfolio_value -= (trade["total"])
             else:
-                spy_portfolio_value -= (trade["total"] * (1 - spy_return))
-                portfolio_cost -= trade["total"]
+
+                past_spy_price = float(spy_prices[thisdate])
+                spy_return = current_spy_price / past_spy_price
+                trade["price_return"] = price_return
+                trade["spy_return"] = spy_return
+                if trade["side"] == "buy":
+                    spy_portfolio_value += (trade["total"] * spy_return)
+                    portfolio_cost += trade["total"]
+                else:
+                    spy_portfolio_value -= (trade["total"] * (1 - spy_return))
+                    portfolio_cost -= trade["total"]
             pass
 
         print "Your portfolio value if you had invested in " + benchmark + ":",
