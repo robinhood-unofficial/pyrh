@@ -1,6 +1,7 @@
 """Robinhood.py: a collection of utilities for working with Robinhood's Private API """
 
 #Standard libraries
+import inspect
 import logging
 import warnings
 import unicodedata
@@ -9,6 +10,8 @@ from enum import Enum
 
 #External dependencies
 import datetime
+
+import os
 from six.moves.urllib.parse import unquote  # pylint: disable=E0401
 from six.moves.urllib.request import getproxies  # pylint: disable=E0401
 from six.moves import input
@@ -22,6 +25,24 @@ import dateutil
 from . import exceptions as RH_exception
 from . import endpoints
 
+class Credential:
+    username= "";
+    password = "";
+
+    def __init__(self, username, password):
+        self.username = username;
+        self.password = password;
+
+    def __init__(self, credsFileName):
+        credsFile = open(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) + "/" + credsFileName, "r");
+        credsList = credsFile.read().replace(' ','').split(',');
+        self.username = credsList[0];
+        self.password = credsList[1];
+
+    def getUsername(self):
+        return self.username;
+    def getPassword(self):
+        return self.password;
 
 class Bounds(Enum):
     """Enum for bounds in `historicals` endpoint """
@@ -86,6 +107,8 @@ class Robinhood:
 
         return self.login(username=username, password=password)
 
+    def login(self, credential):
+        self.login(self, credential.getUsername(), credential.getPassword());
 
     def login(self,
               username,
