@@ -25,6 +25,8 @@ import dateutil
 from . import exceptions as RH_exception
 from . import endpoints
 
+#Added security and modularity in the login process.
+#Place credentials file in the Robinhood directory.
 class Credential:
     username= "";
     password = "";
