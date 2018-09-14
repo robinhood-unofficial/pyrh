@@ -11,6 +11,7 @@ See this [blog post](https://medium.com/@rohanpai25/reversing-robinhood-free-acc
 - Quote information (`Robinhood.quote_data`)
 - User portfolio data (`Robinhood.portfolios`)
 - User positions data (`Robinhood.positions`)
+- Compare to a specified benchmark (`Robinhood.compare_to_benchmark`)
 - More coming soon
 
 ### How To Install:
