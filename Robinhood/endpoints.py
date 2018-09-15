@@ -59,6 +59,9 @@ def positions():
 def quotes():
     return "https://api.robinhood.com/quotes/"
 
+def external_quotes():
+    return "https://api.iextrading.com/1.0/tops/last?symbols=";
+
 def historicals():
     return "https://api.robinhood.com/quotes/historicals/"
 

@@ -250,6 +250,37 @@ class Robinhood:
 
         return data
 
+    def quote_data_external(self, stock):
+        """
+        Fetches last quote via external API.
+        :param stock: Stock ticker as string
+        :return: current quote by ticker
+        """
+        req_url = endpoints.external_quotes() + stock;
+
+        # Check for validity of symbol
+        try:
+            req = requests.get(req_url, timeout=15)
+            req.raise_for_status()
+            data = req.json()[0]["price"];
+        except requests.exceptions.HTTPError:
+            raise RH_exception.InvalidTickerSymbol()
+
+        return data;
+
+    def quotes_data_external(self, stocks):
+        """
+        Duplicate of quotes_data using external API.
+        :param stocks: list of tickers
+        :return: quote for multiple stocks, key is ticker
+        """
+        price_list = {};
+
+        for stock in stocks:
+            stock_price = self.quote_data_external(stock);
+            price_list[stock] = stock_price;
+
+        return price_list;
 
     def quote_data(self, stock=''):
         """Fetch stock quote
