@@ -1,5 +1,5 @@
 def login():
-    return "https://api.robinhood.com/api-token-auth/"
+    return "https://api.robinhood.com/oauth2/token/"
 
 def logout():
     return "https://api.robinhood.com/api-token-logout/"
@@ -61,6 +61,9 @@ def quotes():
 
 def external_quotes():
     return "https://api.iextrading.com/1.0/tops/last?symbols=";
+
+def historicals_external():
+    return "https://api.iextrading.com/1.0/stock/";
 
 def historicals():
     return "https://api.robinhood.com/quotes/historicals/"

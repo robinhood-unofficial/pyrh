@@ -109,8 +109,8 @@ class Robinhood:
 
         return self.login(username=username, password=password)
 
-    def login(self, credential):
-        self.login(self, credential.getUsername(), credential.getPassword());
+    def login_with_creds(self, credential):
+        self.login(self, credential.getUsername(), credential.getPassword())
 
     def login(self,
               username,
@@ -130,7 +130,11 @@ class Robinhood:
         self.username = username
         self.password = password
         payload = {
+            'client_id': 'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS',
+            'expires_in': 86400,
+            'grant_type': 'password',
             'password': self.password,
+            'scope': 'internal',
             'username': self.username
         }
 
@@ -147,9 +151,10 @@ class Robinhood:
         if 'mfa_required' in data.keys():           # pragma: no cover
             raise RH_exception.TwoFactorRequired()  # requires a second call to enable 2FA
 
-        if 'token' in data.keys():
-            self.auth_token = data['token']
-            self.headers['Authorization'] = 'Token ' + self.auth_token
+        if 'access_token' in data.keys():
+            self.auth_token = data['access_token']
+            self.headers['Authorization'] = 'Bearer ' + self.auth_token
+            print self.headers
             return True
 
         return False
@@ -422,6 +427,31 @@ class Robinhood:
         res = self.session.get(endpoints.historicals(), params=params, timeout=15)
         return res.json()
 
+    def get_historical_quote_external(self, stock, date):
+
+        """
+        Could be more efficient, external API renders data poorly.
+
+        :param stock:
+        :param date: format as "YYYY-MM-DD"
+        :return: high of the day at specified date.
+        """
+
+        req_url = endpoints.historicals_external() + stock + "/chart/5y";
+
+        stock_price_on_date = 0;
+
+        try:
+            req = requests.get(req_url, timeout=15)
+            req.raise_for_status()
+            data = req.json();
+            for quote in data:
+                if quote["date"] == date:
+                    stock_price_on_date = quote["high"];
+        except requests.exceptions.HTTPError:
+            raise RH_exception.InvalidTickerSymbol()
+
+        return stock_price_on_date;
 
     def get_news(self, stock):
         """Fetch news endpoint
@@ -1533,38 +1563,31 @@ class Robinhood:
         portfolio_value = self.last_core_equity()
         spy_portfolio_value = 0.00
 
-        current_spy_price = float(self.quote_data(benchmark)["previous_close"])
+        current_spy_price = float(self.quote_data_external(benchmark_ticker)); #float(self.quote_data(benchmark)["previous_close"])
 
         #This loop throws issues if orders are placed during non-week days. Change to order fill?
 
         # Simulate if trader had only traded SPY
+        # TODO: Logic here may be broken following API changes. Look into it.
         for trade in all_trades:
 
             current_security_price = float(self.quote_data(trade["symbol"])["previous_close"])
             thisdate = unicodedata.normalize('NFKD', trade["date"]).encode('ascii', 'ignore')
             price_return = current_security_price / float(trade["price"])
 
-            #Robinhood API apparently does not support calls for the last close of today.
-            #This would break the program, so we must add special handling here.
-            todays_date = str(datetime.datetime.today()).split()[0]
-            if thisdate == todays_date:
-                if trade["side"] == "buy":
-                    spy_portfolio_value += (trade["total"])
-                else:
-                    spy_portfolio_value -= (trade["total"])
-            else:
+            past_spy_price = float(self.get_historical_quote_external(benchmark_ticker, thisdate)); #float(spy_prices[thisdate])
 
-                past_spy_price = float(spy_prices[thisdate])
-                spy_return = current_spy_price / past_spy_price
-                trade["price_return"] = price_return
-                trade["spy_return"] = spy_return
-                if trade["side"] == "buy":
-                    spy_portfolio_value += (trade["total"] * spy_return)
-                    portfolio_cost += trade["total"]
-                else:
-                    spy_portfolio_value -= (trade["total"] * (1 - spy_return))
-                    portfolio_cost -= trade["total"]
-            pass
+            spy_return = current_spy_price / past_spy_price
+            trade["price_return"] = price_return
+            trade["spy_return"] = spy_return
+
+            if trade["side"] == "buy":
+                spy_portfolio_value += (trade["total"] * spy_return)
+                portfolio_cost += trade["total"]
+            else:
+                spy_portfolio_value -= (trade["total"])
+                portfolio_cost -= trade["total"]
+                pass
 
         print "Your portfolio value if you had invested in " + benchmark + ":",
         print spy_portfolio_value
