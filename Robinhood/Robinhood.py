@@ -110,19 +110,23 @@ class Robinhood:
                         'password' : self.password,
                         'scope' : 'internal',
                         'username' : self.username,
-                        'mfa_code': self.mfa_code }
+                        'mfa_code': self.mfa_code,
+                       }
         else:
-            fields = { 'client_id' : 'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS',
-                        'expires_in' : 86400,
-                        'grant_type': 'password',
-                        'password' : self.password,
-                        'scope': 'internal',
-                        'username' : self.username }
+            fields = {'client_id': 'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS',
+                      'expires_in': 86400,
+                      'grant_type': 'password',
+                      'password': password,
+                      'scope': 'internal',
+                      'username': username,
+                       }
         try:
             data = urllib.urlencode(fields) #py2
         except:
-            data = urllib.parse.urlencode(fields) #py3
+            #data = urllib.parse.urlencode(fields) #py3
+            data = fields
 
+        print(data)
         res = self.session.post(endpoints.login(), data=data)
         #res.raise_for_status()
         res = res.json()
