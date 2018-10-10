@@ -1,5 +1,5 @@
 def login():
-    return "https://api.robinhood.com/api-token-auth/"
+    return "https://api.robinhood.com/oauth2/token/"
 
 def logout():
     return "https://api.robinhood.com/api-token-logout/"
@@ -30,7 +30,7 @@ def edocuments():
 
 def instruments(instrumentId=None, option=None):
     '''
-    Return information about a specific instrument by providing its instrument id. 
+    Return information about a specific instrument by providing its instrument id.
     Add extra options for additional information such as "popularity"
     '''
     return "https://api.robinhood.com/instruments/" + ("{id}/".format(id=instrumentId) if instrumentId else "") + ("{_option}/".format(_option=option) if option else "")

@@ -15,10 +15,12 @@ import getpass
 import requests
 import six
 import dateutil
+import urllib
 
 #Application-specific imports
 from . import exceptions as RH_exception
 from . import endpoints
+
 
 
 class Bounds(Enum):
@@ -100,32 +102,40 @@ class Robinhood:
 
         """
 
-        self.username = username
-        self.password = password
-        payload = {
-            'password': self.password,
-            'username': self.username
-        }
 
         if mfa_code:
-            payload['mfa_code'] = mfa_code
-
+            fields = { 'client_id' : 'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS',
+                        'expires_in' : 86400,
+                        'grant_type': 'password',
+                        'password' : self.password,
+                        'scope' : 'internal',
+                        'username' : self.username,
+                        'mfa_code': self.mfa_code }
+        else:
+            fields = { 'client_id' : 'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS',
+                        'expires_in' : 86400,
+                        'grant_type': 'password',
+                        'password' : self.password,
+                        'scope': 'internal',
+                        'username' : self.username }
         try:
-            res = self.session.post(endpoints.login(), data=payload, timeout=15)
-            res.raise_for_status()
-            data = res.json()
-        except requests.exceptions.HTTPError:
-            raise RH_exception.LoginFailed()
+            data = urllib.urlencode(fields) #py2
+        except:
+            data = urllib.parse.urlencode(fields) #py3
 
-        if 'mfa_required' in data.keys():           # pragma: no cover
-            raise RH_exception.TwoFactorRequired()  # requires a second call to enable 2FA
+        res = self.session.post(endpoints.login(), data=data)
+        #res.raise_for_status()
+        res = res.json()
+        #print(data)
+        try:
+            #self.auth_token = res['token']
+            self.oauth_token = res['access_token']
+        except KeyError:
+            return res
 
-        if 'token' in data.keys():
-            self.auth_token = data['token']
-            self.headers['Authorization'] = 'Token ' + self.auth_token
-            return True
-
-        return False
+        #self.headers['Authorization'] = 'Token '+self.auth_token
+        self.headers['Authorization'] = 'Bearer ' + self.oauth_token
+        return True
 
 
     def logout(self):
@@ -636,13 +646,12 @@ class Robinhood:
         """
         instrumentid = self.get_url(self.quote_data(stock)["instrument"])["id"]
         if(type(expiration_dates) == list):
-            _expiration_dates_string = expiration_dates.join(",")
+            _expiration_dates_string = ",".join(expiration_dates)
         else:
             _expiration_dates_string = expiration_dates
         chain_id = self.get_url(endpoints.chain(instrumentid))["results"][0]["id"]
         return [contract for contract in self.get_url(endpoints.options(chain_id, _expiration_dates_string, option_type))["results"]]
 
-    @login_required
     def get_option_market_data(self, optionid):
         """Gets a list of market data for a given optionid.
 
@@ -1342,9 +1351,9 @@ class Robinhood:
     def cancel_order(
             self,
             order_id
-    ): 
+    ):
         """
-        Cancels specified order and returns the response (results from `orders` command). 
+        Cancels specified order and returns the response (results from `orders` command).
         If order cannot be cancelled, `None` is returned.
 
         Args:
@@ -1363,16 +1372,16 @@ class Robinhood:
             raise ValueError('Cancelling orders requires a valid order_id string')
 
         if order.get('cancel') is not None:
-            try: 
+            try:
                 res = self.session.post(order['cancel'], timeout=15)
                 res.raise_for_status()
             except (requests.exceptions.HTTPError) as err_msg:
                 raise ValueError('Failed to cancel order ID: ' + order_id
                      + '\n Error message: '+ repr(err_msg))
                 return None
-            
+
         # Order type cannot be cancelled without a valid cancel link
-        else: 
+        else:
             raise ValueError('Unable to cancel order ID: ' + order_id)
 
         return res

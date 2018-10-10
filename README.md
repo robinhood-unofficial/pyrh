@@ -1,10 +1,13 @@
 # Robinhood
 
+`virtualenv -p python3 env; source env/bin/activate`
+`pip install -r requirements.txt`
+
 [![Join the chat at https://gitter.im/J-Robinhood/Lobby](https://badges.gitter.im/J-Robinhood/Lobby.svg)](https://gitter.im/J-Robinhood/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 Python Framework to make trades with Robinhood Private API.
 See this [blog post](https://medium.com/@rohanpai25/reversing-robinhood-free-accessible-automated-stock-trading-f40fba1e7d8b).
 
-## Current Features 
+## Current Features
 - Placing buy orders (`Robinhood.place_buy_order`)
 - Placing sell order (`Robinhood.place_sell_order`)
 - Fetch and cancel orders (`Robinhood.order_history` and `Robinhood.cancel_order`)
@@ -15,7 +18,7 @@ See this [blog post](https://medium.com/@rohanpai25/reversing-robinhood-free-acc
 
 ### How To Install:
     pip install .
-    
+
 ### Converting to Python 3
 Project will work on both python 2 and python 3
 
