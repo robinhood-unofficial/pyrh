@@ -133,6 +133,19 @@ class Robinhood:
     def logout(self):
         """Logout from Robinhood
 
+        #SOMEONE HELP!!
+
+        # I changed the endpoint to the correct url to post to
+        # However, I haven't tocuhed the code because I am confused as to how to impliment the requirements
+        #Tokens expire every 86400 seconds
+        #You would need to post to the endpoint url:
+        # "refresh_token": [the string from refresh_token]
+        #
+        # "grant_type":"refresh_token"
+        #
+        # "client_id":"c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS"
+
+
         Returns:
             (:obj:`requests.request`) result from logout endpoint
 
