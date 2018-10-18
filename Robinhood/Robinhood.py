@@ -66,7 +66,7 @@ class Robinhood:
             "User-Agent": "Robinhood/823 (iPhone; iOS 7.1.2; Scale/2.00)"
         }
         self.session.headers = self.headers
-        self.auth_method = self.login_prompt
+        self.auth_method = self.login
 
     def login_required(function):  # pylint: disable=E0213
         """ Decorator function that prompts user for login if they are not logged in already. Can be applied to any function using the @ notation. """
@@ -90,44 +90,47 @@ class Robinhood:
               password,
               mfa_code=None):
         """Save and test login info for Robinhood accounts
-
         Args:
             username (str): username
             password (str): password
-
         Returns:
             (bool): received valid auth token
-
         """
 
-        self.username = username
-        self.password = password
-        payload = {
-            'password': self.password,
-            'username': self.username,
-            'grant_type':'password',
-            'client_id':'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS'
-        }
 
         if mfa_code:
-            payload['mfa_code'] = mfa_code
-
+            fields = { 'client_id' : 'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS',
+                        'expires_in' : 86400,
+                        'grant_type': 'password',
+                        'password' : self.password,
+                        'scope' : 'internal',
+                        'username' : self.username,
+                        'mfa_code': self.mfa_code }
+        else:
+            fields = { 'client_id' : 'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS',
+                        'expires_in' : 86400,
+                        'grant_type': 'password',
+                        'password' : self.password,
+                        'scope': 'internal',
+                        'username' : self.username }
         try:
-            res = self.session.post(endpoints.login(), data=payload, timeout=15)
-            res.raise_for_status()
-            data = res.json()
-        except requests.exceptions.HTTPError:
-            raise RH_exception.LoginFailed()
+            data = urllib.urlencode(fields) #py2
+        except:
+            data = urllib.parse.urlencode(fields) #py3
 
-        if 'mfa_required' in data.keys():           # pragma: no cover
-            raise RH_exception.TwoFactorRequired()  # requires a second call to enable 2FA
+        res = self.session.post(endpoints.login(), data=data)
+        #res.raise_for_status()
+        res = res.json()
+        #print(data)
+        try:
+            #self.auth_token = res['token']
+            self.oauth_token = res['access_token']
+        except KeyError:
+            return res
 
-        if 'token' in data.keys():
-            self.auth_token = data['token']
-            self.headers['Authorization'] = 'Bearer ' + self.auth_token
-            return True
-
-        return False
+        #self.headers['Authorization'] = 'Token '+self.auth_token
+        self.headers['Authorization'] = 'Bearer ' + self.oauth_token
+        return True
 
 
     def logout(self):
