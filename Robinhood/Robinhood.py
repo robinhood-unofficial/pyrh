@@ -15,6 +15,7 @@ import getpass
 import requests
 import six
 import dateutil
+import urllib
 
 #Application-specific imports
 from . import exceptions as RH_exception
