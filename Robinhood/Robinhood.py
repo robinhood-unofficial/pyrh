@@ -104,7 +104,9 @@ class Robinhood:
         self.password = password
         payload = {
             'password': self.password,
-            'username': self.username
+            'username': self.username,
+            'grant_type':'password',
+            'client_id':'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS'
         }
 
         if mfa_code:
@@ -122,7 +124,7 @@ class Robinhood:
 
         if 'token' in data.keys():
             self.auth_token = data['token']
-            self.headers['Authorization'] = 'Token ' + self.auth_token
+            self.headers['Authorization'] = 'Bearer ' + self.auth_token
             return True
 
         return False
@@ -130,6 +132,19 @@ class Robinhood:
 
     def logout(self):
         """Logout from Robinhood
+
+        #SOMEONE HELP!!
+
+        # I changed the endpoint to the correct url to post to
+        # However, I haven't tocuhed the code because I am confused as to how to impliment the requirements
+        #Tokens expire every 86400 seconds
+        #You would need to post to the endpoint url:
+        # "refresh_token": [the string from refresh_token]
+        #
+        # "grant_type":"refresh_token"
+        #
+        # "client_id":"c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS"
+
 
         Returns:
             (:obj:`requests.request`) result from logout endpoint
@@ -1341,38 +1356,55 @@ class Robinhood:
 
     def cancel_order(
             self,
-            order_id
-    ): 
+            order_id):
         """
-        Cancels specified order and returns the response (results from `orders` command). 
+        Cancels specified order and returns the response (results from `orders` command).
         If order cannot be cancelled, `None` is returned.
-
         Args:
-            order_id (str): Order ID that is to be cancelled or order dict returned from
+            order_id (str or dict): Order ID string that is to be cancelled or open order dict returned from
             order get.
         Returns:
             (:obj:`requests.request`): result from `orders` put command
         """
-        if order_id is str:
+        if isinstance(order_id, str):
             try:
-                order = self.session.get(self.endpoints['orders'] + order_id, timeout=15).json()
+                order = self.session.get(endpoints.orders() + order_id, timeout=15).json()
             except (requests.exceptions.HTTPError) as err_msg:
                 raise ValueError('Failed to get Order for ID: ' + order_id
                     + '\n Error message: '+ repr(err_msg))
-        else:
-            raise ValueError('Cancelling orders requires a valid order_id string')
 
-        if order.get('cancel') is not None:
-            try: 
-                res = self.session.post(order['cancel'], timeout=15)
-                res.raise_for_status()
+            if order.get('cancel') is not None:
+                try:
+                    res = self.session.post(order['cancel'], timeout=15)
+                    res.raise_for_status()
+                    return res
+                except (requests.exceptions.HTTPError) as err_msg:
+                    raise ValueError('Failed to cancel order ID: ' + order_id
+                         + '\n Error message: '+ repr(err_msg))
+                    return None
+
+        if isinstance(order_id, dict):
+            order_id = order_id['id']
+            try:
+                order = self.session.get(endpoints.orders() + order_id, timeout=15).json()
             except (requests.exceptions.HTTPError) as err_msg:
-                raise ValueError('Failed to cancel order ID: ' + order_id
-                     + '\n Error message: '+ repr(err_msg))
-                return None
-            
-        # Order type cannot be cancelled without a valid cancel link
-        else: 
-            raise ValueError('Unable to cancel order ID: ' + order_id)
+                raise ValueError('Failed to get Order for ID: ' + order_id
+                    + '\n Error message: '+ repr(err_msg))
 
-        return res
+            if order.get('cancel') is not None:
+                try:
+                    res = self.session.post(order['cancel'], timeout=15)
+                    res.raise_for_status()
+                    return res
+                except (requests.exceptions.HTTPError) as err_msg:
+                    raise ValueError('Failed to cancel order ID: ' + order_id
+                         + '\n Error message: '+ repr(err_msg))
+                    return None
+
+        elif not isinstance(order_id, str) or not isinstance(order_id, dict):
+            raise ValueError('Cancelling orders requires a valid order_id string or open order dictionary')
+
+
+        # Order type cannot be cancelled without a valid cancel link
+        else:
+            raise ValueError('Unable to cancel order ID: ' + order_id)
