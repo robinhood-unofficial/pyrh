@@ -103,7 +103,8 @@ class Robinhood:
             fields = { 'client_id' : 'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS',
                         'expires_in' : 86400,
                         'grant_type': 'password',
-                        'password' : self.password,
+#                         'password' : self.password,
+                        'password': password,
                         'scope' : 'internal',
                         'username' : self.username,
                         'mfa_code': self.mfa_code }
@@ -111,13 +112,15 @@ class Robinhood:
             fields = { 'client_id' : 'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS',
                         'expires_in' : 86400,
                         'grant_type': 'password',
-                        'password' : self.password,
+#                         'password' : self.password,
+                        'password': password,
                         'scope': 'internal',
                         'username' : self.username }
         try:
             data = urllib.urlencode(fields) #py2
         except:
-            data = urllib.parse.urlencode(fields) #py3
+#             data = urllib.parse.urlencode(fields) #py3
+            data =  fields
 
         res = self.session.post(endpoints.login(), data=data)
         #res.raise_for_status()
@@ -136,19 +139,6 @@ class Robinhood:
 
     def logout(self):
         """Logout from Robinhood
-
-        #SOMEONE HELP!!
-
-        # I changed the endpoint to the correct url to post to
-        # However, I haven't tocuhed the code because I am confused as to how to impliment the requirements
-        #Tokens expire every 86400 seconds
-        #You would need to post to the endpoint url:
-        # "refresh_token": [the string from refresh_token]
-        #
-        # "grant_type":"refresh_token"
-        #
-        # "client_id":"c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS"
-
 
         Returns:
             (:obj:`requests.request`) result from logout endpoint
