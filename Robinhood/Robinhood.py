@@ -22,6 +22,7 @@ from . import exceptions as RH_exception
 from . import endpoints
 
 
+
 class Bounds(Enum):
     """Enum for bounds in `historicals` endpoint """
 
@@ -67,7 +68,7 @@ class Robinhood:
             "User-Agent": "Robinhood/823 (iPhone; iOS 7.1.2; Scale/2.00)"
         }
         self.session.headers = self.headers
-        self.auth_method = self.login
+        self.auth_method = self.login_prompt
 
     def login_required(function):  # pylint: disable=E0213
         """ Decorator function that prompts user for login if they are not logged in already. Can be applied to any function using the @ notation. """
@@ -103,25 +104,26 @@ class Robinhood:
             fields = { 'client_id' : 'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS',
                         'expires_in' : 86400,
                         'grant_type': 'password',
-#                         'password' : self.password,
-                        'password': password,
+                        'password' : self.password,
                         'scope' : 'internal',
                         'username' : self.username,
-                        'mfa_code': self.mfa_code }
+                        'mfa_code': self.mfa_code,
+                       }
         else:
-            fields = { 'client_id' : 'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS',
-                        'expires_in' : 86400,
-                        'grant_type': 'password',
-#                         'password' : self.password,
-                        'password': password,
-                        'scope': 'internal',
-                        'username' : self.username }
+            fields = {'client_id': 'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS',
+                      'expires_in': 86400,
+                      'grant_type': 'password',
+                      'password': password,
+                      'scope': 'internal',
+                      'username': username,
+                       }
         try:
             data = urllib.urlencode(fields) #py2
         except:
-#             data = urllib.parse.urlencode(fields) #py3
-            data =  fields
+            #data = urllib.parse.urlencode(fields) #py3
+            data = fields
 
+        print(data)
         res = self.session.post(endpoints.login(), data=data)
         #res.raise_for_status()
         res = res.json()
@@ -139,10 +141,8 @@ class Robinhood:
 
     def logout(self):
         """Logout from Robinhood
-
         Returns:
             (:obj:`requests.request`) result from logout endpoint
-
         """
 
         try:
