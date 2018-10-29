@@ -106,7 +106,7 @@ class Robinhood:
             'password': self.password,
             'username': self.username,
             'grant_type': 'password',
-            'client_id': self.client_id
+            'client_id': 'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS'
         }
 
         if mfa_code:
