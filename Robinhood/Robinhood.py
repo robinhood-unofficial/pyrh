@@ -102,20 +102,20 @@ class Robinhood:
 
         if mfa_code:
             fields = { 'client_id' : 'XXXXXXXXXXXXXXXXXX',
-                        'expires_in' : 86400,
+#                         'expires_in' : 86400,
                         'grant_type': 'password',
                         'password' : self.password,
-                        'scope' : 'internal',
+#                         'scope' : 'internal',
                         'username' : self.username,
                         'mfa_code': self.mfa_code,
                        }
         else:
             fields = {'client_id': 'XXXXXXXXXXXXXXXXXX',
-                      'expires_in': 86400,
+#                       'expires_in': 86400,
                       'grant_type': 'password',
-                      'password': password,
-                      'scope': 'internal',
-                      'username': username,
+                      'password': self.password,
+#                       'scope': 'internal',
+                      'username': self.username,
                        }
         try:
             data = urllib.urlencode(fields) #py2
