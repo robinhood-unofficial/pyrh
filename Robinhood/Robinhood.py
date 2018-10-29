@@ -101,7 +101,7 @@ class Robinhood:
 
 
         if mfa_code:
-            fields = { 'client_id' : 'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS',
+            fields = { 'client_id' : 'XXXXXXXXXXXXXXXXXX',
                         'expires_in' : 86400,
                         'grant_type': 'password',
                         'password' : self.password,
@@ -110,7 +110,7 @@ class Robinhood:
                         'mfa_code': self.mfa_code,
                        }
         else:
-            fields = {'client_id': 'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS',
+            fields = {'client_id': 'XXXXXXXXXXXXXXXXXX',
                       'expires_in': 86400,
                       'grant_type': 'password',
                       'password': password,
@@ -123,7 +123,6 @@ class Robinhood:
             #data = urllib.parse.urlencode(fields) #py3
             data = fields
 
-        print(data)
         res = self.session.post(endpoints.login(), data=data)
         #res.raise_for_status()
         res = res.json()
