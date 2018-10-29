@@ -87,6 +87,7 @@ class Robinhood:
         return self.login(username=username, password=password)
 
 
+
     def login(self,
               username,
               password,
@@ -99,43 +100,35 @@ class Robinhood:
             (bool): received valid auth token
         """
 
+        self.username = username
+        self.password = password
+        payload = {
+            'password': self.password,
+            'username': self.username,
+            'grant_type': 'password',
+            'client_id': self.client_id
+        }
 
         if mfa_code:
-            fields = { 'client_id' : 'XXXXXXXXXXXXXXXXXX',
-#                         'expires_in' : 86400,
-                        'grant_type': 'password',
-                        'password' : self.password,
-#                         'scope' : 'internal',
-                        'username' : self.username,
-                        'mfa_code': self.mfa_code,
-                       }
-        else:
-            fields = {'client_id': 'XXXXXXXXXXXXXXXXXX',
-#                       'expires_in': 86400,
-                      'grant_type': 'password',
-                      'password': self.password,
-#                       'scope': 'internal',
-                      'username': self.username,
-                       }
-        try:
-            data = urllib.urlencode(fields) #py2
-        except:
-            #data = urllib.parse.urlencode(fields) #py3
-            data = fields
+            payload['mfa_code'] = mfa_code
 
-        res = self.session.post(endpoints.login(), data=data)
-        #res.raise_for_status()
-        res = res.json()
-        #print(data)
         try:
-            #self.auth_token = res['token']
-            self.oauth_token = res['access_token']
-        except KeyError:
-            return res
+            res = self.session.post(endpoints.login(), data=payload, timeout=15)
+            res.raise_for_status()
+            data = res.json()
+        except requests.exceptions.HTTPError:
+            raise RH_exception.LoginFailed()
 
-        #self.headers['Authorization'] = 'Token '+self.auth_token
-        self.headers['Authorization'] = 'Bearer ' + self.oauth_token
-        return True
+        if 'mfa_required' in data.keys():           # pragma: no cover
+            raise RH_exception.TwoFactorRequired()  # requires a second call to enable 2FA
+
+        if 'access_token' in data.keys() and 'refresh_token' in data.keys():
+            self.auth_token = data['access_token']
+            self.refresh_token = data['refresh_token']
+            self.headers['Authorization'] = 'Bearer ' + self.auth_token
+            return True
+
+        return False
 
 
     def logout(self):
