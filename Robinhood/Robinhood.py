@@ -20,7 +20,6 @@ import dateutil
 import exceptions as RH_exception
 import endpoints
 
-
 class Bounds(Enum):
     """Enum for bounds in `historicals` endpoint """
 
@@ -113,7 +112,6 @@ class Robinhood:
 
         if mfa_code:
             payload['mfa_code'] = mfa_code
-
         try:
             res = self.session.post(endpoints.login(), data=payload, timeout=15)
             res.raise_for_status()
@@ -317,7 +315,7 @@ class Robinhood:
         """Wrapper for quote_data """
 
         data = self.quote_data(stock)
-        return data["symbol"]
+        return data
 
     def get_historical_quotes(self, stock, interval, span, bounds=Bounds.REGULAR):
         """Fetch historical data for stock
@@ -343,15 +341,10 @@ class Robinhood:
         if isinstance(bounds, str):  # recast to Enum
             bounds = Bounds(bounds)
 
-        data = {
-            'symbols': ','.join(stock).upper(),
-            'interval': interval,
-            'span': span,
-            'bounds': bounds.name.lower()
-        }
+        historicals = endpoints.historicals() + "/?symbols=" + ','.join(stock).upper() + "&interval=" + interval + "&span=" + span + "&bounds=" + bounds.name.lower()
 
-        res = self.session.get(endpoints.historicals(), data=data, timeout=15)
-        return res.json()
+        res = self.session.get(historicals, timeout=15)
+        return res.json()['results'][0]
 
 
     def get_news(self, stock):
@@ -914,15 +907,6 @@ class Robinhood:
         else:
             payload['price'] = float(price)
 
-        #data = 'account=%s&instrument=%s&price=%f&quxantity=%d&side=%s&symbol=%s#&time_in_force=gfd&trigger=immediate&type=market' % (
-        #    self.get_account()['url'],
-        #    urllib.parse.unquote(instrument['url']),
-        #    float(bid_price),
-        #    quantity,
-        #    transaction,
-        #    instrument['symbol']
-        #)
-
         res = self.session.post(endpoints.orders(), data=payload, timeout=15)
         res.raise_for_status()
 
@@ -1262,6 +1246,11 @@ class Robinhood:
                 (:obj:`requests.request`): result from `orders` put command
         """
 
+        # Used for default price input
+        # Price is required, so we use the current bid price if it is not specified
+        current_quote = self.get_quote(symbol)
+        current_bid_price = current_quote['bid_price']
+
         # Start with some parameter checks. I'm paranoid about $.
         if(instrument_URL is None):
             if(symbol is None):
@@ -1313,8 +1302,9 @@ class Robinhood:
         if(price is not None):
             if(order_type.lower() == 'market'):
                 raise(ValueError('Market order has price limit in call to submit_order'))
-
-        price = float(price)
+            price = float(price)
+        else:
+            price = current_bid_price # default to current bid price
 
         if(quantity is None):
             raise(ValueError('No quantity specified in call to submit_order'))
@@ -1327,19 +1317,21 @@ class Robinhood:
         payload = {}
 
         for field, value in [
-                                ('account', self.get_account()['url']),
-                                ('instrument', instrument_URL),
-                                ('symbol', symbol),
-                                ('type', order_type),
-                                ('time_in_force', time_in_force),
-                                ('trigger', trigger),
-                                ('price', price),
-                                ('stop_price', stop_price),
-                                ('quantity', quantity),
-                                ('side', side)
-                            ]:
+                ('account', self.get_account()['url']),
+                ('instrument', instrument_URL),
+                ('symbol', symbol),
+                ('type', order_type),
+                ('time_in_force', time_in_force),
+                ('trigger', trigger),
+                ('price', price),
+                ('stop_price', stop_price),
+                ('quantity', quantity),
+                ('side', side)
+            ]:
             if(value is not None):
                 payload[field] = value
+
+        print(payload)
 
         res = self.session.post(endpoints.orders(), data=payload, timeout=15)
         res.raise_for_status()
