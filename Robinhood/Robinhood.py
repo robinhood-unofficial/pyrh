@@ -15,13 +15,10 @@ import getpass
 import requests
 import six
 import dateutil
-import urllib
 
 #Application-specific imports
-from . import exceptions as RH_exception
-from . import endpoints
-
-
+import exceptions as RH_exception
+import endpoints
 
 class Bounds(Enum):
     """Enum for bounds in `historicals` endpoint """
@@ -45,10 +42,12 @@ class Robinhood:
     password = None
     headers = None
     auth_token = None
-    oauth_token = None
+    refresh_token = None
 
     logger = logging.getLogger('Robinhood')
     logger.addHandler(logging.NullHandler())
+
+    client_id = "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS"
 
 
     ###########################################################################
@@ -87,17 +86,19 @@ class Robinhood:
         return self.login(username=username, password=password)
 
 
-
     def login(self,
               username,
               password,
               mfa_code=None):
         """Save and test login info for Robinhood accounts
+
         Args:
             username (str): username
             password (str): password
+
         Returns:
             (bool): received valid auth token
+
         """
 
         self.username = username
@@ -106,12 +107,11 @@ class Robinhood:
             'password': self.password,
             'username': self.username,
             'grant_type': 'password',
-            'client_id': 'c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS'
+            'client_id': self.client_id
         }
 
         if mfa_code:
             payload['mfa_code'] = mfa_code
-
         try:
             res = self.session.post(endpoints.login(), data=payload, timeout=15)
             res.raise_for_status()
@@ -133,12 +133,18 @@ class Robinhood:
 
     def logout(self):
         """Logout from Robinhood
+
         Returns:
             (:obj:`requests.request`) result from logout endpoint
+
         """
 
         try:
-            req = self.session.post(endpoints.logout(), timeout=15)
+            payload = {
+                'client_id': self.client_id,
+                'token': self.refresh_token
+            }
+            req = self.session.post(endpoints.logout(), data=payload, timeout=15)
             req.raise_for_status()
         except requests.exceptions.HTTPError as err_msg:
             warnings.warn('Failed to log out ' + repr(err_msg))
@@ -193,7 +199,7 @@ class Robinhood:
             Returns:
                 (:obj:`dict`): JSON dict of instrument
         """
-        url = str(endpoints.instruments()) + str(id) + "/"
+        url = str(endpoints.instruments()) + "?symbol=" + str(id)
 
         try:
             req = requests.get(url, timeout=15)
@@ -202,7 +208,7 @@ class Robinhood:
         except requests.exceptions.HTTPError:
             raise RH_exception.InvalidInstrumentId()
 
-        return data
+        return data['results']
 
 
     def quote_data(self, stock=''):
@@ -309,7 +315,7 @@ class Robinhood:
         """Wrapper for quote_data """
 
         data = self.quote_data(stock)
-        return data["symbol"]
+        return data
 
     def get_historical_quotes(self, stock, interval, span, bounds=Bounds.REGULAR):
         """Fetch historical data for stock
@@ -335,15 +341,10 @@ class Robinhood:
         if isinstance(bounds, str):  # recast to Enum
             bounds = Bounds(bounds)
 
-        params = {
-            'symbols': ','.join(stock).upper(),
-            'interval': interval,
-            'span': span,
-            'bounds': bounds.name.lower()
-        }
+        historicals = endpoints.historicals() + "/?symbols=" + ','.join(stock).upper() + "&interval=" + interval + "&span=" + span + "&bounds=" + bounds.name.lower()
 
-        res = self.session.get(endpoints.historicals(), params=params, timeout=15)
-        return res.json()
+        res = self.session.get(historicals, timeout=15)
+        return res.json()['results'][0]
 
 
     def get_news(self, stock):
@@ -370,7 +371,6 @@ class Robinhood:
         data = self.get_quote_list(stock, 'symbol,last_trade_price')
         for item in data:
             quote_str = item[0] + ": $" + item[1]
-            print(quote_str)
             self.logger.info(quote_str)
 
 
@@ -635,12 +635,12 @@ class Robinhood:
             Returns:
                 Options Contracts (List): a list (chain) of contracts for a given underlying equity instrument
         """
-        instrumentid = self.get_url(self.quote_data(stock)["instrument"])["id"]
-        if(type(expiration_dates) == list):
-            _expiration_dates_string = expiration_dates.join(",")
+        instrument_id = self.get_url(self.quote_data(stock)["instrument"])["id"]
+        if (type(expiration_dates) == list):
+            _expiration_dates_string = ",".join(expiration_dates)
         else:
             _expiration_dates_string = expiration_dates
-        chain_id = self.get_url(endpoints.chain(instrumentid))["results"][0]["id"]
+        chain_id = self.get_url(endpoints.chain(instrument_id))["results"][0]["id"]
         return [contract for contract in self.get_url(endpoints.options(chain_id, _expiration_dates_string, option_type))["results"]]
 
     @login_required
@@ -651,13 +651,12 @@ class Robinhood:
 
         Returns: dictionary of options market data.
         """
-        if not self.oauth_token:
-            res = self.session.post(endpoints.convert_token(), timeout=15)
-            res.raise_for_status()
-            res = res.json()
-            self.oauth_token = res["access_token"]
-            self.headers['Authorization'] = 'Bearer ' + self.oauth_token
-        return self.get_url(endpoints.market_data(optionid))
+        market_data = {}
+        try:
+            market_data = self.get_url(endpoints.market_data(optionid)) or {}
+        except requests.exceptions.HTTPError:
+            raise RH_exception.InvalidOptionId()
+        return market_data
 
 
     ###########################################################################
@@ -859,7 +858,7 @@ class Robinhood:
     def place_order(self,
                     instrument,
                     quantity=1,
-                    bid_price=0.0,
+                    price=0.0,
                     transaction=None,
                     trigger='immediate',
                     order='market',
@@ -889,13 +888,12 @@ class Robinhood:
         if isinstance(transaction, str):
             transaction = Transaction(transaction)
 
-        if not bid_price:
-            bid_price = self.quote_data(instrument['symbol'])['bid_price']
+        if not price:
+            price = self.quote_data(instrument['symbol'])['bid_price']
 
         payload = {
             'account': self.get_account()['url'],
             'instrument': unquote(instrument['url']),
-            'price': float(bid_price),
             'quantity': quantity,
             'side': transaction.name.lower(),
             'symbol': instrument['symbol'],
@@ -904,14 +902,10 @@ class Robinhood:
             'type': order.lower()
         }
 
-        #data = 'account=%s&instrument=%s&price=%f&quantity=%d&side=%s&symbol=%s#&time_in_force=gfd&trigger=immediate&type=market' % (
-        #    self.get_account()['url'],
-        #    urllib.parse.unquote(instrument['url']),
-        #    float(bid_price),
-        #    quantity,
-        #    transaction,
-        #    instrument['symbol']
-        #)
+        if order.lower() == "stop":
+            payload['stop_price'] = float(price)
+        else:
+            payload['price'] = float(price)
 
         res = self.session.post(endpoints.orders(), data=payload, timeout=15)
         res.raise_for_status()
@@ -1252,6 +1246,11 @@ class Robinhood:
                 (:obj:`requests.request`): result from `orders` put command
         """
 
+        # Used for default price input
+        # Price is required, so we use the current bid price if it is not specified
+        current_quote = self.get_quote(symbol)
+        current_bid_price = current_quote['bid_price']
+
         # Start with some parameter checks. I'm paranoid about $.
         if(instrument_URL is None):
             if(symbol is None):
@@ -1303,8 +1302,9 @@ class Robinhood:
         if(price is not None):
             if(order_type.lower() == 'market'):
                 raise(ValueError('Market order has price limit in call to submit_order'))
-
-        price = float(price)
+            price = float(price)
+        else:
+            price = current_bid_price # default to current bid price
 
         if(quantity is None):
             raise(ValueError('No quantity specified in call to submit_order'))
@@ -1317,25 +1317,27 @@ class Robinhood:
         payload = {}
 
         for field, value in [
-                                ('account', self.get_account()['url']),
-                                ('instrument', instrument_URL),
-                                ('symbol', symbol),
-                                ('type', order_type),
-                                ('time_in_force', time_in_force),
-                                ('trigger', trigger),
-                                ('price', price),
-                                ('stop_price', stop_price),
-                                ('quantity', quantity),
-                                ('side', side)
-                            ]:
+                ('account', self.get_account()['url']),
+                ('instrument', instrument_URL),
+                ('symbol', symbol),
+                ('type', order_type),
+                ('time_in_force', time_in_force),
+                ('trigger', trigger),
+                ('price', price),
+                ('stop_price', stop_price),
+                ('quantity', quantity),
+                ('side', side)
+            ]:
             if(value is not None):
                 payload[field] = value
+
+        print(payload)
 
         res = self.session.post(endpoints.orders(), data=payload, timeout=15)
         res.raise_for_status()
 
         return res
-
+    
     ##############################
     #                          CANCEL ORDER
     ##############################
