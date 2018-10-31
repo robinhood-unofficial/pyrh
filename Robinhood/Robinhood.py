@@ -17,7 +17,7 @@ import six
 import dateutil
 
 #Application-specific imports
-import exceptions as RH_exception
+from exceptions import . as RH_exception
 import endpoints
 
 class Bounds(Enum):
