@@ -916,7 +916,7 @@ class Robinhood:
     def place_buy_order(self,
                         instrument,
                         quantity,
-                        bid_price=0.0):
+                        ask_price=0.0):
         """Wrapper for placing buy orders
 
             Args:
@@ -929,9 +929,12 @@ class Robinhood:
 
         """
 
+        if not ask_price:
+            ask_price = self.quote_data(instrument['symbol'])['ask_price']
+            
         transaction = Transaction.BUY
 
-        return self.place_order(instrument, quantity, bid_price, transaction)
+        return self.place_order(instrument, quantity, ask_price, transaction)
 
 
     def place_sell_order(self,
@@ -948,7 +951,9 @@ class Robinhood:
             Returns:
                 (:obj:`requests.request`): result from `orders` put command
         """
-
+        if not bid_price:
+            bid_price = self.quote_data(instrument['symbol'])['bid_price']
+            
         transaction = Transaction.SELL
 
         return self.place_order(instrument, quantity, bid_price, transaction)
