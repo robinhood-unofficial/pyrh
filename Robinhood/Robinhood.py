@@ -17,8 +17,8 @@ import six
 import dateutil
 
 #Application-specific imports
-from exceptions import . as RH_exception
-import endpoints
+from . import exceptions as RH_exception
+from . import endpoints
 
 class Bounds(Enum):
     """Enum for bounds in `historicals` endpoint """
