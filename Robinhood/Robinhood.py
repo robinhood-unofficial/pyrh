@@ -922,7 +922,7 @@ class Robinhood:
             Args:
                 instrument (dict): the RH URL and symbol in dict for the instrument to be traded
                 quantity (int): quantity of stocks in order
-                bid_price (float): price for order
+                ask_price (float): price for order (OPTIONAL! If not given, ask_price is automatic.)
 
             Returns:
                 (:obj:`requests.request`): result from `orders` put command
@@ -946,7 +946,7 @@ class Robinhood:
             Args:
                 instrument (dict): the RH URL and symbol in dict for the instrument to be traded
                 quantity (int): quantity of stocks in order
-                bid_price (float): price for order
+                bid_price (float): price for order (OPTIONAL! If not given, bid_price is automatic.)
 
             Returns:
                 (:obj:`requests.request`): result from `orders` put command
