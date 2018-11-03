@@ -95,4 +95,4 @@ def market_data(optionid):
     return api_url + "/marketdata/options/{_optionid}/".format(_optionid=optionid)
 
 def convert_token():
-return api_url + "/oauth2/migrate_token/"
+    return api_url + "/oauth2/migrate_token/"
