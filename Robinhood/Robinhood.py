@@ -854,113 +854,7 @@ class Robinhood:
     ###########################################################################
     #                               PLACE ORDER
     ###########################################################################
-
-    def place_order(self,
-                    instrument,
-                    quantity=1,
-                    price=0.0,
-                    transaction=None,
-                    trigger='immediate',
-                    order='market',
-                    time_in_force='gfd'):
-        """Place an order with Robinhood
-
-            Notes:
-                OMFG TEST THIS PLEASE!
-
-                Just realized this won't work since if type is LIMIT you need to use "price" and if
-                a STOP you need to use "stop_price".  Oops.
-                Reference: https://github.com/sanko/Robinhood/blob/master/Order.md#place-an-order
-
-            Args:
-                instrument (dict): the RH URL and symbol in dict for the instrument to be traded
-                quantity (int): quantity of stocks in order
-                bid_price (float): price for order
-                transaction (:enum:`Transaction`): BUY or SELL enum
-                trigger (:enum:`Trigger`): IMMEDIATE or STOP enum
-                order (:enum:`Order`): MARKET or LIMIT
-                time_in_force (:enum:`TIME_IN_FORCE`): GFD or GTC (day or until cancelled)
-
-            Returns:
-                (:obj:`requests.request`): result from `orders` put command
-        """
-
-        if isinstance(transaction, str):
-            transaction = Transaction(transaction)
-
-        if not price:
-            price = self.quote_data(instrument['symbol'])['bid_price']
-
-        payload = {
-            'account': self.get_account()['url'],
-            'instrument': unquote(instrument['url']),
-            'quantity': quantity,
-            'side': transaction.name.lower(),
-            'symbol': instrument['symbol'],
-            'time_in_force': time_in_force.lower(),
-            'trigger': trigger,
-            'type': order.lower()
-        }
-
-        if order.lower() == "stop":
-            payload['stop_price'] = float(price)
-        else:
-            payload['price'] = float(price)
-
-        res = self.session.post(endpoints.orders(), data=payload, timeout=15)
-        res.raise_for_status()
-
-        return res
-
-
-    def place_buy_order(self,
-                        instrument,
-                        quantity,
-                        ask_price=0.0):
-        """Wrapper for placing buy orders
-
-            Args:
-                instrument (dict): the RH URL and symbol in dict for the instrument to be traded
-                quantity (int): quantity of stocks in order
-                ask_price (float): price for order (OPTIONAL! If not given, ask_price is automatic.)
-
-            Returns:
-                (:obj:`requests.request`): result from `orders` put command
-
-        """
-
-        if not ask_price:
-            ask_price = self.quote_data(instrument['symbol'])['ask_price']
-            
-        transaction = Transaction.BUY
-
-        return self.place_order(instrument, quantity, ask_price, transaction)
-
-
-    def place_sell_order(self,
-                         instrument,
-                         quantity,
-                         bid_price=0.0):
-        """Wrapper for placing sell orders
-
-            Args:
-                instrument (dict): the RH URL and symbol in dict for the instrument to be traded
-                quantity (int): quantity of stocks in order
-                bid_price (float): price for order (OPTIONAL! If not given, bid_price is automatic.)
-
-            Returns:
-                (:obj:`requests.request`): result from `orders` put command
-        """
-        if not bid_price:
-            bid_price = self.quote_data(instrument['symbol'])['bid_price']
-            
-        transaction = Transaction.SELL
-
-        return self.place_order(instrument, quantity, bid_price, transaction)
-
-    # Methods below here are a complete rewrite for buying and selling
-    # These are new. Use at your own risk!
-
+    
     def place_market_buy_order(self,
                                instrument_URL=None,
                                symbol=None,
@@ -1479,6 +1373,112 @@ class Robinhood:
 
         return res
     
+  
+  #The below order placing functions are deprecated. Use at your own risk!
+    def place_order(self,
+                    instrument,
+                    quantity=1,
+                    price=0.0,
+                    transaction=None,
+                    trigger='immediate',
+                    order='market',
+                    time_in_force='gfd'):
+        """Place an order with Robinhood
+
+            Notes:
+                OMFG TEST THIS PLEASE!
+
+                Just realized this won't work since if type is LIMIT you need to use "price" and if
+                a STOP you need to use "stop_price".  Oops.
+                Reference: https://github.com/sanko/Robinhood/blob/master/Order.md#place-an-order
+
+            Args:
+                instrument (dict): the RH URL and symbol in dict for the instrument to be traded
+                quantity (int): quantity of stocks in order
+                bid_price (float): price for order
+                transaction (:enum:`Transaction`): BUY or SELL enum
+                trigger (:enum:`Trigger`): IMMEDIATE or STOP enum
+                order (:enum:`Order`): MARKET or LIMIT
+                time_in_force (:enum:`TIME_IN_FORCE`): GFD or GTC (day or until cancelled)
+
+            Returns:
+                (:obj:`requests.request`): result from `orders` put command
+        """
+
+        if isinstance(transaction, str):
+            transaction = Transaction(transaction)
+
+        if not price:
+            price = self.quote_data(instrument['symbol'])['bid_price']
+
+        payload = {
+            'account': self.get_account()['url'],
+            'instrument': unquote(instrument['url']),
+            'quantity': quantity,
+            'side': transaction.name.lower(),
+            'symbol': instrument['symbol'],
+            'time_in_force': time_in_force.lower(),
+            'trigger': trigger,
+            'type': order.lower()
+        }
+
+        if order.lower() == "stop":
+            payload['stop_price'] = float(price)
+        else:
+            payload['price'] = float(price)
+
+        res = self.session.post(endpoints.orders(), data=payload, timeout=15)
+        res.raise_for_status()
+
+        return res
+
+
+    def place_buy_order(self,
+                        instrument,
+                        quantity,
+                        ask_price=0.0):
+        """Wrapper for placing buy orders
+
+            Args:
+                instrument (dict): the RH URL and symbol in dict for the instrument to be traded
+                quantity (int): quantity of stocks in order
+                ask_price (float): price for order (OPTIONAL! If not given, ask_price is automatic.)
+
+            Returns:
+                (:obj:`requests.request`): result from `orders` put command
+
+        """
+
+        if not ask_price:
+            ask_price = self.quote_data(instrument['symbol'])['ask_price']
+            
+        transaction = Transaction.BUY
+
+        return self.place_order(instrument, quantity, ask_price, transaction)
+
+
+    def place_sell_order(self,
+                         instrument,
+                         quantity,
+                         bid_price=0.0):
+        """Wrapper for placing sell orders
+
+            Args:
+                instrument (dict): the RH URL and symbol in dict for the instrument to be traded
+                quantity (int): quantity of stocks in order
+                bid_price (float): price for order (OPTIONAL! If not given, bid_price is automatic.)
+
+            Returns:
+                (:obj:`requests.request`): result from `orders` put command
+        """
+        if not bid_price:
+            bid_price = self.quote_data(instrument['symbol'])['bid_price']
+            
+        transaction = Transaction.SELL
+
+        return self.place_order(instrument, quantity, bid_price, transaction)
+
+
     ##############################
     #                          CANCEL ORDER
     ##############################
