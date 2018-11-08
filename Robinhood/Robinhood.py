@@ -1248,8 +1248,7 @@ class Robinhood:
                      quantity=None,
                      side=None):
         """Submits buy order to Robinhood
-        
-        Differs from submit_order in that it uses the ask price instead of the bid price.
+       
 
             Notes:
                 This is normally not called directly.  Most programs should use
