@@ -1281,7 +1281,7 @@ class Robinhood:
         """
 
         # Used for default price input
-        # Price is required, so we use the current bid price if it is not specified
+        # Price is required, so we use the current ask price if it is not specified
         current_quote = self.get_quote(symbol)
         current_ask_price = current_quote['ask_price']
 
