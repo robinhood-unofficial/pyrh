@@ -1415,12 +1415,13 @@ class Robinhood:
         payload = {
             'account': self.get_account()['url'],
             'instrument': unquote(instrument['url']),
-            'quantity': quantity,
-            'side': transaction.name.lower(),
             'symbol': instrument['symbol'],
+            'type': order.lower(),
             'time_in_force': time_in_force.lower(),
             'trigger': trigger,
-            'type': order.lower()
+            'quantity': quantity,
+            'side': transaction.name.lower(),
+            'client_id': self.client_id
         }
 
         if order.lower() == "stop":
