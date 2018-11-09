@@ -1225,7 +1225,8 @@ class Robinhood:
                 ('price', price),
                 ('stop_price', stop_price),
                 ('quantity', quantity),
-                ('side', side)
+                ('side', side),
+                ('client_id', self.client_id)
             ]:
             if(value is not None):
                 payload[field] = value
@@ -1360,7 +1361,8 @@ class Robinhood:
                 ('price', price),
                 ('stop_price', stop_price),
                 ('quantity', quantity),
-                ('side', side)
+                ('side', side),
+                ('client_id', self.client_id)
             ]:
             if(value is not None):
                 payload[field] = value
