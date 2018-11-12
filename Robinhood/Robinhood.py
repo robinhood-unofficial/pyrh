@@ -1289,8 +1289,11 @@ class Robinhood:
         if(instrument_URL is None):
             if(symbol is None):
                 raise(ValueError('Neither instrument_URL nor symbol were passed to submit_order'))
-            instrument_URL = self.get_url(self.quote_data(symbol)["instrument"])["id"]
+            instrument_URL = self.instruments(symbol)[0]['url']
 
+        print(self.get_url(self.quote_data(symbol)["instrument"])["id"])
+        print(self.instruments(symbol)[0]['url'])
+            
         if(symbol is None):
             symbol = self.session.get(instrument_URL, timeout=15).json()['symbol']
 
