@@ -1225,8 +1225,7 @@ class Robinhood:
                 ('price', price),
                 ('stop_price', stop_price),
                 ('quantity', quantity),
-                ('side', side),
-                ('extended_hours', True) #gets rid of need for OPG
+                ('side', side)
             ]:
             if(value is not None):
                 payload[field] = value
@@ -1364,8 +1363,7 @@ class Robinhood:
                 ('price', price),
                 ('stop_price', stop_price),
                 ('quantity', quantity),
-                ('side', side),
-                ('extended_hours', True) #gets rid of need for OPG
+                ('side', side)
             ]:
             if(value is not None):
                 payload[field] = value
@@ -1423,8 +1421,7 @@ class Robinhood:
             'time_in_force': time_in_force.lower(),
             'trigger': trigger,
             'quantity': quantity,
-            'side': transaction.name.lower(),
-            'extended_hours': True #gets rid of need for OPG
+            'side': transaction.name.lower()
         }
 
         if order.lower() == "stop":
