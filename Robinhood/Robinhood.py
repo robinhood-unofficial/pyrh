@@ -1153,14 +1153,14 @@ class Robinhood:
         # Start with some parameter checks. I'm paranoid about $.
         if(instrument_URL is None):
             if(symbol is None):
-                raise(ValueError('Neither instrument_URL nor symbol were passed to submit_order'))
-            instrument_URL = self.instruments(symbol)[0]['url']
+                raise(ValueError('Neither instrument_URL nor symbol were passed to submit_sell_order'))
+            raise(ValueError('Instrument_URL not passed to submit_sell_order'))
 
         if(symbol is None):
-            symbol = self.session.get(instrument_URL, timeout=15).json()['symbol']
+            raise(ValueError('Symbol not passed to submit_sell_order'))
 
         if(side is None):
-            raise(ValueError('Order is neither buy nor sell in call to submit_order'))
+            raise(ValueError('Order is neither buy nor sell in call to submit_sell_order'))
 
         if(order_type is None):
             if(price is None):
@@ -1176,42 +1176,42 @@ class Robinhood:
         side = str(side).lower()
 
         if(order_type != 'market') and (order_type != 'limit'):
-            raise(ValueError('Invalid order_type in call to submit_order'))
+            raise(ValueError('Invalid order_type in call to submit_sell_order'))
 
         if(order_type == 'limit'):
             if(price is None):
-                raise(ValueError('Limit order has no price in call to submit_order'))
+                raise(ValueError('Limit order has no price in call to submit_sell_order'))
             if(price <= 0):
-                raise(ValueError('Price must be positive number in call to submit_order'))
+                raise(ValueError('Price must be positive number in call to submit_sell_order'))
 
         if(trigger == 'stop'):
             if(stop_price is None):
-                raise(ValueError('Stop order has no stop_price in call to submit_order'))
+                raise(ValueError('Stop order has no stop_price in call to submit_sell_order'))
             if(price <= 0):
-                raise(ValueError('Stop_price must be positive number in call to submit_order'))
+                raise(ValueError('Stop_price must be positive number in call to submit_sell_order'))
 
         if(stop_price is not None):
             if(trigger != 'stop'):
-                raise(ValueError('Stop price set for non-stop order in call to submit_order'))
+                raise(ValueError('Stop price set for non-stop order in call to submit_sell_order'))
 
         if(price is None):
             if(order_type == 'limit'):
-                raise(ValueError('Limit order has no price in call to submit_order'))
+                raise(ValueError('Limit order has no price in call to submit_sell_order'))
 
         if(price is not None):
             if(order_type.lower() == 'market'):
-                raise(ValueError('Market order has price limit in call to submit_order'))
+                raise(ValueError('Market order has price limit in call to submit_sell_order'))
             price = float(price)
         else:
             price = current_bid_price # default to current bid price
 
         if(quantity is None):
-            raise(ValueError('No quantity specified in call to submit_order'))
+            raise(ValueError('No quantity specified in call to submit_sell_order'))
 
         quantity = int(quantity)
 
         if(quantity <= 0):
-            raise(ValueError('Quantity must be positive number in call to submit_order'))
+            raise(ValueError('Quantity must be positive number in call to submit_sell_order'))
 
         payload = {}
 
@@ -1266,10 +1266,10 @@ class Robinhood:
             Args:
                 instrument_URL (str): the RH URL for the instrument
                 symbol (str): the ticker symbol for the instrument
-                order_type (str): 'MARKET' or 'LIMIT'
-                time_in_force (:enum:`TIME_IN_FORCE`): GFD or GTC (day or
+                order_type (str): 'market' or 'limit'
+                time_in_force (:enum:`TIME_IN_FORCE`): 'gfd' or 'gtc' (day or
                                                        until cancelled)
-                trigger (str): IMMEDIATE or STOP enum
+                trigger (str): 'immediate' or 'stop' enum
                 price (float): The share price you'll accept
                 stop_price (float): The price at which the order becomes a
                                     market or limit order
@@ -1288,17 +1288,14 @@ class Robinhood:
         # Start with some parameter checks. I'm paranoid about $.
         if(instrument_URL is None):
             if(symbol is None):
-                raise(ValueError('Neither instrument_URL nor symbol were passed to submit_order'))
-            instrument_URL = self.get_url(self.quote_data(symbol)["instrument"])["id"] #new instrument_URL
-
-        # self.get_url(self.quote_data(symbol)["instrument"])["id"] #new instrument_URL
-        # self.instruments(symbol)[0]['url'] #old instrument_URL
+                raise(ValueError('Neither instrument_URL nor symbol were passed to submit_buy_order'))
+            raise(ValueError('Instrument_URL not passed to submit_buy_order'))
             
         if(symbol is None):
-            symbol = self.session.get(instrument_URL, timeout=15).json()['symbol']
+            raise(ValueError('Symbol not passed to submit_buy_order'))
 
         if(side is None):
-            raise(ValueError('Order is neither buy nor sell in call to submit_order'))
+            raise(ValueError('Order is neither buy nor sell in call to submit_buy_order'))
 
         if(order_type is None):
             if(price is None):
@@ -1314,42 +1311,42 @@ class Robinhood:
         side = str(side).lower()
 
         if(order_type != 'market') and (order_type != 'limit'):
-            raise(ValueError('Invalid order_type in call to submit_order'))
+            raise(ValueError('Invalid order_type in call to submit_buy_order'))
 
         if(order_type == 'limit'):
             if(price is None):
-                raise(ValueError('Limit order has no price in call to submit_order'))
+                raise(ValueError('Limit order has no price in call to submit_buy_order'))
             if(price <= 0):
-                raise(ValueError('Price must be positive number in call to submit_order'))
+                raise(ValueError('Price must be positive number in call to submit_buy_order'))
 
         if(trigger == 'stop'):
             if(stop_price is None):
-                raise(ValueError('Stop order has no stop_price in call to submit_order'))
+                raise(ValueError('Stop order has no stop_price in call to submit_buy_order'))
             if(price <= 0):
-                raise(ValueError('Stop_price must be positive number in call to submit_order'))
+                raise(ValueError('Stop_price must be positive number in call to submit_buy_order'))
 
         if(stop_price is not None):
             if(trigger != 'stop'):
-                raise(ValueError('Stop price set for non-stop order in call to submit_order'))
+                raise(ValueError('Stop price set for non-stop order in call to submit_buy_order'))
 
         if(price is None):
             if(order_type == 'limit'):
-                raise(ValueError('Limit order has no price in call to submit_order'))
+                raise(ValueError('Limit order has no price in call to submit_buy_order'))
 
         if(price is not None):
             if(order_type.lower() == 'market'):
-                raise(ValueError('Market order has price limit in call to submit_order'))
+                raise(ValueError('Market order has price limit in call to submit_buy_order'))
             price = float(price)
         else:
             price = current_ask_price # default to current ask price
 
         if(quantity is None):
-            raise(ValueError('No quantity specified in call to submit_order'))
+            raise(ValueError('No quantity specified in call to submit_buy_order'))
 
         quantity = int(quantity)
 
         if(quantity <= 0):
-            raise(ValueError('Quantity must be positive number in call to submit_order'))
+            raise(ValueError('Quantity must be positive number in call to submit_buy_order'))
 
         payload = {}
 
@@ -1376,7 +1373,6 @@ class Robinhood:
         return res
     
   
-  #The below order placing functions are deprecated. Use at your own risk!
     def place_order(self,
                     instrument,
                     quantity=1,
@@ -1386,13 +1382,6 @@ class Robinhood:
                     order='market',
                     time_in_force='gfd'):
         """Place an order with Robinhood
-
-            Notes:
-                OMFG TEST THIS PLEASE!
-
-                Just realized this won't work since if type is LIMIT you need to use "price" and if
-                a STOP you need to use "stop_price".  Oops.
-                Reference: https://github.com/sanko/Robinhood/blob/master/Order.md#place-an-order
 
             Args:
                 instrument (dict): the RH URL and symbol in dict for the instrument to be traded
