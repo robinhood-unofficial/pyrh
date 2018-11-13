@@ -1225,11 +1225,12 @@ class Robinhood:
                 ('price', price),
                 ('stop_price', stop_price),
                 ('quantity', quantity),
-                ('side', side)
+                ('side', side),
+                ('extended_hours', True) #gets rid of need for OPG
             ]:
             if(value is not None):
                 payload[field] = value
-
+                
         print(payload)
 
         res = self.session.post(endpoints.orders(), data=payload, timeout=15)
@@ -1363,7 +1364,8 @@ class Robinhood:
                 ('price', price),
                 ('stop_price', stop_price),
                 ('quantity', quantity),
-                ('side', side)
+                ('side', side),
+                ('extended_hours', True) #gets rid of need for OPG
             ]:
             if(value is not None):
                 payload[field] = value
@@ -1421,7 +1423,8 @@ class Robinhood:
             'time_in_force': time_in_force.lower(),
             'trigger': trigger,
             'quantity': quantity,
-            'side': transaction.name.lower()
+            'side': transaction.name.lower(),
+            'extended_hours': True #gets rid of need for OPG
         }
 
         if order.lower() == "stop":
