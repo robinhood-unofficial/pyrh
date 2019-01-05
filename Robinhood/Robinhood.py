@@ -623,6 +623,21 @@ class Robinhood:
         instrument_list = self.get_url(endpoints.tags(tag))["instruments"]
         return [self.get_url(instrument)["symbol"] for instrument in instrument_list]
 
+    @login_required
+    def get_transfers(self):
+        """Returns a page of list of transfers made to/from the Bank.
+
+        Note that this is a paginated response. The consumer will have to look
+        at 'next' key in the JSON and make a subsequent request for the next
+        page.
+
+            Returns:
+                (list): List of all transfers to/from the bank.
+        """
+        res = self.session.get(endpoints.ach('transfers'), timeout=15)
+        res.raise_for_status()
+        return res.json()
+
     ###########################################################################
     #                           GET OPTIONS INFO
     ###########################################################################
