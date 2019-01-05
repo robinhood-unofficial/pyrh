@@ -1293,7 +1293,7 @@ class Robinhood:
         if(trigger == 'stop'):
             if(stop_price is None):
                 raise(ValueError('Stop order has no stop_price in call to submit_order'))
-            if(price <= 0):
+            if(stop_price <= 0):
                 raise(ValueError('Stop_price must be positive number in call to submit_order'))
 
         if(stop_price is not None):
