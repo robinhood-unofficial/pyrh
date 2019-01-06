@@ -11,6 +11,7 @@ __version__ = '1.0.1'
 REQUIRES = [
     'requests>=2.13.0,<=2.18.4',
     'six>=1.10.0,<=1.11.0',
+    'python-dateutil~=2.7.5',
 ]
 TEST = [
     'pytest~=3.0.0',
@@ -75,7 +76,7 @@ class PyTest(TestCommand):
     def initialize_options(self):
         TestCommand.initialize_options(self)
         self.pytest_args = [
-            'Tests',
+            'tests',
             '--cov=Robinhood/',
             '--cov-report=term-missing'
         ]    #load defaults here
