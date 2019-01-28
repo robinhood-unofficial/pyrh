@@ -230,7 +230,7 @@ class Robinhood:
 
         #Check for validity of symbol
         try:
-            req = requests.get(url, timeout=15)
+            req = requests.get(url, headers=self.headers, timeout=15)
             req.raise_for_status()
             data = req.json()
         except requests.exceptions.HTTPError:
