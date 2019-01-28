@@ -636,7 +636,7 @@ class Robinhood:
                 Options Contracts (List): a list (chain) of contracts for a given underlying equity instrument
         """
         instrument_id = self.get_url(self.quote_data(stock)["instrument"])["id"]
-        if (type(expiration_dates) == list):
+        if type(expiration_dates) == list:
             _expiration_dates_string = ",".join(expiration_dates)
         else:
             _expiration_dates_string = expiration_dates
@@ -1238,7 +1238,7 @@ class Robinhood:
 
             return res
         
-        except:
+        except: #sometimes Robinhood asks for another log in when placing an order
             res = self.session.post(endpoints.orders(), data=payload, headers=self.headers, timeout=15)
             res.raise_for_status()
 
@@ -1380,7 +1380,7 @@ class Robinhood:
 
             return res
         
-        except:
+        except: #sometimes Robinhood asks for another log in when placing an order
             res = self.session.post(endpoints.orders(), data=payload, headers=self.headers, timeout=15)
             res.raise_for_status()
 
@@ -1438,7 +1438,7 @@ class Robinhood:
 
             return res
         
-        except:
+        except: #sometimes Robinhood asks for another log in when placing an order
             res = self.session.post(endpoints.orders(), data=payload, headers=self.headers, timeout=15)
             res.raise_for_status()
 
@@ -1519,7 +1519,7 @@ class Robinhood:
                     res.raise_for_status()
                     return res
                 except (requests.exceptions.HTTPError) as err_msg:
-                    try:
+                    try: #sometimes Robinhood asks for another log in when placing an order
                         res = self.session.post(order['cancel'], headers=self.headers, timeout=15)
                         res.raise_for_status()
                         return res
@@ -1542,7 +1542,7 @@ class Robinhood:
                     res.raise_for_status()
                     return res
                 except (requests.exceptions.HTTPError) as err_msg:
-                    try:
+                    try: #sometimes Robinhood asks for another log in when placing an order
                         res = self.session.post(order['cancel'], headers=self.headers, timeout=15)
                         res.raise_for_status()
                         return res
