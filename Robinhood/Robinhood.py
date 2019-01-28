@@ -1232,10 +1232,17 @@ class Robinhood:
                 
         print(payload)
 
-        res = self.session.post(endpoints.orders(), data=payload, timeout=15)
-        res.raise_for_status()
+        try:
+            res = self.session.post(endpoints.orders(), data=payload, timeout=15)
+            res.raise_for_status()
 
-        return res
+            return res
+        
+        except:
+            res = self.session.post(endpoints.orders(), data=payload, headers=self.headers, timeout=15)
+            res.raise_for_status()
+
+            return res
     
     def submit_buy_order(self,
                      instrument_URL=None,
@@ -1367,10 +1374,17 @@ class Robinhood:
 
         print(payload)
 
-        res = self.session.post(endpoints.orders(), data=payload, timeout=15)
-        res.raise_for_status()
+        try:
+            res = self.session.post(endpoints.orders(), data=payload, timeout=15)
+            res.raise_for_status()
 
-        return res
+            return res
+        
+        except:
+            res = self.session.post(endpoints.orders(), data=payload, headers=self.headers, timeout=15)
+            res.raise_for_status()
+
+            return res
     
   
     def place_order(self,
@@ -1418,11 +1432,17 @@ class Robinhood:
         else:
             payload['price'] = float(price)
 
-        res = self.session.post(endpoints.orders(), data=payload, timeout=15)
-        res.raise_for_status()
+        try:
+            res = self.session.post(endpoints.orders(), data=payload, timeout=15)
+            res.raise_for_status()
 
-        return res
+            return res
+        
+        except:
+            res = self.session.post(endpoints.orders(), data=payload, headers=self.headers, timeout=15)
+            res.raise_for_status()
 
+            return res
 
     def place_buy_order(self,
                         instrument,
@@ -1499,9 +1519,14 @@ class Robinhood:
                     res.raise_for_status()
                     return res
                 except (requests.exceptions.HTTPError) as err_msg:
-                    raise ValueError('Failed to cancel order ID: ' + order_id
-                         + '\n Error message: '+ repr(err_msg))
-                    return None
+                    try:
+                        res = self.session.post(order['cancel'], headers=self.headers, timeout=15)
+                        res.raise_for_status()
+                        return res
+                    except (requests.exceptions.HTTPError) as err_msg:
+                        raise ValueError('Failed to cancel order ID: ' + order_id
+                             + '\n Error message: '+ repr(err_msg))
+                        return None
 
         if isinstance(order_id, dict):
             order_id = order_id['id']
@@ -1517,10 +1542,15 @@ class Robinhood:
                     res.raise_for_status()
                     return res
                 except (requests.exceptions.HTTPError) as err_msg:
-                    raise ValueError('Failed to cancel order ID: ' + order_id
-                         + '\n Error message: '+ repr(err_msg))
-                    return None
-
+                    try:
+                        res = self.session.post(order['cancel'], headers=self.headers, timeout=15)
+                        res.raise_for_status()
+                        return res
+                    except (requests.exceptions.HTTPError) as err_msg:
+                        raise ValueError('Failed to cancel order ID: ' + order_id
+                             + '\n Error message: '+ repr(err_msg))
+                        return None
+                    
         elif not isinstance(order_id, str) or not isinstance(order_id, dict):
             raise ValueError('Cancelling orders requires a valid order_id string or open order dictionary')
 
