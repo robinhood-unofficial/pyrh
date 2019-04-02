@@ -1238,12 +1238,15 @@ class Robinhood:
 
             return res
         
-        except: #sometimes Robinhood asks for another log in when placing an order
-            self.login(username=self.username, password=self.password)
-            res = self.session.post(endpoints.orders(), data=payload, headers=self.headers, timeout=15)
-            res.raise_for_status()
+        except Exception as ex: #sometimes Robinhood asks for another log in when placing an order
+            try:
+                self.login(username=self.username, password=self.password)
+                res = self.session.post(endpoints.orders(), data=payload, headers=self.headers, timeout=15)
+                res.raise_for_status()
 
-            return res
+                return res
+            except:
+                print(ex)
     
     def submit_buy_order(self,
                      instrument_URL=None,
@@ -1381,12 +1384,15 @@ class Robinhood:
 
             return res
         
-        except: #sometimes Robinhood asks for another log in when placing an order
-            self.login(username=self.username, password=self.password)
-            res = self.session.post(endpoints.orders(), data=payload, headers=self.headers, timeout=15)
-            res.raise_for_status()
+        except Exception as ex: #sometimes Robinhood asks for another log in when placing an order
+            try:
+                self.login(username=self.username, password=self.password)
+                res = self.session.post(endpoints.orders(), data=payload, headers=self.headers, timeout=15)
+                res.raise_for_status()
 
-            return res
+                return res
+            except:
+                print(ex)
     
   
     def place_order(self,
@@ -1440,12 +1446,15 @@ class Robinhood:
 
             return res
         
-        except: #sometimes Robinhood asks for another log in when placing an order
-            self.login(username=self.username, password=self.password)
-            res = self.session.post(endpoints.orders(), data=payload, headers=self.headers, timeout=15)
-            res.raise_for_status()
+        except Exception as ex: #sometimes Robinhood asks for another log in when placing an order
+            try:
+                self.login(username=self.username, password=self.password)
+                res = self.session.post(endpoints.orders(), data=payload, headers=self.headers, timeout=15)
+                res.raise_for_status()
 
-            return res
+                return res
+            except:
+                print(ex)
 
     def place_buy_order(self,
                         instrument,
