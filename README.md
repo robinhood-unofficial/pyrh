@@ -14,6 +14,12 @@ See this [blog post](https://medium.com/@rohanpai25/reversing-robinhood-free-acc
 - More coming soon
 
 ### How To Install:
+Clone the repository into your project directory using:
+
+    git clone https://github.com/Jamonek/Robinhood
+
+Then navigate to the cloned directory, where `setup.py` is located. Now run the following to install:
+
     pip install .
     
 ### Converting to Python 3
