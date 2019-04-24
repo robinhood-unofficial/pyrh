@@ -15,6 +15,7 @@ import getpass
 import requests
 import six
 import dateutil
+import time
 
 #Application-specific imports
 from . import exceptions as RH_exception
@@ -1241,6 +1242,7 @@ class Robinhood:
         except Exception as ex: #sometimes Robinhood asks for another log in when placing an order
             try:
                 self.login(username=self.username, password=self.password)
+                time.sleep(1)
                 res = self.session.post(endpoints.orders(), data=payload, headers=self.headers, timeout=15)
                 res.raise_for_status()
 
@@ -1387,6 +1389,7 @@ class Robinhood:
         except Exception as ex: #sometimes Robinhood asks for another log in when placing an order
             try:
                 self.login(username=self.username, password=self.password)
+                time.sleep(1)
                 res = self.session.post(endpoints.orders(), data=payload, headers=self.headers, timeout=15)
                 res.raise_for_status()
 
@@ -1449,6 +1452,7 @@ class Robinhood:
         except Exception as ex: #sometimes Robinhood asks for another log in when placing an order
             try:
                 self.login(username=self.username, password=self.password)
+                time.sleep(1)
                 res = self.session.post(endpoints.orders(), data=payload, headers=self.headers, timeout=15)
                 res.raise_for_status()
 
