@@ -1242,7 +1242,7 @@ class Robinhood:
         except Exception as ex: #sometimes Robinhood asks for another log in when placing an order
             try:
                 self.login(username=self.username, password=self.password)
-                time.sleep(1)
+                time.sleep(2.5)
                 res = self.session.post(endpoints.orders(), data=payload, headers=self.headers, timeout=15)
                 res.raise_for_status()
 
@@ -1389,7 +1389,7 @@ class Robinhood:
         except Exception as ex: #sometimes Robinhood asks for another log in when placing an order
             try:
                 self.login(username=self.username, password=self.password)
-                time.sleep(1)
+                time.sleep(2.5)
                 res = self.session.post(endpoints.orders(), data=payload, headers=self.headers, timeout=15)
                 res.raise_for_status()
 
@@ -1452,7 +1452,7 @@ class Robinhood:
         except Exception as ex: #sometimes Robinhood asks for another log in when placing an order
             try:
                 self.login(username=self.username, password=self.password)
-                time.sleep(1)
+                time.sleep(2.5)
                 res = self.session.post(endpoints.orders(), data=payload, headers=self.headers, timeout=15)
                 res.raise_for_status()
 
