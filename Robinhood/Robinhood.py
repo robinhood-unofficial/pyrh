@@ -70,6 +70,7 @@ class Robinhood:
         }
         self.session.headers = self.headers
         self.auth_method = self.login_prompt
+        self.device_token = ""
 
     def login_required(function):  # pylint: disable=E0213
         """ Decorator function that prompts user for login if they are not logged in already. Can be applied to any function using the @ notation. """
@@ -87,29 +88,35 @@ class Robinhood:
 
         return self.login(username=username, password=password)
 
-
     def login(self,
               username,
               password,
               mfa_code=None):
         """Save and test login info for Robinhood accounts
-
         Args:
             username (str): username
             password (str): password
-
         Returns:
             (bool): received valid auth token
-
         """
-
         self.username = username
         self.password = password
+
+        if self.device_token == "":
+            self.GenerateDeviceToken()
+
+        #or if self.device_token is invalid. need to find a way to check for this
+
+
         payload = {
             'password': self.password,
             'username': self.username,
             'grant_type': 'password',
-            'client_id': self.client_id
+            'client_id': self.client_id,
+            'expires_in': '86400',
+            'scope': 'internal',
+            'device_token': self.device_token,
+            'challenge_type': 'sms'
         }
 
         if mfa_code:
@@ -131,7 +138,6 @@ class Robinhood:
             return True
 
         return False
-
 
     def logout(self):
         """Logout from Robinhood
@@ -156,7 +162,7 @@ class Robinhood:
 
         return req
     
-    def GenerateDeviceToken():
+    def GenerateDeviceToken(self):
         rands = []
         for i in range(0,16):
             r = random.random()
@@ -174,7 +180,7 @@ class Robinhood:
             if (i == 3) or (i == 5) or (i == 7) or (i == 9):
                 id += "-"
 
-        return self.device_token = id
+        self.device_token = id
 
 
     ###########################################################################
