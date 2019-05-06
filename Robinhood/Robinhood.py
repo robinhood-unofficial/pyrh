@@ -830,7 +830,7 @@ class Robinhood:
 
         return float(self.portfolios()['market_value'])
 
-    @login_required
+#    @login_required
     def order_history(self, orderId=None):
         """Wrapper for portfolios
             Optional Args: add an order ID to retrieve information about a single order.
