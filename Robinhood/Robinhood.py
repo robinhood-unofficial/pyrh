@@ -17,6 +17,7 @@ import six
 import dateutil
 import time
 import random
+import hmac, base64, struct, hashlib
 
 #Application-specific imports
 from . import exceptions as RH_exception
@@ -99,8 +100,6 @@ class Robinhood:
                 id += "-"
 
         self.device_token = id
-        
-    import hmac, base64, struct, hashlib, time
 
     def get_hotp_token(secret, intervals_no):
         key = base64.b32decode(secret, True)
