@@ -158,8 +158,6 @@ class Robinhood:
     
     def auth_method(self):
         
-        self.headers["X-ROBINHOOD-CHALLENGE-RESPONSE-ID"] = self.challenge_id
-        
         payload = {
             'password': self.password,
             'username': self.username,
@@ -168,7 +166,6 @@ class Robinhood:
             'expires_in': '86400',
             'scope': 'internal',
             'device_token': self.device_token,
-#             'response': self.sms_code
         }
 
         try:
