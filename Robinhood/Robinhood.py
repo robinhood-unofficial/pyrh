@@ -74,7 +74,7 @@ class Robinhood:
         self.password = ""
 
         def login_required(function):  # pylint: disable=E0213
-        """ Decorator function that prompts user for login if they are not logged in already. Can be applied to any function using the @ notation. """
+            """ Decorator function that prompts user for login if they are not logged in already. Can be applied to any function using the @ notation. """
             def wrapper(self, *args, **kwargs):
                 if 'Authorization' not in self.headers:
                     self.auth_method() #should this be login() ?
