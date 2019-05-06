@@ -69,6 +69,8 @@ class Robinhood:
             "User-Agent": "Robinhood/823 (iPhone; iOS 7.1.2; Scale/2.00)"
         }
         self.session.headers = self.headers
+        self.device_token = ""
+        self.challenge_id = ""
 
     def login_required(function):  # pylint: disable=E0213
         """ Decorator function that prompts user for login if they are not logged in already. Can be applied to any function using the @ notation. """
@@ -112,7 +114,8 @@ class Robinhood:
         self.username = username
         self.password = password
 
-        self.GenerateDeviceToken()
+        if self.device_token == "":
+            self.GenerateDeviceToken()
 
         payload = {
             'password': self.password,
@@ -130,7 +133,8 @@ class Robinhood:
         try:
             res = self.session.post(endpoints.login(), data=payload, timeout=15)
             response_data = res.json()
-            self.challenge_id = response_data["challenge"]["id"]
+            if self.challenge.id == "":
+                self.challenge_id = response_data["challenge"]["id"]
             self.headers["X-ROBINHOOD-CHALLENGE-RESPONSE-ID"] = self.challenge_id #has to add this to stay logged in
             sms_challenge_endpoint = "https://api.robinhood.com/challenge/{}/respond/".format(self.challenge_id)
             print("SMS Code:")
