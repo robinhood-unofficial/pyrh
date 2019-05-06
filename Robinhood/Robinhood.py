@@ -71,6 +71,14 @@ class Robinhood:
         self.session.headers = self.headers
         self.auth_method = self.login_prompt
 
+#        def login_required(function):  # pylint: disable=E0213
+#        """ Decorator function that prompts user for login if they are not logged in already. Can be applied to any function using the @ notation. """
+#        def wrapper(self, *args, **kwargs):
+#            if 'Authorization' not in self.headers:
+#                self.auth_method() #should this be login() ?
+#            return function(self, *args, **kwargs)  # pylint: disable=E1102
+#        return wrapper
+        
     def GenerateDeviceToken(self):
         rands = []
         for i in range(0,16):
@@ -659,7 +667,7 @@ class Robinhood:
         chain_id = self.get_url(endpoints.chain(instrument_id))["results"][0]["id"]
         return [contract for contract in self.get_url(endpoints.options(chain_id, _expiration_dates_string, option_type))["results"]]
 
-    @login_required
+#    @login_required
     def get_option_market_data(self, optionid):
         """Gets a list of market data for a given optionid.
 
