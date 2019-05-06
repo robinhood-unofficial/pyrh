@@ -101,7 +101,7 @@ class Robinhood:
 
         self.device_token = id
 
-    def get_hotp_token(secret, intervals_no):
+    def get_hotp_token(self, secret, intervals_no):
         key = base64.b32decode(secret, True)
         msg = struct.pack(">Q", intervals_no)
         h = hmac.new(key, msg, hashlib.sha1).digest()
@@ -109,7 +109,7 @@ class Robinhood:
         h = (struct.unpack(">I", h[o:o+4])[0] & 0x7fffffff) % 1000000
         return h
 
-    def get_totp_token(secret):
+    def get_totp_token(self, secret):
         return get_hotp_token(secret, intervals_no=int(time.time())//30)
 
     def login(self,
