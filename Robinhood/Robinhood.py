@@ -126,7 +126,7 @@ class Robinhood:
         self.username = username
         self.password = password
         
-        if self.device_token == "": #needs to have 2FA off or won't send SMS
+        if self.device_token == "":
                 self.GenerateDeviceToken()
         
         if qr_code:
