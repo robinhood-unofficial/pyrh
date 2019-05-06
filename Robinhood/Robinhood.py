@@ -69,15 +69,12 @@ class Robinhood:
             "User-Agent": "Robinhood/823 (iPhone; iOS 7.1.2; Scale/2.00)"
         }
         self.session.headers = self.headers
-        self.auth_method = self.login
-        self.username = ""
-        self.password = ""
 
     def login_required(function):  # pylint: disable=E0213
         """ Decorator function that prompts user for login if they are not logged in already. Can be applied to any function using the @ notation. """
         def wrapper(self, *args, **kwargs):
             if 'Authorization' not in self.headers:
-                self.auth_method() #should this be login() ?
+                self.auth_method()
             return function(self, *args, **kwargs)  # pylint: disable=E1102
         return wrapper
         
@@ -139,7 +136,7 @@ class Robinhood:
             challenge_res = {"response":self.sms_code}
             res2 = self.session.post(sms_challenge_endpoint, data=challenge_res, timeout=15)
             res2.raise_for_status()
-            data = res2.json()
+
             return "Logged In"
         except requests.exceptions.HTTPError:
             raise RH_exception.LoginFailed()
@@ -148,6 +145,27 @@ class Robinhood:
             raise RH_exception.TwoFactorRequired()  # requires a second call to enable 2FA
 
         return "Not Logged In"
+    
+    def auth_method():
+        payload = {
+            'password': self.password,
+            'username': self.username,
+            'grant_type': 'password',
+            'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
+            'expires_in': '86400',
+            'scope': 'internal',
+            'device_token': self.device_token,
+        }
+
+        if mfa_code:
+            payload['mfa_code'] = mfa_code
+        try:
+            res = self.session.post(endpoints.login(), data=payload, timeout=15)
+            res.raise_for_status()
+
+            return "Logged In"
+        except requests.exceptions.HTTPError:
+            raise RH_exception.LoginFailed()
     
     def logout(self):
         """Logout from Robinhood
