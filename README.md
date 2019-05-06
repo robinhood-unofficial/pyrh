@@ -2,10 +2,18 @@
 
 WARNING!!
 
-Robinhood is now requiring a mandatory a 2FA.
-This API can be run from the console, where the user will have to input an SMS code sent to their phone.
-After logging in, the SMS code expires after 24 hours.
-In theory, one could trade with an algorithm if they signed in with the console at the beginning of the trading day.
+Robinhood is now requiring a mandatory a MFA.
+Going to your Robinhood Web App and turning on 2FA is highly recomended because without it your auth tokens wil expire every 24 hours.
+To do this, go to settings, turn on 2FA, select "Authentication App", click "Can't Scan It?", and save the 16-character QR code.
+Use something like this to login:
+
+    QR = "1234567890qwerty"
+    my_trader = Robinhood()
+    my_trader.login(username="username", password="password", qr_code=QR)
+
+Without 2FA, this API can be run from the console, where the user will have to input an SMS code sent to their phone.
+Again, after logging in, the SMS code expires after 24 hours.
+In theory, one could trade with an algorithm if they signed in with the console at the beginning of each trading day.
 
 [![Join the chat at https://gitter.im/J-Robinhood/Lobby](https://badges.gitter.im/J-Robinhood/Lobby.svg)](https://gitter.im/J-Robinhood/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 Python Framework to make trades with Robinhood Private API.
@@ -21,12 +29,12 @@ See this [blog post](https://medium.com/@rohanpai25/reversing-robinhood-free-acc
 - More coming soon
 
 ### How To Install:
-    pip install .
+    pip install git+<url of this repo>
     
 ### Converting to Python 3
 Project will work on both python 2 and python 3
 
-### How to Use (see [example.py](https://github.com/Jamonek/Robinhood/blob/master/docs/example.py))
+### How to Use Without 2FA (see [example.py](https://github.com/Jamonek/Robinhood/blob/master/docs/example.py))
 
     from Robinhood import Robinhood
     my_trader = Robinhood()
