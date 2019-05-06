@@ -146,7 +146,7 @@ class Robinhood:
 
         return "Not Logged In"
     
-    def auth_method():
+    def auth_method(self):
         payload = {
             'password': self.password,
             'username': self.username,
