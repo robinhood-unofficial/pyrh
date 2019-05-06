@@ -1,10 +1,12 @@
 # Robinhood
 
-DEPRECATED!
+WARNING!!
+
 This API is no longer suitable for fully-autonomous trading strategies.
 Robinhood has required a 2FA.
 This API can be run from the console, where the user will have to input an SMS code sent to their phone.
 After logging in, the SMS code expires after 24 hours.
+In theory, one could trade with an algorithm if they signed in with the console at the beginning of the trading day.
 
 [![Join the chat at https://gitter.im/J-Robinhood/Lobby](https://badges.gitter.im/J-Robinhood/Lobby.svg)](https://gitter.im/J-Robinhood/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 Python Framework to make trades with Robinhood Private API.
