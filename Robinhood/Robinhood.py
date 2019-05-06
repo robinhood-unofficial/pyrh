@@ -99,23 +99,38 @@ class Robinhood:
                 id += "-"
 
         self.device_token = id
+        
+    import hmac, base64, struct, hashlib, time
+
+    def get_hotp_token(secret, intervals_no):
+        key = base64.b32decode(secret, True)
+        msg = struct.pack(">Q", intervals_no)
+        h = hmac.new(key, msg, hashlib.sha1).digest()
+        o = h[19] & 15
+        h = (struct.unpack(">I", h[o:o+4])[0] & 0x7fffffff) % 1000000
+        return h
+
+    def get_totp_token(secret):
+        return get_hotp_token(secret, intervals_no=int(time.time())//30)
 
     def login(self,
               username,
               password,
-              mfa_code=None):
+              qr_code=None):
         """Save and test login info for Robinhood accounts
         Args:
             username (str): username
             password (str): password
+            qr_code (str): QR code that will be used to generate mfa_code (optional but recommended)
+            To get QR code, set up 2FA in Security, get Authentication App, and click "Can't Scan It?"
         Returns:
             (bool): received valid auth token
         """
         self.username = username
         self.password = password
         
-        if mfa_code:
-            self.mfa_code = mfa_code
+        if qr_code:
+            self.mfa_code = get_totp_token(qr_code)
             payload = {
                 'password': self.password,
                 'username': self.username,
@@ -126,13 +141,23 @@ class Robinhood:
             
             try:
                 res = self.session.post(endpoints.login(), data=payload, timeout=15)
-                response_data = res.json()
-                print(response_data)
+                data = res.json()
+                print(data)
+                
+                if 'access_token' in data.keys() and 'refresh_token' in data.keys():
+                    self.auth_token = data['access_token']
+                    self.refresh_token = data['refresh_token']
+                    self.headers['Authorization'] = 'Bearer ' + self.auth_token
+                    return True
+                
+#                 if 'mfa_required' in data.keys():
+#                     raise RH_exception.TwoFactorRequired()
+                
             except requests.exceptions.HTTPError:
                 raise RH_exception.LoginFailed()
 
         else:
-            if self.device_token == "":
+            if self.device_token == "": #needs to have 2FA off or won't send SMS
                 self.GenerateDeviceToken()
 
             payload = {
@@ -153,6 +178,7 @@ class Robinhood:
                     self.challenge_id = response_data["challenge"]["id"]
                 self.headers["X-ROBINHOOD-CHALLENGE-RESPONSE-ID"] = self.challenge_id #has to add this to stay logged in
                 sms_challenge_endpoint = "https://api.robinhood.com/challenge/{}/respond/".format(self.challenge_id)
+                print("No 2FA Given")
                 print("SMS Code:")
                 self.sms_code = input()
                 challenge_res = {"response":self.sms_code}
@@ -171,9 +197,6 @@ class Robinhood:
 
             except requests.exceptions.HTTPError:
                 raise RH_exception.LoginFailed()
-
-        if 'mfa_required' in data.keys():           # pragma: no cover
-            raise RH_exception.TwoFactorRequired()  # requires a second call to enable 2FA
 
         return False
     
