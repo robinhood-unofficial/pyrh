@@ -71,14 +71,6 @@ class Robinhood:
         self.session.headers = self.headers
         self.auth_method = self.login_prompt
 
-    def login_required(function):  # pylint: disable=E0213
-        """ Decorator function that prompts user for login if they are not logged in already. Can be applied to any function using the @ notation. """
-        def wrapper(self, *args, **kwargs):
-            if 'Authorization' not in self.headers:
-                self.auth_method() #should this be login() ?
-            return function(self, *args, **kwargs)  # pylint: disable=E1102
-        return wrapper
-
     def GenerateDeviceToken(self):
         rands = []
         for i in range(0,16):
@@ -1264,9 +1256,17 @@ class Robinhood:
         
         except Exception as ex: #sometimes Robinhood asks for another log in when placing an order
             try:
-                self.login(username=self.username, password=self.password)
-                time.sleep(2.5)
-                res = self.session.post(endpoints.orders(), data=payload, headers=self.headers, timeout=15)
+                payload = {
+                'password': self.password,
+                'username': self.username,
+                'grant_type': 'password',
+                'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
+                'expires_in': '86400',
+                'scope': 'internal',
+                'device_token': self.device_token,
+                }
+
+                res = self.session.post(endpoints.login(), data=payload, timeout=15)
                 res.raise_for_status()
 
                 return res
@@ -1411,9 +1411,17 @@ class Robinhood:
         
         except Exception as ex: #sometimes Robinhood asks for another log in when placing an order
             try:
-                self.login(username=self.username, password=self.password)
-                time.sleep(2.5)
-                res = self.session.post(endpoints.orders(), data=payload, headers=self.headers, timeout=15)
+                payload = {
+                'password': self.password,
+                'username': self.username,
+                'grant_type': 'password',
+                'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
+                'expires_in': '86400',
+                'scope': 'internal',
+                'device_token': self.device_token,
+                }
+
+                res = self.session.post(endpoints.login(), data=payload, timeout=15)
                 res.raise_for_status()
 
                 return res
@@ -1474,9 +1482,17 @@ class Robinhood:
         
         except Exception as ex: #sometimes Robinhood asks for another log in when placing an order
             try:
-                self.login(username=self.username, password=self.password)
-                time.sleep(2.5)
-                res = self.session.post(endpoints.orders(), data=payload, headers=self.headers, timeout=15)
+                payload = {
+                'password': self.password,
+                'username': self.username,
+                'grant_type': 'password',
+                'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
+                'expires_in': '86400',
+                'scope': 'internal',
+                'device_token': self.device_token,
+                }
+
+                res = self.session.post(endpoints.login(), data=payload, timeout=15)
                 res.raise_for_status()
 
                 return res
