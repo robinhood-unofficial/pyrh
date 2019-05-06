@@ -155,7 +155,6 @@ class Robinhood:
             'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
             'expires_in': '86400',
             'scope': 'internal',
-            'device_token': self.device_token,
             'response': self.sms_code
         }
 
