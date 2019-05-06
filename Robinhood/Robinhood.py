@@ -69,7 +69,7 @@ class Robinhood:
             "User-Agent": "Robinhood/823 (iPhone; iOS 7.1.2; Scale/2.00)"
         }
         self.session.headers = self.headers
-        self.auth_method = self.login_prompt
+        self.auth_method = self.login
         self.username = ""
         self.password = ""
 
@@ -100,16 +100,6 @@ class Robinhood:
                 id += "-"
 
         self.device_token = id
-        
-    def login_prompt(self):  # pragma: no cover
-        """Prompts user for username and password and calls login() """
-
-        if self.username == "":
-            self.username = input("Username: ")
-        if self.password == "":
-            self.password = getpass.getpass()
-
-        return self.login(username=self.username, password=self.password)
 
     def login(self,
               username,
