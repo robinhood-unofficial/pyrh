@@ -1296,20 +1296,7 @@ class Robinhood:
         
         except Exception as ex: #sometimes Robinhood asks for another log in when placing an order
             try:
-                payload = {
-                'password': self.password,
-                'username': self.username,
-                'grant_type': 'password',
-                'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
-                'expires_in': '86400',
-                'scope': 'internal',
-                'device_token': self.device_token,
-                }
-
-                res = self.session.post(endpoints.login(), data=payload, timeout=15)
-                res.raise_for_status()
-
-                return res
+                auth_method()
             except:
                 print(ex)
     
@@ -1451,20 +1438,7 @@ class Robinhood:
         
         except Exception as ex: #sometimes Robinhood asks for another log in when placing an order
             try:
-                payload = {
-                'password': self.password,
-                'username': self.username,
-                'grant_type': 'password',
-                'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
-                'expires_in': '86400',
-                'scope': 'internal',
-                'device_token': self.device_token,
-                }
-
-                res = self.session.post(endpoints.login(), data=payload, timeout=15)
-                res.raise_for_status()
-
-                return res
+                auth_method()
             except:
                 print(ex)
     
@@ -1522,20 +1496,7 @@ class Robinhood:
         
         except Exception as ex: #sometimes Robinhood asks for another log in when placing an order
             try:
-                payload = {
-                'password': self.password,
-                'username': self.username,
-                'grant_type': 'password',
-                'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
-                'expires_in': '86400',
-                'scope': 'internal',
-                'device_token': self.device_token,
-                }
-
-                res = self.session.post(endpoints.login(), data=payload, timeout=15)
-                res.raise_for_status()
-
-                return res
+                auth_method()
             except:
                 print(ex)
 
