@@ -129,7 +129,7 @@ class Robinhood:
         self.password = password
         
         if qr_code:
-            self.mfa_code = get_totp_token(qr_code)
+            self.mfa_code = self.get_totp_token(qr_code)
             payload = {
                 'password': self.password,
                 'username': self.username,
