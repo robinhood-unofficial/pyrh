@@ -137,7 +137,7 @@ class Robinhood:
             challenge_res = {"response":self.sms_code}
             res2 = self.session.post(sms_challenge_endpoint, data=challenge_res, timeout=15)
             res2.raise_for_status()
-
+            self.headers["X-ROBINHOOD-CHALLENGE-RESPONSE-ID"] = self.challenge_id
             return "Logged In"
         except requests.exceptions.HTTPError:
             raise RH_exception.LoginFailed()
@@ -148,6 +148,7 @@ class Robinhood:
         return "Not Logged In"
     
     def auth_method(self):
+        
         payload = {
             'password': self.password,
             'username': self.username,
