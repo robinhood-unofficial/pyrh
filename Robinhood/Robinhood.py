@@ -137,14 +137,24 @@ class Robinhood:
             challenge_res = {"response":self.sms_code}
             res2 = self.session.post(sms_challenge_endpoint, data=challenge_res, timeout=15)
             res2.raise_for_status()
-            return "Logged In"
+            self.headers["X-ROBINHOOD-CHALLENGE-RESPONSE-ID"] = self.challenge_id
+            res3 = self.session.post(endpoints.login(), data=payload, timeout=15)
+            res3.raise_for_status()
+            data = res3.json()
+            
+            if 'access_token' in data.keys() and 'refresh_token' in data.keys():
+                self.auth_token = data['access_token']
+                self.refresh_token = data['refresh_token']
+                self.headers['Authorization'] = 'Bearer ' + self.auth_token
+                return True
+
         except requests.exceptions.HTTPError:
             raise RH_exception.LoginFailed()
 
         if 'mfa_required' in data.keys():           # pragma: no cover
             raise RH_exception.TwoFactorRequired()  # requires a second call to enable 2FA
 
-        return "Not Logged In"
+        return False
     
     def auth_method(self):
         
@@ -158,7 +168,7 @@ class Robinhood:
             'expires_in': '86400',
             'scope': 'internal',
             'device_token': self.device_token,
-            'response': self.sms_code
+#             'response': self.sms_code
         }
 
         try:
