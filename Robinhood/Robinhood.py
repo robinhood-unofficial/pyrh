@@ -157,8 +157,6 @@ class Robinhood:
             'device_token': self.device_token,
         }
 
-        if mfa_code:
-            payload['mfa_code'] = mfa_code
         try:
             res = self.session.post(endpoints.login(), data=payload, timeout=15)
             res.raise_for_status()
