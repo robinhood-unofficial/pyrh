@@ -113,49 +113,64 @@ class Robinhood:
         """
         self.username = username
         self.password = password
-
-        if self.device_token == "":
-            self.GenerateDeviceToken()
-
-        payload = {
-            'password': self.password,
-            'username': self.username,
-            'grant_type': 'password',
-            'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
-            'expires_in': '86400',
-            'scope': 'internal',
-            'device_token': self.device_token,
-            'challenge_type': 'sms'
-        }
-
+        
         if mfa_code:
-            payload['mfa_code'] = mfa_code
-        try:
-            res = self.session.post(endpoints.login(), data=payload, timeout=15)
-            response_data = res.json()
-            print(response_data)
-            if self.challenge_id == "" and "challenge" in response_data.keys():
-                self.challenge_id = response_data["challenge"]["id"]
-            self.headers["X-ROBINHOOD-CHALLENGE-RESPONSE-ID"] = self.challenge_id #has to add this to stay logged in
-            sms_challenge_endpoint = "https://api.robinhood.com/challenge/{}/respond/".format(self.challenge_id)
-            print("SMS Code:")
-            self.sms_code = input()
-            challenge_res = {"response":self.sms_code}
-            res2 = self.session.post(sms_challenge_endpoint, data=challenge_res, timeout=15)
-            res2.raise_for_status()
-            #gets access token for final response to stay logged in
-            res3 = self.session.post(endpoints.login(), data=payload, timeout=15)
-            res3.raise_for_status()
-            data = res3.json()
+            self.mfa_code = mfa_code
+            payload = {
+                'password': self.password,
+                'username': self.username,
+                'grant_type': 'password',
+                'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
+                'mfa_code': self.mfa_code
+            }
             
-            if 'access_token' in data.keys() and 'refresh_token' in data.keys():
-                self.auth_token = data['access_token']
-                self.refresh_token = data['refresh_token']
-                self.headers['Authorization'] = 'Bearer ' + self.auth_token
-                return True
+            try:
+                res = self.session.post(endpoints.login(), data=payload, timeout=15)
+                response_data = res.json()
+                print(response_data)
+            except requests.exceptions.HTTPError:
+                raise RH_exception.LoginFailed()
 
-        except requests.exceptions.HTTPError:
-            raise RH_exception.LoginFailed()
+        else:
+            if self.device_token == "":
+                self.GenerateDeviceToken()
+
+            payload = {
+                'password': self.password,
+                'username': self.username,
+                'grant_type': 'password',
+                'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
+                'expires_in': '86400',
+                'scope': 'internal',
+                'device_token': self.device_token,
+                'challenge_type': 'sms'
+            }
+
+            try:
+                res = self.session.post(endpoints.login(), data=payload, timeout=15)
+                response_data = res.json()
+                if self.challenge_id == "" and "challenge" in response_data.keys():
+                    self.challenge_id = response_data["challenge"]["id"]
+                self.headers["X-ROBINHOOD-CHALLENGE-RESPONSE-ID"] = self.challenge_id #has to add this to stay logged in
+                sms_challenge_endpoint = "https://api.robinhood.com/challenge/{}/respond/".format(self.challenge_id)
+                print("SMS Code:")
+                self.sms_code = input()
+                challenge_res = {"response":self.sms_code}
+                res2 = self.session.post(sms_challenge_endpoint, data=challenge_res, timeout=15)
+                res2.raise_for_status()
+                #gets access token for final response to stay logged in
+                res3 = self.session.post(endpoints.login(), data=payload, timeout=15)
+                res3.raise_for_status()
+                data = res3.json()
+
+                if 'access_token' in data.keys() and 'refresh_token' in data.keys():
+                    self.auth_token = data['access_token']
+                    self.refresh_token = data['refresh_token']
+                    self.headers['Authorization'] = 'Bearer ' + self.auth_token
+                    return True
+
+            except requests.exceptions.HTTPError:
+                raise RH_exception.LoginFailed()
 
         if 'mfa_required' in data.keys():           # pragma: no cover
             raise RH_exception.TwoFactorRequired()  # requires a second call to enable 2FA
