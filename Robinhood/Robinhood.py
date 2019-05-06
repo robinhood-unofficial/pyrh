@@ -70,16 +70,35 @@ class Robinhood:
         }
         self.session.headers = self.headers
         self.auth_method = self.login_prompt
-        self.device_token = ""
 
     def login_required(function):  # pylint: disable=E0213
         """ Decorator function that prompts user for login if they are not logged in already. Can be applied to any function using the @ notation. """
         def wrapper(self, *args, **kwargs):
             if 'Authorization' not in self.headers:
-                self.auth_method()
+                self.auth_method() #should this be login() ?
             return function(self, *args, **kwargs)  # pylint: disable=E1102
         return wrapper
 
+    def GenerateDeviceToken(self):
+        rands = []
+        for i in range(0,16):
+            r = random.random()
+            rand = 4294967296.0 * r
+            rands.append((int(rand) >> ((3 & i) << 3)) & 255)
+
+        hexa = []
+        for i in range(0,256):
+            hexa.append(str(hex(i+256)).lstrip("0x").rstrip("L")[1:])
+
+        id = ""
+        for i in range(0,16):
+            id += hexa[rands[i]]
+
+            if (i == 3) or (i == 5) or (i == 7) or (i == 9):
+                id += "-"
+
+        self.device_token = id
+        
     def login_prompt(self):  # pragma: no cover
         """Prompts user for username and password and calls login() """
 
@@ -102,17 +121,13 @@ class Robinhood:
         self.username = username
         self.password = password
 
-        if self.device_token == "":
-            self.GenerateDeviceToken()
-
-        #or if self.device_token is invalid. need to find a way to check for this
-
+        self.GenerateDeviceToken()
 
         payload = {
             'password': self.password,
             'username': self.username,
             'grant_type': 'password',
-            'client_id': self.client_id,
+            'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
             'expires_in': '86400',
             'scope': 'internal',
             'device_token': self.device_token,
@@ -123,22 +138,23 @@ class Robinhood:
             payload['mfa_code'] = mfa_code
         try:
             res = self.session.post(endpoints.login(), data=payload, timeout=15)
-            res.raise_for_status()
-            data = res.json()
+            response_data = res.json()
+            self.challenge_id = response_data["challenge"]["id"]
+            sms_challenge_endpoint = "https://api.robinhood.com/challenge/{}/respond/".format(self.challenge_id)
+            self.sms_code = input()
+            challenge_res = {"response":self.sms_code}
+            res2 = self.session.post(sms_challenge_endpoint, data=challenge_res, timeout=15)
+            res2.raise_for_status()
+            data = res2.json()
+            return "Logged In"
         except requests.exceptions.HTTPError:
             raise RH_exception.LoginFailed()
 
         if 'mfa_required' in data.keys():           # pragma: no cover
             raise RH_exception.TwoFactorRequired()  # requires a second call to enable 2FA
 
-        if 'access_token' in data.keys() and 'refresh_token' in data.keys():
-            self.auth_token = data['access_token']
-            self.refresh_token = data['refresh_token']
-            self.headers['Authorization'] = 'Bearer ' + self.auth_token
-            return True
-
-        return False
-
+        return "Not Logged In"
+    
     def logout(self):
         """Logout from Robinhood
 
@@ -161,26 +177,6 @@ class Robinhood:
         self.auth_token = None
 
         return req
-    
-    def GenerateDeviceToken(self):
-        rands = []
-        for i in range(0,16):
-            r = random.random()
-            rand = 4294967296.0 * r
-            rands.append((int(rand) >> ((3 & i) << 3)) & 255)
-
-        hexa = []
-        for i in range(0,256):
-            hexa.append(str(hex(i+256)).lstrip("0x").rstrip("L")[1:])
-
-        id = ""
-        for i in range(0,16):
-            id += hexa[rands[i]]
-
-            if (i == 3) or (i == 5) or (i == 7) or (i == 9):
-                id += "-"
-
-        self.device_token = id
 
 
     ###########################################################################
