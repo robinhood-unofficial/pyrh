@@ -144,7 +144,6 @@ class Robinhood:
             try:
                 res = self.session.post(endpoints.login(), data=payload, timeout=15)
                 data = res.json()
-                print(data)
                 
                 if 'access_token' in data.keys() and 'refresh_token' in data.keys():
                     self.auth_token = data['access_token']
