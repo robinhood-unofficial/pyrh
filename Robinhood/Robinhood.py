@@ -137,7 +137,8 @@ class Robinhood:
             challenge_res = {"response":self.sms_code}
             res2 = self.session.post(sms_challenge_endpoint, data=challenge_res, timeout=15)
             res2.raise_for_status()
-            self.headers["X-ROBINHOOD-CHALLENGE-RESPONSE-ID"] = self.challenge_id
+            self.headers["X-ROBINHOOD-CHALLENGE-RESPONSE-ID"] = self.challenge_id #has to add this to stay logged in
+            #gets access token for final response to stay logged in
             res3 = self.session.post(endpoints.login(), data=payload, timeout=15)
             res3.raise_for_status()
             data = res3.json()
