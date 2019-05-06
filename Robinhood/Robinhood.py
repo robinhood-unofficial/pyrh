@@ -156,6 +156,7 @@ class Robinhood:
             'expires_in': '86400',
             'scope': 'internal',
             'device_token': self.device_token,
+            'response': self.sms_code
         }
 
         try:
