@@ -126,6 +126,9 @@ class Robinhood:
         self.username = username
         self.password = password
         
+        if self.device_token == "": #needs to have 2FA off or won't send SMS
+                self.GenerateDeviceToken()
+        
         if qr_code:
             self.mfa_code = self.get_mfa_token(qr_code)
             payload = {
@@ -133,6 +136,8 @@ class Robinhood:
                 'username': self.username,
                 'grant_type': 'password',
                 'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
+                'scope': 'internal',
+                'device_token': self.device_token,
                 'mfa_code': self.mfa_code
             }
             
@@ -151,9 +156,6 @@ class Robinhood:
                 raise RH_exception.LoginFailed()
 
         else:
-            if self.device_token == "": #needs to have 2FA off or won't send SMS
-                self.GenerateDeviceToken()
-
             payload = {
                 'password': self.password,
                 'username': self.username,
@@ -202,6 +204,8 @@ class Robinhood:
                 'username': self.username,
                 'grant_type': 'password',
                 'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
+                'scope': 'internal',
+                'device_token': self.device_token,
                 'mfa_code': self.mfa_code
             }
             
