@@ -131,14 +131,15 @@ class Robinhood:
             payload = {
                 'password': self.password,
                 'username': self.username,
-                'grant_type': 'password',
-                'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
+#                 'grant_type': 'password',
+#                 'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
                 'mfa_code': self.mfa_code
             }
             
             try:
                 res = self.session.post(endpoints.login(), data=payload, timeout=15)
                 data = res.json()
+                print(data)
                 
                 if 'access_token' in data.keys() and 'refresh_token' in data.keys():
                     self.auth_token = data['access_token']
@@ -199,8 +200,8 @@ class Robinhood:
             payload = {
                 'password': self.password,
                 'username': self.username,
-                'grant_type': 'password',
-                'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
+#                 'grant_type': 'password',
+#                 'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
                 'mfa_code': self.mfa_code
             }
             
