@@ -133,7 +133,7 @@ class Robinhood:
         try:
             res = self.session.post(endpoints.login(), data=payload, timeout=15)
             response_data = res.json()
-            if self.challenge.id == "":
+            if self.challenge_id == "":
                 self.challenge_id = response_data["challenge"]["id"]
             self.headers["X-ROBINHOOD-CHALLENGE-RESPONSE-ID"] = self.challenge_id #has to add this to stay logged in
             sms_challenge_endpoint = "https://api.robinhood.com/challenge/{}/respond/".format(self.challenge_id)
