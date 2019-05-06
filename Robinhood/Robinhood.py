@@ -139,16 +139,12 @@ class Robinhood:
             try:
                 res = self.session.post(endpoints.login(), data=payload, timeout=15)
                 data = res.json()
-                print(data)
                 
                 if 'access_token' in data.keys() and 'refresh_token' in data.keys():
                     self.auth_token = data['access_token']
                     self.refresh_token = data['refresh_token']
                     self.headers['Authorization'] = 'Bearer ' + self.auth_token
                     return True
-                
-#                 if 'mfa_required' in data.keys():
-#                     raise RH_exception.TwoFactorRequired()
                 
             except requests.exceptions.HTTPError:
                 raise RH_exception.LoginFailed()
@@ -199,29 +195,52 @@ class Robinhood:
     
     def auth_method(self):
         
-        payload = {
-            'password': self.password,
-            'username': self.username,
-            'grant_type': 'password',
-            'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
-            'expires_in': '86400',
-            'scope': 'internal',
-            'device_token': self.device_token,
-        }
-
-        try:
-            res = self.session.post(endpoints.login(), data=payload, timeout=15)
-            res.raise_for_status()
-            data = res.json()
+        if self.mfa_code:
+            payload = {
+                'password': self.password,
+                'username': self.username,
+                'grant_type': 'password',
+                'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
+                'mfa_code': self.mfa_code
+            }
             
-            if 'access_token' in data.keys() and 'refresh_token' in data.keys():
-                self.auth_token = data['access_token']
-                self.refresh_token = data['refresh_token']
-                self.headers['Authorization'] = 'Bearer ' + self.auth_token
-                return True
+            try:
+                res = self.session.post(endpoints.login(), data=payload, timeout=15)
+                data = res.json()
+                
+                if 'access_token' in data.keys() and 'refresh_token' in data.keys():
+                    self.auth_token = data['access_token']
+                    self.refresh_token = data['refresh_token']
+                    self.headers['Authorization'] = 'Bearer ' + self.auth_token
+                    return True
+                
+            except requests.exceptions.HTTPError:
+                raise RH_exception.LoginFailed()
 
-        except requests.exceptions.HTTPError:
-            raise RH_exception.LoginFailed()
+        else:        
+            payload = {
+                'password': self.password,
+                'username': self.username,
+                'grant_type': 'password',
+                'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
+                'expires_in': '86400',
+                'scope': 'internal',
+                'device_token': self.device_token,
+            }
+
+            try:
+                res = self.session.post(endpoints.login(), data=payload, timeout=15)
+                res.raise_for_status()
+                data = res.json()
+
+                if 'access_token' in data.keys() and 'refresh_token' in data.keys():
+                    self.auth_token = data['access_token']
+                    self.refresh_token = data['refresh_token']
+                    self.headers['Authorization'] = 'Bearer ' + self.auth_token
+                    return True
+
+            except requests.exceptions.HTTPError:
+                raise RH_exception.LoginFailed()
     
         return False
     
