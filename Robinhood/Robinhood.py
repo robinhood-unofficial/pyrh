@@ -131,7 +131,7 @@ class Robinhood:
             payload = {
                 'password': self.password,
                 'username': self.username,
-                'grant_type': 'mfa',
+                'grant_type': '2fa',
 #                 'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
                 'mfa_code': self.mfa_code
             }
@@ -200,7 +200,7 @@ class Robinhood:
             payload = {
                 'password': self.password,
                 'username': self.username,
-                'grant_type': 'mfa',
+                'grant_type': '2fa',
 #                 'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
                 'mfa_code': self.mfa_code
             }
