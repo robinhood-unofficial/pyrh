@@ -132,6 +132,7 @@ class Robinhood:
             response_data = res.json()
             self.challenge_id = response_data["challenge"]["id"]
             sms_challenge_endpoint = "https://api.robinhood.com/challenge/{}/respond/".format(self.challenge_id)
+            print("SMS Code:")
             self.sms_code = input()
             challenge_res = {"response":self.sms_code}
             res2 = self.session.post(sms_challenge_endpoint, data=challenge_res, timeout=15)
@@ -159,6 +160,7 @@ class Robinhood:
 
         try:
             res = self.session.post(endpoints.login(), data=payload, timeout=15)
+            print(res.json())
             res.raise_for_status()
 
             return "Logged In"
