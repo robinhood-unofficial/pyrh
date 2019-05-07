@@ -3,7 +3,7 @@
 WARNING!!
 
 Robinhood is now requiring a mandatory a MFA.
-Going to your Robinhood Web App and turning on 2FA is highly recomended because without it your auth tokens wil expire every 24 hours.
+Going to your Robinhood Web App and turning on 2FA is highly recommended because without it your auth tokens will expire every 24 hours.
 To do this, go to settings, turn on 2FA, select "Authentication App", click "Can't Scan It?", and save the 16-character QR code.
 Use something like this to login:
 
@@ -11,8 +11,8 @@ Use something like this to login:
     my_trader = Robinhood()
     my_trader.login(username="username", password="password", qr_code=QR)
 
-Without 2FA, this API can be run from the console, where the user will have to input an SMS code sent to their phone.
-Again, after logging in, the SMS code expires after 24 hours.
+Without 2FA this API can be run from the console where the user will have to input an SMS code sent to their phone.
+Again, after logging in the SMS code expires after 24 hours.
 In theory, one could trade with an algorithm if they signed in with the console at the beginning of each trading day.
 
 [![Join the chat at https://gitter.im/J-Robinhood/Lobby](https://badges.gitter.im/J-Robinhood/Lobby.svg)](https://gitter.im/J-Robinhood/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
