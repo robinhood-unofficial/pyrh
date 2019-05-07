@@ -2,7 +2,7 @@
 
 WARNING!!
 
-Robinhood is now requiring a mandatory an MFA.
+Robinhood is now requiring a mandatory MFA.
 
 Going to your Robinhood Web App and turning on 2FA is highly recommended because without it your auth tokens will expire every 24 hours.
 To do this, go to settings, turn on 2FA, select "Authentication App", click "Can't Scan It?", and save the 16-character QR code.
