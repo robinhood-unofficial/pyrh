@@ -130,7 +130,7 @@ class Robinhood:
                 self.GenerateDeviceToken()
         
         if qr_code:
-            in_2fa = True
+            self.qr_code = qr_code
             payload = {
                 'password': self.password,
                 'username': self.username,
@@ -138,7 +138,7 @@ class Robinhood:
                 'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
                 'scope': 'internal',
                 'device_token': self.device_token,
-                'mfa_code': self.get_mfa_token(qr_code)
+                'mfa_code': self.get_mfa_token(self.qr_code)
             }
             
             try:
@@ -198,7 +198,7 @@ class Robinhood:
     
     def auth_method(self):
         
-        if in_2fa == True:
+        if self.qr_code:
             payload = {
                 'password': self.password,
                 'username': self.username,
@@ -206,7 +206,7 @@ class Robinhood:
                 'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
                 'scope': 'internal',
                 'device_token': self.device_token,
-                'mfa_code': self.get_mfa_token(qr_code)
+                'mfa_code': self.get_mfa_token(self.qr_code)
             }
             
             try:
