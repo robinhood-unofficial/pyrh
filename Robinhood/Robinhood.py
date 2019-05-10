@@ -155,7 +155,6 @@ class Robinhood:
                 raise RH_exception.LoginFailed()
 
         else:
-            in_2fa = False
             payload = {
                 'password': self.password,
                 'username': self.username,
@@ -326,7 +325,7 @@ class Robinhood:
         except requests.exceptions.HTTPError:
             raise RH_exception.InvalidInstrumentId()
 
-        return data['results']
+        return data['results'][0]
 
 
     def quote_data(self, stock=''):
