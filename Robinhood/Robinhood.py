@@ -332,18 +332,15 @@ class Robinhood:
         """Fetch stock quote
 
             Args:
-                stock (str): stock ticker, prompt if blank
+                stock (str or dict): stock ticker symbol or stock instrument
 
             Returns:
                 (:obj:`dict`): JSON contents from `quotes` endpoint
         """
 
-        url = None
-
-        if stock.find(',') == -1:
-            url = str(endpoints.quotes()) + str(stock) + "/"
-        else:
-            url = str(endpoints.quotes()) + "?symbols=" + str(stock)
+        if (isinstance(stock, dict)):
+            if "symbol" in stock.keys():
+                url = str(endpoints.quotes()) + stock["symbol"] + "/"
 
         #Check for validity of symbol
         try:
