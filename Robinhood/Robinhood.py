@@ -338,9 +338,13 @@ class Robinhood:
                 (:obj:`dict`): JSON contents from `quotes` endpoint
         """
 
-        if (isinstance(stock, dict)):
+        if isinstance(stock, dict):
             if "symbol" in stock.keys():
                 url = str(endpoints.quotes()) + stock["symbol"] + "/"
+        elif isinstance(stock, str):
+            url = str(endpoints.quotes()) + stock + "/"
+        else:
+            raise RH_exception.InvalidTickerSymbol()
 
         #Check for validity of symbol
         try:
