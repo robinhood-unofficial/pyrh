@@ -343,6 +343,8 @@ class Robinhood:
                 url = str(endpoints.quotes()) + stock["symbol"] + "/"
         elif isinstance(stock, str):
             url = str(endpoints.quotes()) + stock + "/"
+        elif isinstance(stock, unicode):
+            url = str(endpoints.quotes()) + str(stock) + "/"
         else:
             raise RH_exception.InvalidTickerSymbol()
 
