@@ -1268,7 +1268,10 @@ class Robinhood:
         # Used for default price input
         # Price is required, so we use the current bid price if it is not specified
         current_quote = self.get_quote(symbol)
-        current_bid_price = current_quote['bid_price']
+        if (current_quote['bid_price'] == 0) or (current_quote['bid_price'] == None):
+            current_bid_price = current_quote['last_trade_price']
+        else:
+            current_bid_price = current_quote['bid_price']
 
         # Start with some parameter checks. I'm paranoid about $.
         if(instrument_URL is None):
@@ -1410,7 +1413,10 @@ class Robinhood:
         # Used for default price input
         # Price is required, so we use the current ask price if it is not specified
         current_quote = self.get_quote(symbol)
-        current_ask_price = current_quote['ask_price']
+        if (current_quote['ask_price'] == 0) or (current_quote['ask_price'] == None):
+            current_ask_price = current_quote['last_trade_price']
+        else:
+            current_ask_price = current_quote['ask_price']
 
         # Start with some parameter checks. I'm paranoid about $.
         if(instrument_URL is None):
@@ -1535,6 +1541,9 @@ class Robinhood:
 
         if not price:
             price = self.quote_data(instrument['symbol'])['bid_price']
+            
+            if (price == 0) or (price == None):
+                price = self.quote_data(instrument['symbol'])['last_trade_price']
 
         payload = {
             'account': self.get_account()['url'],
@@ -1583,6 +1592,9 @@ class Robinhood:
         if not ask_price:
             ask_price = self.quote_data(instrument['symbol'])['ask_price']
             
+            if (ask_price == 0) or (ask_price == None):
+                ask_price = self.quote_data(instrument['symbol'])['last_trade_price']
+            
         transaction = Transaction.BUY
 
         return self.place_order(instrument, quantity, ask_price, transaction)
@@ -1604,6 +1616,9 @@ class Robinhood:
         """
         if not bid_price:
             bid_price = self.quote_data(instrument['symbol'])['bid_price']
+            
+            if (bid_price == 0) or (bid_price == None):
+                bid_price = self.quote_data(instrument['symbol'])['last_trade_price']
             
         transaction = Transaction.SELL
 
