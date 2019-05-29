@@ -969,6 +969,22 @@ class Robinhood:
         """
 
         return self.session.get(endpoints.positions() + '?nonzero=true', timeout=15).json()
+    
+    
+    def security_tick(self,instrument):
+        """Returns ticker of given instrument
+        """
+        
+        return self.session.get(instrument).json()['symbol']
+    
+	
+    def watchlists(self): 
+        """Returns list of securities' symbols that the user has in watchlist
+
+            Returns:
+                (:object: `dict`): Non-zero positions
+        """
+        return self.session.get(endpoints.watchlists() + 'Default/', timeout=15).json()
 
 
     ###########################################################################
