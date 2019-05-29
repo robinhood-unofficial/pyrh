@@ -1268,7 +1268,7 @@ class Robinhood:
         # Used for default price input
         # Price is required, so we use the current bid price if it is not specified
         current_quote = self.get_quote(symbol)
-        if (current_quote['bid_price'] == 0) or (current_quote['bid_price'] == None):
+        if (float(current_quote['bid_price']) == 0) or (current_quote['bid_price'] == None):
             current_bid_price = current_quote['last_trade_price']
         else:
             current_bid_price = current_quote['bid_price']
@@ -1326,7 +1326,7 @@ class Robinhood:
                 raise(ValueError('Market order has price limit in call to submit_sell_order'))
             price = float(price)
         else:
-            price = current_bid_price # default to current bid price
+            price = float(current_bid_price) # default to current bid price
 
         if(quantity is None):
             raise(ValueError('No quantity specified in call to submit_sell_order'))
@@ -1413,7 +1413,7 @@ class Robinhood:
         # Used for default price input
         # Price is required, so we use the current ask price if it is not specified
         current_quote = self.get_quote(symbol)
-        if (current_quote['ask_price'] == 0) or (current_quote['ask_price'] == None):
+        if (float(current_quote['ask_price']) == 0) or (current_quote['ask_price'] == None):
             current_ask_price = current_quote['last_trade_price']
         else:
             current_ask_price = current_quote['ask_price']
@@ -1471,7 +1471,7 @@ class Robinhood:
                 raise(ValueError('Market order has price limit in call to submit_buy_order'))
             price = float(price)
         else:
-            price = current_ask_price # default to current ask price
+            price = float(current_ask_price) # default to current ask price
 
         if(quantity is None):
             raise(ValueError('No quantity specified in call to submit_buy_order'))
@@ -1540,10 +1540,10 @@ class Robinhood:
             transaction = Transaction(transaction)
 
         if not price:
-            price = self.quote_data(instrument['symbol'])['bid_price']
+            price = float(self.quote_data(instrument['symbol'])['bid_price'])
             
             if (price == 0) or (price == None):
-                price = self.quote_data(instrument['symbol'])['last_trade_price']
+                price = float(self.quote_data(instrument['symbol'])['last_trade_price'])
 
         payload = {
             'account': self.get_account()['url'],
@@ -1590,10 +1590,10 @@ class Robinhood:
         """
 
         if not ask_price:
-            ask_price = self.quote_data(instrument['symbol'])['ask_price']
+            ask_price = float(self.quote_data(instrument['symbol'])['ask_price'])
             
             if (ask_price == 0) or (ask_price == None):
-                ask_price = self.quote_data(instrument['symbol'])['last_trade_price']
+                ask_price = float(self.quote_data(instrument['symbol'])['last_trade_price'])
             
         transaction = Transaction.BUY
 
@@ -1615,10 +1615,10 @@ class Robinhood:
                 (:obj:`requests.request`): result from `orders` put command
         """
         if not bid_price:
-            bid_price = self.quote_data(instrument['symbol'])['bid_price']
+            bid_price = float(self.quote_data(instrument['symbol'])['bid_price'])
             
             if (bid_price == 0) or (bid_price == None):
-                bid_price = self.quote_data(instrument['symbol'])['last_trade_price']
+                bid_price = float(self.quote_data(instrument['symbol'])['last_trade_price'])
             
         transaction = Transaction.SELL
 
