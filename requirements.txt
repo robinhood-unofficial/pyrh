@@ -1,2 +1,10 @@
 requests>=2.13.0,<=2.18.4
 six>=1.10.0,<=1.11.0
+
+dateutil
+time
+random
+hmac
+base64
+struct
+hashlib
