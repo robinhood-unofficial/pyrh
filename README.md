@@ -18,6 +18,7 @@ Use something like this to login:
 Without 2FA this API can be run from the console where the user will have to input an SMS code sent to their phone.
 After logging in the SMS code expires after 24 hours.
 In theory, one could trade with an algorithm if they signed in with the console at the beginning of each trading day.
+
 If this is your case, use this to login and then enter your SMS code to the console:
 
     my_trader = Robinhood()
