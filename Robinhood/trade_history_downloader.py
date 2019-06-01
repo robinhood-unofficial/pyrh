@@ -55,4 +55,3 @@ with open('orders.csv', 'w') as output_file:
     dict_writer = csv.DictWriter(output_file, keys)
     dict_writer.writeheader()
     dict_writer.writerows(orders)
-

@@ -39,3 +39,10 @@ class InvalidInstrumentId(RobinhoodException):
         When an invalid instrument id is given
     """
     pass
+
+
+class InvalidOptionId(RobinhoodException):
+    """
+        When an invalid option id is given
+    """
+    pass

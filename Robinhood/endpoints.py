@@ -1,14 +1,16 @@
+api_url = "https://api.robinhood.com"
+
 def login():
-    return "https://api.robinhood.com/api-token-auth/"
+    return api_url + "/oauth2/token/"
 
 def logout():
-    return "https://api.robinhood.com/api-token-logout/"
+    return api_url + "/oauth2/revoke_token/"
 
 def investment_profile():
-    return "https://api.robinhood.com/user/investment_profile/"
+    return api_url + "/user/investment_profile/"
 
 def accounts():
-    return "https://api.robinhood.com/accounts/"
+    return api_url + "/accounts/"
 
 def ach(option):
     '''
@@ -17,80 +19,80 @@ def ach(option):
         * relationships
         * transfers
     '''
-    return "https://api.robinhood.com/ach/iav/auth/" if option == "iav" else "https://api.robinhood.com/ach/{_option}/".format(_option=option)
+    return api_url + "/ach/iav/auth/" if option == "iav" else api_url + "/ach/{_option}/".format(_option=option)
 
 def applications():
-    return "https://api.robinhood.com/applications/"
+    return api_url + "/applications/"
 
 def dividends():
-    return "https://api.robinhood.com/dividends/"
+    return api_url + "/dividends/"
 
 def edocuments():
-    return "https://api.robinhood.com/documents/"
+    return api_url + "/documents/"
 
 def instruments(instrumentId=None, option=None):
     '''
-    Return information about a specific instrument by providing its instrument id. 
+    Return information about a specific instrument by providing its instrument id.
     Add extra options for additional information such as "popularity"
     '''
-    return "https://api.robinhood.com/instruments/" + ("{id}/".format(id=instrumentId) if instrumentId else "") + ("{_option}/".format(_option=option) if option else "")
+    return api_url + "/instruments/" + ("{id}/".format(id=instrumentId) if instrumentId else "") + ("{_option}/".format(_option=option) if option else "")
 
 def margin_upgrades():
-    return "https://api.robinhood.com/margin/upgrades/"
+    return api_url + "/margin/upgrades/"
 
 def markets():
-    return "https://api.robinhood.com/markets/"
+    return api_url + "/markets/"
 
 def notifications():
-    return "https://api.robinhood.com/notifications/"
+    return api_url + "/notifications/"
 
 def orders(orderId=None):
-    return "https://api.robinhood.com/orders/" + ("{id}/".format(id=orderId) if orderId else "")
+    return api_url + "/orders/" + ("{id}/".format(id=orderId) if orderId else "")
 
 def password_reset():
-    return "https://api.robinhood.com/password_reset/request/"
+    return api_url + "/password_reset/request/"
 
 def portfolios():
-    return "https://api.robinhood.com/portfolios/"
+    return api_url + "/portfolios/"
 
 def positions():
-    return "https://api.robinhood.com/positions/"
+    return api_url + "/positions/"
 
 def quotes():
-    return "https://api.robinhood.com/quotes/"
+    return api_url + "/quotes/"
 
 def historicals():
-    return "https://api.robinhood.com/quotes/historicals/"
+    return api_url + "/quotes/historicals/"
 
 def document_requests():
-    return "https://api.robinhood.com/upload/document_requests/"
+    return api_url + "/upload/document_requests/"
 
 def user():
-    return "https://api.robinhood.com/user/"
+    return api_url + "/user/"
 
 def watchlists():
-    return "https://api.robinhood.com/watchlists/"
+    return api_url + "/watchlists/"
 
 def news(stock):
-    return "https://api.robinhood.com/midlands/news/{_stock}/".format(_stock=stock)
+    return api_url + "/midlands/news/{_stock}/".format(_stock=stock)
 
 def fundamentals(stock):
-    return "https://api.robinhood.com/fundamentals/{_stock}/".format(_stock=stock)
+    return api_url + "/fundamentals/{_stock}/".format(_stock=stock)
 
 def tags(tag=None):
     '''
     Returns endpoint with tag concatenated.
     '''
-    return "https://api.robinhood.com/midlands/tags/tag/{_tag}/".format(_tag=tag)
+    return api_url + "/midlands/tags/tag/{_tag}/".format(_tag=tag)
 
 def chain(instrumentid):
-    return "https://api.robinhood.com/options/chains/?equity_instrument_ids={_instrumentid}".format(_instrumentid=instrumentid)
+    return api_url + "/options/chains/?equity_instrument_ids={_instrumentid}".format(_instrumentid=instrumentid)
 
 def options(chainid, dates, option_type):
-    return "https://api.robinhood.com/options/instruments/?chain_id={_chainid}&expiration_dates={_dates}&state=active&tradability=tradable&type={_type}".format(_chainid=chainid, _dates=dates, _type=option_type)
+    return api_url + "/options/instruments/?chain_id={_chainid}&expiration_dates={_dates}&state=active&tradability=tradable&type={_type}".format(_chainid=chainid, _dates=dates, _type=option_type)
 
 def market_data(optionid):
-    return "https://api.robinhood.com/marketdata/options/{_optionid}/".format(_optionid=optionid)
+    return api_url + "/marketdata/options/{_optionid}/".format(_optionid=optionid)
 
 def convert_token():
-    return "https://api.robinhood.com/oauth2/migrate_token/"
+    return api_url + "/oauth2/migrate_token/"
