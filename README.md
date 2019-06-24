@@ -15,7 +15,7 @@ Use something like this to login:
     my_trader = Robinhood()
     my_trader.login(username="username", password="password", qr_code=QR)
 
-Without 2FA this API can be run from the console where the user will have to input an SMS code sent to their phone.
+Without 2FA this API can be run from the console where the user will have to input an SMS code sent to their phone when you run the login function.
 After logging in the SMS code expires after 24 hours.
 In theory, one could trade with an algorithm if they signed in with the console at the beginning of each trading day.
 
