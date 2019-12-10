@@ -15,6 +15,7 @@ import getpass
 import requests
 import six
 import dateutil
+import datetime
 
 #Application-specific imports
 from . import exceptions as RH_exception
@@ -102,12 +103,25 @@ class Robinhood:
         """
 
         self.username = username
+
         payload = {
+            'client_id': "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
+            'device_token': "f463db15-3b5f-43cb-8ff7-cf208674b146",
+            'expires_in': 86400,
+            'grant_type': "password",
             'password': password,
-            'username': self.username,
-            'grant_type': 'password',
-            'client_id': self.client_id
+            'scope': "internal",
+            'username': self.username
         }
+        # payload = {
+        #     'password': password,
+        #     'username': self.username,
+        #     'grant_type': 'password',
+        #     'client_id': self.client_id,
+        #     'device_token': self.device_token,
+        #     'expires_in': 86400,
+        #     'scope': 'internal'
+        # }
 
         if mfa_code:
             payload['mfa_code'] = mfa_code
@@ -162,7 +176,7 @@ class Robinhood:
     def investment_profile(self):
         """Fetch investment_profile """
 
-        res = self.session.get(endpoints.investment_profile(), timeout=15)
+        res = self.session.get(endpoints.orders(), timeout=15)
         res.raise_for_status()  # will throw without auth
         data = res.json()
 
@@ -367,6 +381,7 @@ class Robinhood:
             Returns:
                 None
         """
+        print(self.session.get(endpoints.orders(),timeout=15).json)
 
         data = self.get_quote_list(stock, 'symbol,last_trade_price')
         for item in data:
@@ -975,7 +990,8 @@ class Robinhood:
                                instrument_URL=None,
                                symbol=None,
                                time_in_force=None,
-                               quantity=None):
+                               quantity=None,
+                               extended_hours=None):
         """Wrapper for placing market buy orders
 
             Notes:
@@ -997,7 +1013,8 @@ class Robinhood:
                                  instrument_URL=instrument_URL,
                                  symbol=symbol,
                                  time_in_force=time_in_force,
-                                 quantity=quantity))
+                                 quantity=quantity,
+                                 extended_hours=extended_hours))
 
     def place_limit_buy_order(self,
                               instrument_URL=None,
@@ -1030,12 +1047,55 @@ class Robinhood:
                                  price=price,
                                  quantity=quantity))
 
+    def check_place_limit_buy(self, orderId=None, time_frame=None):
+        """Checks status of limit buys after order is made. Cancels if order execution is too late
+
+            Notes:
+                This should only be used after place_limit_buy is complete.
+
+            Args:
+                orderId: provides context of limit_buy of interest
+                time_frame(int): amount of delay allowed between order submission and execution
+
+            Returns:
+                (bool): whether the order was completed within the given time frame
+        """
+
+        # need to check if order exists orderId type
+
+        order = self.session.get(endpoints.orders(orderId), timeout=15).json()
+
+        if(order['detail'] == 'Not found.'):
+            raise(ValueError('orderId does not exist'))
+        if(order_type != 'market') and (order_type != 'limit'):
+            raise(ValueError('Invalid order_type in call to submit_order'))
+        if(order['type'] != 'limit' and order['type'] != 'market'):
+            raise(ValueError'Invalid order_type in call')
+
+
+
+        past_orders = self.order_history(orderId)
+        time_submitted = past_orders['result'][0]['created']
+
+        current_time = datetime.datetime.now(past_orders['result'][0]['time_in_force'])
+        time_passed = current_time - time_submitted
+
+        if(time_passed >= time_frame):
+            self.cancel_order(past_orders['result'][0]['id'])
+            return False
+
+        else:
+            return True
+        
+        
+
     def place_stop_loss_buy_order(self,
                                   instrument_URL=None,
                                   symbol=None,
                                   time_in_force=None,
                                   stop_price=None,
-                                  quantity=None):
+                                  quantity=None,
+                                  extended_hours=None):
         """Wrapper for placing stop loss buy orders
 
             Notes:
@@ -1059,7 +1119,8 @@ class Robinhood:
                                  symbol=symbol,
                                  time_in_force=time_in_force,
                                  stop_price=stop_price,
-                                 quantity=quantity))
+                                 quantity=quantity,
+                                 extended_hours=extended_hours))
 
     def place_stop_limit_buy_order(self,
                                    instrument_URL=None,
@@ -1067,7 +1128,8 @@ class Robinhood:
                                    time_in_force=None,
                                    stop_price=None,
                                    price=None,
-                                   quantity=None):
+                                   quantity=None,
+                                   extended_hours=None):
         """Wrapper for placing stop limit buy orders
 
             Notes:
@@ -1093,13 +1155,15 @@ class Robinhood:
                                  time_in_force=time_in_force,
                                  stop_price=stop_price,
                                  price=price,
-                                 quantity=quantity))
+                                 quantity=quantity,
+                                 extended_hours=extended_hours))
 
     def place_market_sell_order(self,
                                 instrument_URL=None,
                                 symbol=None,
                                 time_in_force=None,
-                                quantity=None):
+                                quantity=None,
+                                extended_hours=None,):
         """Wrapper for placing market sell orders
 
             Notes:
@@ -1121,14 +1185,16 @@ class Robinhood:
                                  instrument_URL=instrument_URL,
                                  symbol=symbol,
                                  time_in_force=time_in_force,
-                                 quantity=quantity))
+                                 quantity=quantity,
+                                 extended_hours=extended_hours))
 
     def place_limit_sell_order(self,
                                instrument_URL=None,
                                symbol=None,
                                time_in_force=None,
                                price=None,
-                               quantity=None):
+                               quantity=None,
+                               extended_hours=None):
         """Wrapper for placing limit sell orders
 
             Notes:
@@ -1152,14 +1218,16 @@ class Robinhood:
                                  symbol=symbol,
                                  time_in_force=time_in_force,
                                  price=price,
-                                 quantity=quantity))
+                                 quantity=quantity,
+                                 extended_hours=extended_hours))
 
     def place_stop_loss_sell_order(self,
                                    instrument_URL=None,
                                    symbol=None,
                                    time_in_force=None,
                                    stop_price=None,
-                                   quantity=None):
+                                   quantity=None,
+                                   extended_hours=None):
         """Wrapper for placing stop loss sell orders
 
             Notes:
@@ -1183,7 +1251,8 @@ class Robinhood:
                                  symbol=symbol,
                                  time_in_force=time_in_force,
                                  stop_price=stop_price,
-                                 quantity=quantity))
+                                 quantity=quantity,
+                                 extended_hours=extended_hours))
 
     def place_stop_limit_sell_order(self,
                                     instrument_URL=None,
@@ -1191,7 +1260,8 @@ class Robinhood:
                                     time_in_force=None,
                                     price=None,
                                     stop_price=None,
-                                    quantity=None):
+                                    quantity=None,
+                                    extended_hours=None):
         """Wrapper for placing stop limit sell orders
 
             Notes:
@@ -1217,7 +1287,8 @@ class Robinhood:
                                  time_in_force=time_in_force,
                                  stop_price=stop_price,
                                  price=price,
-                                 quantity=quantity))
+                                 quantity=quantity,
+                                 extended_hours=extended_hours))
 
     def submit_order(self,
                      instrument_URL=None,
@@ -1228,7 +1299,8 @@ class Robinhood:
                      price=None,
                      stop_price=None,
                      quantity=None,
-                     side=None):
+                     side=None,
+                     extended_hours=None):
         """Submits order to Robinhood
 
             Notes:
@@ -1334,6 +1406,8 @@ class Robinhood:
         if(quantity <= 0):
             raise(ValueError('Quantity must be positive number in call to submit_order'))
 
+        
+
         payload = {}
 
         for field, value in [
@@ -1346,7 +1420,8 @@ class Robinhood:
                 ('price', price),
                 ('stop_price', stop_price),
                 ('quantity', quantity),
-                ('side', side)
+                ('side', side),
+                ('extended_hours',extended_hours)
             ]:
             if(value is not None):
                 payload[field] = value
@@ -1357,6 +1432,10 @@ class Robinhood:
         res.raise_for_status()
 
         return res
+    
+   
+
+
 
     ##############################
     #                          CANCEL ORDER
