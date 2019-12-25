@@ -3,6 +3,7 @@
 #Standard libraries
 import logging
 import warnings
+import uuid
 
 from enum import Enum
 
@@ -100,13 +101,15 @@ class Robinhood:
             (bool): received valid auth token
 
         """
+        devicetoken = uuid.uuid1()
 
         self.username = username
         payload = {
             'password': password,
             'username': self.username,
             'grant_type': 'password',
-            'client_id': self.client_id
+            'client_id': self.client_id,
+            'device_token': devicetoken
         }
 
         if mfa_code:
