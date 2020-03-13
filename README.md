@@ -20,16 +20,20 @@ See the original [blog post](https://medium.com/@rohanpai25/reversing-robinhood-
 ### How To Install:
 Clone the repository into your project directory using:
 
-    git clone https://github.com/Jamonek/Robinhood
+```
+git clone https://github.com/robinhood-unofficial/Robinhood
+```
 
 Then navigate to the cloned directory, where `setup.py` is located. Now run the following to install:
 
-    pip install .
-    
+```
+pip install .
+```
+
 ### Converting to Python 3
 Project will work on both python 2 and python 3
 
-### How to Use (see [example.py](https://github.com/Jamonek/Robinhood/blob/master/docs/example.py))
+### How to Use (see [example.py](https://github.com/robinhood-unofficial/Robinhood/blob/master/docs/example.py))
 
     from Robinhood import Robinhood
     my_trader = Robinhood()
