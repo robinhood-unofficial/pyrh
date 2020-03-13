@@ -4,11 +4,14 @@
 # Unofficial Robinhood API
 
 
-[![Join the chat at https://gitter.im/J-Robinhood/Lobby](https://badges.gitter.im/J-Robinhood/Lobby.svg)](https://gitter.im/J-Robinhood/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Gitter](https://img.shields.io/gitter/room/J-Robinhood/Lobby)](https://gitter.im/J-Robinhood/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![GitHub](https://img.shields.io/github/license/robinhood-unofficial/Robinhood)](https://github.com/robinhood-unofficial/Robinhood/blob/master/LICENSE)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 Python Framework to make trades with Robinhood Private API.
 See the original [blog post](https://medium.com/@rohanpai25/reversing-robinhood-free-accessible-automated-stock-trading-f40fba1e7d8b).
 
-## Current Features 
+## Current Features
 - Placing buy orders (`Robinhood.place_buy_order`)
 - Placing sell order (`Robinhood.place_sell_order`)
 - Fetch and cancel orders (`Robinhood.order_history` and `Robinhood.cancel_order`)
@@ -72,6 +75,22 @@ Then navigate to the example file linked above and run it.
 * News
 
 ------------------
+
+# Developer setup
+* pre-commit is used to manage the project's tooling and linting
+  * black
+  * flake8
+```
+brew install pre-commit
+pip install -r requiements-dev.txt
+pre-commit install
+```
+
+To manually run the linting checks. They are automatically run when you try to push the
+code.
+```
+pre-commit run -a
+```
 
 # Related
 

@@ -6,7 +6,7 @@ Using [py.test](http://doc.pytest.org/en/latest/contents.html) to validate cover
 
 * `test_config.cfg` has been included to make adjusting globals easy.  **NOTE DO NOT COMMIT SECRETS** use `test_config_local.cfg` to track secrets like login information
 * Don't forget to build a [virtualenv](http://docs.python-guide.org/en/latest/dev/virtualenvs/)
-* Coverage is designed to be version-agnostic.  Both Py2/Py3 are covered 
+* Coverage is designed to be version-agnostic.  Both Py2/Py3 are covered
     * requires running in py2 or py3 virtualenv to test
 
 Testing is easy:

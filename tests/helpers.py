@@ -1,9 +1,10 @@
-from os import path
 import configparser
+from os import path
 
 import requests
 
 from Robinhood import Robinhood
+
 
 def get_config(config_filename):
     """parse test config file
@@ -18,24 +19,21 @@ def get_config(config_filename):
     config = configparser.ConfigParser(
         interpolation=configparser.ExtendedInterpolation(),
         allow_no_value=True,
-        delimiters=('='),
-        inline_comment_prefixes=('#')
+        delimiters=("="),
+        inline_comment_prefixes=("#"),
     )
 
-    local_filename = config_filename.replace('.cfg', '_local.cfg')
+    local_filename = config_filename.replace(".cfg", "_local.cfg")
     if path.isfile(local_filename):
         config_filename = local_filename
 
-    with open(config_filename, 'r') as file:
+    with open(config_filename, "r") as file:
         config.read_file(file)
 
     return config
 
-def fetch_REST_directly(
-        endpoint_name,
-        arg_string,
-        config
-):
+
+def fetch_REST_directly(endpoint_name, arg_string, config):
     """fetch REST endpoint (instead of ?arg1=val1&arg2=val2)
 
     Args:
@@ -50,13 +48,8 @@ def fetch_REST_directly(
     rh_object = Robinhood()
     address = rh_object.endpoints[endpoint_name]
 
-    address = address + arg_string + '/'
-    headers = {
-        'User-Agent': config.get('FETCH', 'user_agent')
-    }
-    req = requests.get(
-        address,
-        headers=headers
-    )
+    address = address + arg_string + "/"
+    headers = {"User-Agent": config.get("FETCH", "user_agent")}
+    req = requests.get(address, headers=headers)
     req.raise_for_status()
     return req.json()

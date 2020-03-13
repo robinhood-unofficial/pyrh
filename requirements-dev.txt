@@ -1,0 +1,4 @@
+flake8==3.7.9
+black==19.10b0
+isort[pyproject]==4.3.21
+seed-isort-config==2.1.0
