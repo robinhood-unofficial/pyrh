@@ -1,4 +1,4 @@
-"""Setup.py for Robinhood helper library"""
+"""Setup.py for robinhood helper library"""
 
 import sys
 from os import listdir, path
@@ -79,7 +79,7 @@ class PyTest(TestCommand):
         TestCommand.initialize_options(self)
         self.pytest_args = [
             "Tests",
-            "--cov=Robinhood/",
+            "--cov=robinhood/",
             "--cov-report=term-missing",
         ]  # load defaults here
 
@@ -99,7 +99,7 @@ class PyTest(TestCommand):
 
 
 setup(
-    name="Robinhood",
+    name="robinhood",
     author="Jamone Kelly",
     author_email="TODO",
     url="https://github.com/Jamonek/Robinhood",
