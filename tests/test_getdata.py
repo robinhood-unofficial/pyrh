@@ -7,11 +7,11 @@ import requests
 import six
 from flaky import flaky
 
-from Robinhood import Robinhood
+from robinhood import Robinhood
 
 
 if six.PY2:
-    from Robinhood import RH_exception
+    from robinhood import RH_exception
 
 HERE = path.abspath(path.dirname(__file__))
 ROOT = path.dirname(HERE)
@@ -41,7 +41,7 @@ class TestQuoteHelpers:
     rh_obj = Robinhood()
 
     def test_quote_endpoint(self, config=CONFIG):
-        """get raw data from Robinhood to test against"""
+        """get raw data from robinhood to test against"""
         global TEST_QUOTE
 
         TEST_QUOTE = helpers.fetch_REST_directly("quotes", self.test_ticker, config)

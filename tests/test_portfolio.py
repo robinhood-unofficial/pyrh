@@ -6,12 +6,12 @@ import pytest
 import six
 from flaky import flaky
 
-import Robinhood.exceptions as RH_exception
-from Robinhood import Robinhood
+import robinhood.exceptions as RH_exception
+from robinhood import Robinhood
 
 
 if six.PY2:
-    from Robinhood import RH_exception
+    from robinhood import RH_exception
 
 
 HERE = path.abspath(path.dirname(__file__))
@@ -25,7 +25,7 @@ LOGIN_OK = False
 
 
 def test_login_happypath(config=CONFIG):
-    """try to log in to Robinhood"""
+    """try to log in to robinhood"""
     global LOGIN_OK
 
     if (not config.get("LOGIN", "username")) or (not config.get("LOGIN", "password")):

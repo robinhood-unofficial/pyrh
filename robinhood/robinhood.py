@@ -1,4 +1,4 @@
-"""Robinhood.py: a collection of utilities for working with Robinhood's Private API """
+"""robinhood.py: a collection of utilities for working with Robinhood's Private API """
 
 import base64
 import hashlib
@@ -16,7 +16,7 @@ from six.moves import input
 from six.moves.urllib.parse import unquote
 from six.moves.urllib.request import getproxies
 
-from Robinhood import endpoints, exceptions as RH_exception
+from robinhood import endpoints, exceptions as RH_exception
 
 
 class Bounds(Enum):
