@@ -77,12 +77,14 @@ Then navigate to the example file linked above and run it.
 ------------------
 
 # Developer setup
+* poetry is used to manage package dependencies
 * pre-commit is used to manage the project's tooling and linting
   * black
   * flake8
 ```
+brew install poetry
 brew install pre-commit
-pip install -r requiements-dev.txt
+poetry install
 pre-commit install
 ```
 

@@ -1,3 +1,39 @@
+[tool.poetry]
+name = "robinhood"
+version = "0.1"
+description = "Unofficial Robinhood Python API"
+authors = [
+    "Unofficial Robinhood Python API Developers"
+]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/georgianpartners/foreshadow"
+repository = "https://github.com/georgianpartners/foreshadow"
+keywords = [
+    "trading",
+    "options",
+    "robinhood",
+    "stock",
+    "api"
+]
+include = [
+    "README.md",
+    "pyproject.toml",
+    "LICENSE"
+]
+
+[tool.poetry.dependencies]
+python = "~2.7 || ^3.6"
+requests = "^2.23"
+six = "^1.14"
+python-dateutil = "^2.8"
+
+[tool.poetry.dev-dependencies]
+flake8 = "^3.7.9"
+black = { version = "^19.10b0", python = "^3.6" }
+isort = { version = "^4.3.21", extras = ["pyproject"] }
+seed-isort-config = { version = "^2.1.0", python = "^3.6.1" }
+
 [tool.black]
 include = '\.pyi?$'
 exclude = '''
@@ -14,10 +50,14 @@ exclude = '''
 '''
 
 [tool.isort]
-known_first_party = 'Robinhood'
+known_first_party = 'robinhood'
 known_third_party = ["dateutil", "flaky", "helpers", "pytest", "requests", "setuptools", "six"]
 multi_line_output = 3
 lines_after_imports = 2
 force_grid_wrap = 0
 combine_as_imports = true
 include_trailing_comma = true
+
+[build-system]
+requires = ["poetry>=1.0.5"]
+build-backend = "poetry.masonry.api"
