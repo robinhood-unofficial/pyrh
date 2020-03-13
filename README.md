@@ -1,8 +1,12 @@
-# Robinhood
+[![robinhood-logo](./docs/logo-color-transparent.png)](https://github.com/robinhood-unofficial/Robinhood)
+------------
+
+# Unofficial Robinhood API
+
 
 [![Join the chat at https://gitter.im/J-Robinhood/Lobby](https://badges.gitter.im/J-Robinhood/Lobby.svg)](https://gitter.im/J-Robinhood/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 Python Framework to make trades with Robinhood Private API.
-See this [blog post](https://medium.com/@rohanpai25/reversing-robinhood-free-accessible-automated-stock-trading-f40fba1e7d8b).
+See the original [blog post](https://medium.com/@rohanpai25/reversing-robinhood-free-accessible-automated-stock-trading-f40fba1e7d8b).
 
 ## Current Features 
 - Placing buy orders (`Robinhood.place_buy_order`)
@@ -16,16 +20,20 @@ See this [blog post](https://medium.com/@rohanpai25/reversing-robinhood-free-acc
 ### How To Install:
 Clone the repository into your project directory using:
 
-    git clone https://github.com/Jamonek/Robinhood
+```
+git clone https://github.com/robinhood-unofficial/Robinhood
+```
 
 Then navigate to the cloned directory, where `setup.py` is located. Now run the following to install:
 
-    pip install .
-    
+```
+pip install .
+```
+
 ### Converting to Python 3
 Project will work on both python 2 and python 3
 
-### How to Use (see [example.py](https://github.com/Jamonek/Robinhood/blob/master/docs/example.py))
+### How to Use (see [example.py](https://github.com/robinhood-unofficial/Robinhood/blob/master/docs/example.py))
 
     from Robinhood import Robinhood
     my_trader = Robinhood()
