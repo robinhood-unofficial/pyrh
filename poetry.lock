@@ -351,8 +351,8 @@ secure = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "cer
 socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7,<2.0)"]
 
 [metadata]
-content-hash = "20c390d6de9454e77cbb2321bbc2e10e45e99e89326fa9847f8aea5403bf00d1"
-python-versions = "~2.7 || ^3.7"
+content-hash = "f5fc74f37c7e4ab62042f68cc7e08c428b7c38ea459b59016e5baddbd2245ddf"
+python-versions = "~2.7 || ^3.6"
 
 [metadata.files]
 appdirs = [

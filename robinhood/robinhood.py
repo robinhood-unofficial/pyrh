@@ -290,10 +290,7 @@ class Robinhood:
         """
 
         try:
-            payload = {
-                "client_id": self.client_id,
-                "token": self.refresh_token,
-            }
+            payload = {"client_id": self.client_id, "token": self.refresh_token}
             req = self.session.post(endpoints.logout(), data=payload, timeout=15)
             req.raise_for_status()
         except requests.exceptions.HTTPError as err_msg:
@@ -335,7 +332,7 @@ class Robinhood:
         """
 
         res = self.session.get(
-            endpoints.instruments(), params={"query": stock.upper()}, timeout=15,
+            endpoints.instruments(), params={"query": stock.upper()}, timeout=15
         )
         res.raise_for_status()
         res = res.json()
@@ -1049,7 +1046,7 @@ class Robinhood:
     ###########################################################################
 
     def place_market_buy_order(
-        self, instrument_URL=None, symbol=None, time_in_force=None, quantity=None,
+        self, instrument_URL=None, symbol=None, time_in_force=None, quantity=None
     ):
         """Wrapper for placing market buy orders
 
@@ -1185,7 +1182,7 @@ class Robinhood:
         )
 
     def place_market_sell_order(
-        self, instrument_URL=None, symbol=None, time_in_force=None, quantity=None,
+        self, instrument_URL=None, symbol=None, time_in_force=None, quantity=None
     ):
         """Wrapper for placing market sell orders
 
