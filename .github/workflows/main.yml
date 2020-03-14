@@ -11,7 +11,7 @@ on:
 
 # TODO: test on more python versions
 env:
-  PYTHON_VERSION: ${{ '3.6.8' }}
+  PYTHON_VERSION: ${{ '3.6.10' }}
 
 jobs:
   build:
