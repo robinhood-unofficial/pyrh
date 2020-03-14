@@ -1,8 +1,6 @@
-# This is a basic workflow to help you get started with Actions
+name: ci
 
-name: linting
-
-# Controls when the action will run. Triggers the workflow on push or pull request 
+# Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
 on:
   pull_request:
@@ -11,7 +9,7 @@ on:
 
 # TODO: test on more python versions
 env:
-  PYTHON_VERSION: ${{ '3.6.10' }}
+  PYTHON_VERSION: ${{ '3.7.6' }}
 
 jobs:
   build:
