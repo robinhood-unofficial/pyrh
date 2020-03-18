@@ -7,11 +7,11 @@ import requests
 import six
 from flaky import flaky
 
-from robinhood import Robinhood
+from pyrh import Robinhood
 
 
 if six.PY2:
-    from robinhood import RH_exception
+    from pyrh import RH_exception
 
 HERE = path.abspath(path.dirname(__file__))
 ROOT = path.dirname(HERE)

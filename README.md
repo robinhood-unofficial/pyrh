@@ -1,7 +1,7 @@
 [![robinhood-logo](./docs/logo-color-transparent.png)](https://github.com/robinhood-unofficial/Robinhood)
 ------------
 
-# Unofficial Robinhood API
+# pyrh - Unofficial Robinhood API
 
 
 [![Gitter](https://img.shields.io/gitter/room/J-Robinhood/Lobby)](https://gitter.im/J-Robinhood/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)

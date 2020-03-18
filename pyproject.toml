@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "robinhood"
+name = "pyrh"
 version = "2.0"
 description = "Unofficial Robinhood Python API"
 authors = [
@@ -27,6 +27,8 @@ python = "~2.7 || ^3.6"
 requests = "^2.23"
 six = "^1.14"
 python-dateutil = "^2.8"
+configparser = { version = "^3.5", python = "~2.7" }
+enum = { version = "^0.4.6", python = "~2.7" }
 
 [tool.poetry.dev-dependencies]
 flake8 = "3.7.9"
@@ -51,7 +53,7 @@ exclude = '''
 
 [tool.isort]
 known_first_party = 'robinhood'
-known_third_party = ["dateutil", "flaky", "helpers", "pytest", "requests", "setuptools", "six"]
+known_third_party = ["dateutil", "flaky", "helpers", "pytest", "requests", "six"]
 multi_line_output = 3
 lines_after_imports = 2
 force_grid_wrap = 0

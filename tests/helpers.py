@@ -3,7 +3,7 @@ from os import path
 
 import requests
 
-from robinhood import Robinhood
+from pyrh import Robinhood
 
 
 def get_config(config_filename):

@@ -16,7 +16,7 @@ from six.moves import input
 from six.moves.urllib.parse import unquote
 from six.moves.urllib.request import getproxies
 
-from robinhood import endpoints, exceptions as RH_exception
+from pyrh import endpoints, exceptions as RH_exception
 
 
 class Bounds(Enum):

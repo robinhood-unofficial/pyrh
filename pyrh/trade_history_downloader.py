@@ -1,7 +1,7 @@
 import csv
 import shelve
 
-from robinhood import Robinhood
+from pyrh import Robinhood
 
 
 def get_symbol_from_instrument_url(rb_client, url, db):

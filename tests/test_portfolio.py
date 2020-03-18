@@ -6,12 +6,12 @@ import pytest
 import six
 from flaky import flaky
 
-import robinhood.exceptions as RH_exception
-from robinhood import Robinhood
+import pyrh.exceptions as RH_exception
+from pyrh import Robinhood
 
 
 if six.PY2:
-    from robinhood import RH_exception
+    from pyrh import RH_exception
 
 
 HERE = path.abspath(path.dirname(__file__))
