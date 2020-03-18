@@ -78,6 +78,14 @@ Then navigate to the example file linked above and run it.
 
 ------------------
 
+# Changelog
+## 2.0
+* Fixed 2fa connection issues
+* Last version to support python 2
+
+## 1.0.1
+* Added custom exception
+
 # Developer setup
 * Python 3.7+ is required
 * poetry is used to manage package dependencies
@@ -98,6 +106,5 @@ pre-commit run -a
 ```
 
 # Related
-
 * [robinhood-ruby](https://github.com/rememberlenny/robinhood-ruby) - RubyGem for interacting with Robinhood API
 * [robinhood-node](https://github.com/aurbano/robinhood-node) - NodeJS module to make trades with Robinhood Private API
