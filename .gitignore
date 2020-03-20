@@ -65,5 +65,7 @@ target/
 # Secret Config
 *_local.cfg
 
+# Other
 .idea/
 .python-version
+.DS_Store

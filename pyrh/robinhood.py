@@ -8,13 +8,11 @@ import struct
 import time
 import warnings
 from enum import Enum
+from urllib.parse import unquote
+from urllib.request import getproxies
 
 import dateutil
 import requests
-import six
-from six.moves import input
-from six.moves.urllib.parse import unquote
-from six.moves.urllib.request import getproxies
 
 from pyrh import endpoints, exceptions as RH_exception
 
@@ -78,7 +76,7 @@ class Robinhood:
 
         return wrapper
 
-    def GenerateDeviceToken(self):
+    def generate_device_token(self):
         rands = []
         for i in range(0, 16):
             r = random.random()
@@ -98,7 +96,8 @@ class Robinhood:
 
         self.device_token = id
 
-    def get_mfa_token(self, secret):
+    @staticmethod
+    def get_mfa_token(secret):
         intervals_no = int(time.time()) // 30
         key = base64.b32decode(secret, True)
         msg = struct.pack(">Q", intervals_no)
@@ -144,7 +143,7 @@ class Robinhood:
         self.password = password
 
         if self.device_token == "":
-            self.GenerateDeviceToken()
+            self.generate_device_token()
 
         if qr_code:
             self.qr_code = qr_code
@@ -378,8 +377,6 @@ class Robinhood:
                 url = str(endpoints.quotes()) + stock["symbol"] + "/"
         elif isinstance(stock, str):
             url = str(endpoints.quotes()) + stock + "/"
-        elif isinstance(stock, [six.binary_type, six.text_type]):
-            url = str(endpoints.quotes()) + str(stock) + "/"
         else:
             raise RH_exception.InvalidTickerSymbol()
 

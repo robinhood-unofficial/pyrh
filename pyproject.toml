@@ -23,12 +23,9 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-python = "~2.7 || ^3.6"
+python = "^3.6"
 requests = "^2.23"
-six = "^1.14"
 python-dateutil = "^2.8"
-configparser = { version = "^3.5", python = "~2.7" }
-enum = { version = "^0.4.6", python = "~2.7" }
 
 [tool.poetry.dev-dependencies]
 flake8 = "3.7.9"
