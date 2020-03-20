@@ -34,12 +34,14 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: set PY
         run: echo "::set-env name=PY::$(python -c 'import hashlib, sys;print(hashlib.sha256(sys.version.encode()+sys.executable.encode()).hexdigest())')"
-      - name: Install/Configure Poetry and install packages
-        run: | # Source so that it works in this session
+      - name: Install Poetry
+        run: |
           pip install --upgrade pip
           curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
-          echo "::add-path::$HOME/.poetry/bin"
-          source $HOME/.poetry/env
+      - name: Set Poetry to Path
+        run: echo "::add-path::~/.poetry/bin"
+      - name: Configure Poetry
+        run: |
           poetry config virtualenvs.in-project false
           poetry config virtualenvs.path ~/.virtualenvs
       - name: Cache Poetry virtualenv
@@ -47,7 +49,7 @@ jobs:
         id: cache-poetry
         with:
           path: ~/.virtualenvs
-          key: poetry|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
+          key: poetry|${{ matrix.os }}|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
           restore-keys: |
             poetry-${{ hashFiles('poetry.lock') }}
       - name: Install Project Dependencies (Poetry)
