@@ -1,48 +1,62 @@
 name: ci
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
 on:
   pull_request:
   push:
     branches: [ master ]
 
-# TODO: test on more python versions
-env:
-  PYTHON_VERSION: ${{ '3.7.6' }}
-
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v1
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-    - name: set PY
-      run: echo "::set-env name=PY::$(python -c 'import hashlib, sys;print(hashlib.sha256(sys.version.encode()+sys.executable.encode()).hexdigest())')"
-    - name: Install/Configure Poetry and install packages
-      run: | # Source so that it works in this session
-        pip install --upgrade pip
-        curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
-        echo "::add-path::$HOME/.poetry/bin"
-        source $HOME/.poetry/env
-        poetry config virtualenvs.in-project false
-        poetry config virtualenvs.path ~/.virtualenvs
-    - name: Cache Poetry virtualenv
-      uses: actions/cache@v1
-      id: cache-poetry
-      with:
-        path: ~/.virtualenvs
-        key: poetry-${{ hashFiles('poetry.lock') }}
-        restore-keys: |
-          poetry-${{ hashFiles('poetry.lock') }}
-    - name: Install Project Dependencies (Poetry)
-      run: |
-        poetry install -vvv
-      if: steps.cache-poetry.outputs.cache-hit != 'true'
-    - uses: actions/cache@v1
-      with:
-        path: ~/.cache/pre-commit
-        key: pre-commit|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
-    - uses: pre-commit/action@v1.0.1
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+      - name: set PY
+        run: echo "::set-env name=PY::$(python -c 'import hashlib, sys;print(hashlib.sha256(sys.version.encode()+sys.executable.encode()).hexdigest())')"
+      - uses: actions/cache@v1
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
+      - uses: pre-commit/action@v1.0.1
+  build:
+    needs: lint
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        python-version: [ 3.6, 3.7, 3.8]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: set PY
+        run: echo "::set-env name=PY::$(python -c 'import hashlib, sys;print(hashlib.sha256(sys.version.encode()+sys.executable.encode()).hexdigest())')"
+      - name: Install Poetry
+        run: |
+          pip install --upgrade pip
+          curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
+      - name: Set Poetry to Path Windows
+        run: echo "::add-path::%USERPROFILE%\.poetry\bin"
+        if: ${{ runner.os }} == "Windows"
+      - name: Add Poetry to Path Unix
+        run: echo "::add-path::$HOME/.poetry/bin"
+        if: (${{ runner.os }} == "Linux") || (${{ runner.os }} == "macOS")
+      - name: Configure Poetry
+        run: |
+          poetry config virtualenvs.in-project false
+          poetry config virtualenvs.path ~/.virtualenvs
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v1
+        id: cache-poetry
+        with:
+          path: ~/.virtualenvs
+          key: poetry|${{ matrix.os }}|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
+          restore-keys: |
+            poetry-${{ hashFiles('poetry.lock') }}
+      - name: Install Project Dependencies (Poetry)
+        run: |
+          poetry install -vvv
+        if: steps.cache-poetry.outputs.cache-hit != 'true'
