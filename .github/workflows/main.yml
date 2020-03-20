@@ -38,8 +38,12 @@ jobs:
         run: |
           pip install --upgrade pip
           curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
-      - name: Set Poetry to Path
-        run: echo "::add-path::~/.poetry/bin"
+      - name: Set Poetry to Path Windows
+        run: echo "::add-path::%USERPROFILE%\.poetry\bin"
+        if: ${{ runner.os }} == "Windows"
+      - name: Add Poetry to Path Unix
+        run: echo "::add-path::$HOME/.poetry/bin"
+        if: (${{ runner.os }} == "Linux") || (${{ runner.os }} == "macOS")
       - name: Configure Poetry
         run: |
           poetry config virtualenvs.in-project false
