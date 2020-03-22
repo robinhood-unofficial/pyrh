@@ -1,15 +1,7 @@
 """robinhood.py: a collection of utilities for working with Robinhood's Private API."""
 
-import base64
-import hashlib
-import hmac
-import random
-import struct
-import time
-import warnings
 from enum import Enum
 from urllib.parse import unquote
-from urllib.request import getproxies
 
 import dateutil
 import requests
@@ -19,8 +11,8 @@ from pyrh.exceptions import (
     InvalidInstrumentId,
     InvalidOptionId,
     InvalidTickerSymbol,
-    LoginFailed,
 )
+from pyrh.sessionmanager import SessionManager
 
 
 class Bounds(Enum):
@@ -37,295 +29,23 @@ class Transaction(Enum):
     SELL = "sell"
 
 
-class Robinhood:
-    """Wrapper class for fetching/parsing Robinhood endpoints."""
+class Robinhood(SessionManager):
+    """Wrapper class for fetching/parsing Robinhood endpoints.
 
-    session = None
-    username = None
-    password = None
-    headers = None
-    auth_token = None
-    refresh_token = None
+    Please see :py:class:`SessionManager` for login functionality.
 
-    client_id = "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS"
-
-    ###########################################################################
-    #                       Logging in and initializing                       #
-    ###########################################################################
-
-    def __init__(self):
-        self.session = requests.session()
-        self.session.proxies = getproxies()
-        self.headers = {
-            "Accept": "*/*",
-            "Accept-Encoding": "gzip, deflate",
-            "Accept-Language": "en;q=1, fr;q=0.9, de;q=0.8, ja;q=0.7, nl;q=0.6, it;q=0.5",  # noqa: E501
-            "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
-            "X-Robinhood-API-Version": "1.0.0",
-            "Connection": "keep-alive",
-            "User-Agent": "Robinhood/823 (iPhone; iOS 7.1.2; Scale/2.00)",
-        }
-        self.session.headers = self.headers
-        self.device_token = ""
-        self.challenge_id = ""
-
-    def login_required(function):  # pylint: disable=E0213
-        """Decorator that prompts user for login if they are not logged in already.
-
-        Can be applied to any function using the @ notation.
-
-        """
-
-        def wrapper(self, *args, **kwargs):
-            if "Authorization" not in self.headers:
-                self.auth_method()
-            return function(self, *args, **kwargs)  # pylint: disable=E1102
-
-        return wrapper
-
-    def generate_device_token(self):
-        rands = []
-        for i in range(0, 16):
-            r = random.random()
-            rand = 4294967296.0 * r
-            rands.append((int(rand) >> ((3 & i) << 3)) & 255)
-
-        hexa = []
-        for i in range(0, 256):
-            hexa.append(str(hex(i + 256)).lstrip("0x").rstrip("L")[1:])
-
-        id = ""
-        for i in range(0, 16):
-            id += hexa[rands[i]]
-
-            if (i == 3) or (i == 5) or (i == 7) or (i == 9):
-                id += "-"
-
-        self.device_token = id
-
-    @staticmethod
-    def get_mfa_token(secret):
-        intervals_no = int(time.time()) // 30
-        key = base64.b32decode(secret, True)
-        msg = struct.pack(">Q", intervals_no)
-        h = hmac.new(key, msg, hashlib.sha1).digest()
-        o = h[19] & 15
-        h = "{0:06d}".format(
-            (struct.unpack(">I", h[o : o + 4])[0] & 0x7FFFFFFF) % 1000000  # noqa: E203
-        )
-        return h
-
-    def relogin_oauth2(self):
-        """(Re)login using the Oauth2 refresh token."""
-        url = "https://api.robinhood.com/oauth2/token/"
-        data = {
-            "client_id": self.client_id,
-            "device_token": self.device_token,
-            "grant_type": "refresh_token",
-            "refresh_token": self.refresh_token,
-            "scope": "internal",
-            "expires_in": 86400,
-        }
-        res = self.session.post(url, data=data)
-        res = res.json()
-        self.auth_token = res["access_token"]
-        self.refresh_token = res["refresh_token"]
-        self.mfa_code = res["mfa_code"]
-        self.scope = res["scope"]
-
-    def login(self, username, password, challenge_type="email", qr_code=None):
-        """Save and test login info for Robinhood accounts.
-
-        Args:
-            username (str): username
-            password (str): password
-            qr_code (str): QR code that will be used to generate mfa_code (optional but
-                recommended) To get QR code, set up 2FA in Security, get Authentication
-                App, and click "Can't Scan It?"
-        Returns:
-            (bool): received valid auth token
-
-        """
-        self.username = username
-        self.password = password
-
-        if self.device_token == "":
-            self.generate_device_token()
-
-        if qr_code:
-            self.qr_code = qr_code
-            payload = {
-                "password": self.password,
-                "username": self.username,
-                "grant_type": "password",
-                "client_id": "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
-                "scope": "internal",
-                "device_token": self.device_token,
-                "mfa_code": self.get_mfa_token(self.qr_code),
-            }
-
-            try:
-                res = self.session.post(endpoints.login(), data=payload, timeout=15)
-                data = res.json()
-
-                if "access_token" in data.keys() and "refresh_token" in data.keys():
-                    self.auth_token = data["access_token"]
-                    self.refresh_token = data["refresh_token"]
-                    self.headers["Authorization"] = "Bearer " + self.auth_token
-                    return True
-
-            except requests.exceptions.HTTPError:
-                raise LoginFailed()
-
-        else:
-            payload = {
-                "password": self.password,
-                "username": self.username,
-                "grant_type": "password",
-                "client_id": "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
-                "expires_in": "86400",
-                "scope": "internal",
-                "device_token": self.device_token,
-                "challenge_type": challenge_type,
-            }
-
-            try:
-                res = self.session.post(endpoints.login(), data=payload, timeout=15)
-                res_data = res.json()
-
-                if (
-                    "access_token" in res_data.keys()
-                    and "refresh_token" in res_data.keys()
-                ):
-                    self.auth_token = res_data["access_token"]
-                    self.refresh_token = res_data["refresh_token"]
-                    self.headers["Authorization"] = "Bearer " + self.auth_token
-                    return True
-
-                if self.challenge_id == "" and "challenge" in res_data.keys():
-                    self.challenge_id = res_data["challenge"]["id"]
-                self.headers[
-                    "X-ROBINHOOD-CHALLENGE-RESPONSE-ID"
-                ] = self.challenge_id  # has to add this to stay logged in
-                sms_challenge_endpoint = (
-                    "https://api.robinhood.com/challenge/"
-                    "{}/respond/".format(self.challenge_id)
-                )
-                print("No 2FA Given")
-                print(challenge_type + " code:")
-                self.sms_code = input()
-                challenge_res = {"response": self.sms_code}
-                res2 = self.session.post(
-                    sms_challenge_endpoint, data=challenge_res, timeout=15
-                )
-                res2.raise_for_status()
-                # gets access token for final response to stay logged in
-                res3 = self.session.post(endpoints.login(), data=payload, timeout=15)
-                res3.raise_for_status()
-                data = res3.json()
-
-                if "access_token" in data.keys() and "refresh_token" in data.keys():
-                    self.auth_token = data["access_token"]
-                    self.refresh_token = data["refresh_token"]
-                    self.headers["Authorization"] = "Bearer " + self.auth_token
-                    return True
-
-            except requests.exceptions.HTTPError:
-                raise LoginFailed()
-
-        return False
-
-    def auth_method(self):
-        if self.qr_code:
-            payload = {
-                "password": self.password,
-                "username": self.username,
-                "grant_type": "password",
-                "client_id": "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
-                "scope": "internal",
-                "device_token": self.device_token,
-                "mfa_code": self.get_mfa_token(self.qr_code),
-            }
-
-            try:
-                res = self.session.post(endpoints.login(), data=payload, timeout=15)
-                data = res.json()
-
-                if "access_token" in data.keys() and "refresh_token" in data.keys():
-                    self.auth_token = data["access_token"]
-                    self.refresh_token = data["refresh_token"]
-                    self.headers["Authorization"] = "Bearer " + self.auth_token
-                    return True
-
-            except requests.exceptions.HTTPError:
-                raise LoginFailed()
-
-        else:
-            payload = {
-                "password": self.password,
-                "username": self.username,
-                "grant_type": "password",
-                "client_id": "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS",
-                "expires_in": "86400",
-                "scope": "internal",
-                "device_token": self.device_token,
-            }
-
-            try:
-                res = self.session.post(endpoints.login(), data=payload, timeout=15)
-                res.raise_for_status()
-                data = res.json()
-
-                if "access_token" in data.keys() and "refresh_token" in data.keys():
-                    self.auth_token = data["access_token"]
-                    self.refresh_token = data["refresh_token"]
-                    self.headers["Authorization"] = "Bearer " + self.auth_token
-                    return True
-
-            except requests.exceptions.HTTPError:
-                raise LoginFailed()
-
-        return False
-
-    def logout(self):
-        """Logout from Robinhood.
-
-        Returns:
-            (:obj:`requests.request`) result from logout endpoint
-
-        """
-
-        try:
-            payload = {"client_id": self.client_id, "token": self.refresh_token}
-            req = self.session.post(endpoints.logout(), data=payload, timeout=15)
-            req.raise_for_status()
-        except requests.exceptions.HTTPError as err_msg:
-            warnings.warn("Failed to log out " + repr(err_msg))
-
-        self.headers["Authorization"] = None
-        self.auth_token = None
-
-        return req
+    """
 
     ###########################################################################
     #                               GET DATA                                  #
     ###########################################################################
 
     def user(self):
-        res = self.session.get(endpoints.user(), timeout=15)
-        res.raise_for_status()  # will throw without auth
-        data = res.json()
-
-        return data
+        return self.get(endpoints.user())
 
     def investment_profile(self):
         """Fetch investment_profile."""
-
-        res = self.session.get(endpoints.investment_profile(), timeout=15)
-        res.raise_for_status()  # will throw without auth
-        data = res.json()
-
-        return data
+        return self.get(endpoints.investment_profile())
 
     def instruments(self, stock):
         """Fetch instruments endpoint.
@@ -338,11 +58,7 @@ class Robinhood:
 
         """
 
-        res = self.session.get(
-            endpoints.instruments(), params={"query": stock.upper()}, timeout=15
-        )
-        res.raise_for_status()
-        res = res.json()
+        res = self.get(endpoints.instruments(), params={"query": stock.upper()})
 
         # if requesting all, return entire object so may paginate with ['next']
         if stock == "":
@@ -363,9 +79,7 @@ class Robinhood:
         url = str(endpoints.instruments()) + "?symbol=" + str(id)
 
         try:
-            req = requests.get(url, timeout=15)
-            req.raise_for_status()
-            data = req.json()
+            data = requests.get(url)
         except requests.exceptions.HTTPError:
             raise InvalidInstrumentId()
 
@@ -392,9 +106,7 @@ class Robinhood:
 
         # Check for validity of symbol
         try:
-            req = self.session.get(url, headers=self.headers, timeout=15)
-            req.raise_for_status()
-            data = req.json()
+            data = self.get(url)
         except requests.exceptions.HTTPError:
             raise InvalidTickerSymbol()
 
@@ -417,9 +129,7 @@ class Robinhood:
         url = str(endpoints.quotes()) + "?symbols=" + ",".join(stocks)
 
         try:
-            req = self.session.get(url, timeout=15)
-            req.raise_for_status()
-            data = req.json()
+            data = self.get(url)
         except requests.exceptions.HTTPError:
             raise InvalidTickerSymbol()
 
@@ -516,8 +226,7 @@ class Robinhood:
             + bounds.name.lower()
         )
 
-        res = self.session.get(historicals, timeout=15)
-        return res.json()
+        return self.get(historicals)
 
     def get_news(self, stock):
         """Fetch news endpoint.
@@ -530,7 +239,7 @@ class Robinhood:
 
         """
 
-        return self.session.get(endpoints.news(stock.upper()), timeout=15).json()
+        return self.get(endpoints.news(stock.upper()))
 
     def print_quote(self, stock=""):  # pragma: no cover
         """Print quote information.
@@ -754,16 +463,14 @@ class Robinhood:
 
         """
 
-        res = self.session.get(endpoints.accounts(), timeout=15)
-        res.raise_for_status()  # auth required
-        res = res.json()
+        res = self.get(endpoints.accounts())
 
         return res["results"][0]
 
     def get_url(self, url):
         """Flat wrapper for fetching URL directly/"""
 
-        return self.session.get(url, timeout=15).json()
+        return self.get(url)
 
     def get_popularity(self, stock=""):
         """Get the number of robinhood users who own the given stock
@@ -911,9 +618,7 @@ class Robinhood:
 
         # Check for validity of symbol
         try:
-            req = self.session.get(url, timeout=15)
-            req.raise_for_status()
-            data = req.json()
+            data = self.get(url)
         except requests.exceptions.HTTPError:
             raise InvalidTickerSymbol()
 
@@ -931,10 +636,9 @@ class Robinhood:
     def portfolios(self):
         """Returns the user's portfolio data """
 
-        req = self.session.get(endpoints.portfolios(), timeout=15)
-        req.raise_for_status()
+        req = self.get(endpoints.portfolios())
 
-        return req.json()["results"][0]
+        return req["results"][0]
 
     def adjusted_equity_previous_close(self):
         """Wrapper for portfolios
@@ -1042,7 +746,7 @@ class Robinhood:
 
         """
 
-        return self.session.get(endpoints.orders(orderId), timeout=15).json()
+        return self.get(endpoints.orders(orderId))
 
     def dividends(self):
         """Wrapper for portfolios
@@ -1052,7 +756,7 @@ class Robinhood:
 
         """
 
-        return self.session.get(endpoints.dividends(), timeout=15).json()
+        return self.get(endpoints.dividends())
 
     ###########################################################################
     #                           POSITIONS DATA
@@ -1066,7 +770,7 @@ class Robinhood:
 
         """
 
-        return self.session.get(endpoints.positions(), timeout=15).json()
+        return self.get(endpoints.positions())
 
     def securities_owned(self):
         """Returns list of securities' symbols that the user has shares in
@@ -1076,9 +780,7 @@ class Robinhood:
 
         """
 
-        return self.session.get(
-            endpoints.positions() + "?nonzero=true", timeout=15
-        ).json()
+        return self.get(endpoints.positions() + "?nonzero=true")
 
     ###########################################################################
     #                               PLACE ORDER
@@ -1535,9 +1237,7 @@ class Robinhood:
                 payload[field] = value
 
         try:
-            res = self.session.post(endpoints.orders(), data=payload, timeout=15)
-            res.raise_for_status()
-
+            res = self.post(endpoints.orders(), data=payload)
             return res
         except Exception as ex:
             # sometimes Robinhood asks for another log in when placing an order
@@ -1717,9 +1417,7 @@ class Robinhood:
                 payload[field] = value
 
         try:
-            res = self.session.post(endpoints.orders(), data=payload, timeout=15)
-            res.raise_for_status()
-
+            res = self.post(endpoints.orders(), data=payload)
             return res
 
         except Exception as ex:
@@ -1784,9 +1482,7 @@ class Robinhood:
             payload["price"] = float(price)
 
         try:
-            res = self.session.post(endpoints.orders(), data=payload, timeout=15)
-            res.raise_for_status()
-
+            res = self.post(endpoints.orders(), data=payload)
             return res
 
         except Exception as ex:
@@ -1888,9 +1584,7 @@ class Robinhood:
         """
         if isinstance(order_id, str):
             try:
-                order = self.session.get(
-                    endpoints.orders() + order_id, timeout=15
-                ).json()
+                order = self.get(endpoints.orders() + order_id)
             except (requests.exceptions.HTTPError) as err_msg:
                 raise ValueError(
                     "Failed to get Order for ID: "
@@ -1901,17 +1595,13 @@ class Robinhood:
 
             if order.get("cancel") is not None:
                 try:
-                    res = self.session.post(order["cancel"], timeout=15)
-                    res.raise_for_status()
+                    res = self.post(order["cancel"])
                     return res
                 except requests.exceptions.HTTPError:
                     try:
                         # sometimes Robinhood asks for another log in when placing an
                         # order
-                        res = self.session.post(
-                            order["cancel"], headers=self.headers, timeout=15
-                        )
-                        res.raise_for_status()
+                        res = self.post(order["cancel"])
                         return res
                     except (requests.exceptions.HTTPError) as err_msg:
                         raise ValueError(
@@ -1925,9 +1615,7 @@ class Robinhood:
         elif isinstance(order_id, dict):
             order_id = order_id["id"]
             try:
-                order = self.session.get(
-                    endpoints.orders() + order_id, timeout=15
-                ).json()
+                order = self.get(endpoints.orders() + order_id)
             except (requests.exceptions.HTTPError) as err_msg:
                 raise ValueError(
                     "Failed to get Order for ID: "
@@ -1938,17 +1626,13 @@ class Robinhood:
 
             if order.get("cancel") is not None:
                 try:
-                    res = self.session.post(order["cancel"], timeout=15)
-                    res.raise_for_status()
+                    res = self.post(order["cancel"])
                     return res
                 except requests.exceptions.HTTPError:
                     try:
                         # sometimes Robinhood asks for another log in when placing an
                         # order
-                        res = self.session.post(
-                            order["cancel"], headers=self.headers, timeout=15
-                        )
-                        res.raise_for_status()
+                        res = self.post(order["cancel"])
                         return res
                     except (requests.exceptions.HTTPError) as err_msg:
                         raise ValueError(

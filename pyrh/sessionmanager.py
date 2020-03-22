@@ -203,6 +203,7 @@ class SessionManager(object):
     def get(
         self,
         url: str,
+        params: dict = None,
         headers: Optional[CaseInsensitiveDict] = None,
         raise_errors: bool = True,
         auto_login: bool = True,
@@ -215,6 +216,7 @@ class SessionManager(object):
 
         Args:
             url: The url to get from.
+            params: query string parameters
             headers: A dict adding to and overriding the session headers.
             raise_errors: Whether or not raise errors on GET request result.
             auto_login: Whether or not to automatically login on restricted endpoint
@@ -224,10 +226,16 @@ class SessionManager(object):
             The POST response
 
         """
-        res = self.session.get(url, headers={} if headers is None else headers)
+        if params is None:
+            params = {}
+        res = self.session.get(
+            url, params=params, headers={} if headers is None else headers
+        )
         if res.status_code == 401 and auto_login:
             self.login(force_refresh=True)
-            res = self.session.get(url, headers={} if headers is None else headers)
+            res = self.session.get(
+                url, params=params, headers={} if headers is None else headers
+            )
         if raise_errors:
             res.raise_for_status()
 

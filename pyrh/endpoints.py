@@ -41,12 +41,18 @@ def edocuments():
     return BASE_API + "/documents/"
 
 
-def instruments(instrument_id, option):
+def instruments(instrument_id=None, option=None):
     """
     Return information about a specific instrument by providing its instrument id.
     Add extra options for additional information such as "popularity"
     """
-    return BASE_API + f"/instruments/{instrument_id}/{option}/"
+    url = BASE_API + f"/instruments/"
+    if instrument_id is not None:
+        url += f"{instrument_id}"
+    if option is not None:
+        url += f"{option}"
+
+    return url
 
 
 def margin_upgrades():
