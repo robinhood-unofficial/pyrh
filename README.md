@@ -1,4 +1,4 @@
-[![robinhood-logo](./docs/logo-color-transparent.png)](https://github.com/robinhood-unofficial/Robinhood)
+[![robinhood-logo](logo.png)](https://github.com/robinhood-unofficial/Robinhood)
 ------------
 
 # pyrh - Unofficial Robinhood API
@@ -7,7 +7,7 @@
 [![GitHub](https://img.shields.io/github/license/robinhood-unofficial/Robinhood)](https://github.com/robinhood-unofficial/Robinhood/blob/master/LICENSE)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-Python Framework to make trades with Robinhood Private API. Supports Python 3.6+
+Python Framework to make trades with Unofficial Robinhood API. Supports Python 3.6+
 
 ## Current Features
 - Placing buy orders (`Robinhood.place_buy_order`)
@@ -24,11 +24,16 @@ Python Framework to make trades with Robinhood Private API. Supports Python 3.6+
 pip install pyrh
 ```
 
-### Running [example.py](https://github.com/robinhood-unofficial/Robinhood/blob/master/docs/example.ipynb)
+### Running [example.ipynb](https://github.com/robinhood-unofficial/Robinhood/blob/master/notebooks/example.ipynb)
 * Install jupyter
 ```
-pip install jupyter
-jupyter notebook
+$ python --version # python 3.3+ for venv functionality
+Python 3.7.6
+$ python -m venv pyrh_env
+$ source pyrh_env/bin/activate
+(pyrh_env) $ pip install pyrh
+(pyrh_env) $ pip install jupyter
+(pyrh_env) $ jupyter notebook
 ```
 
 Then navigate to the example file linked above and run it.
