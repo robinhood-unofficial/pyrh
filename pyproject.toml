@@ -32,6 +32,12 @@ flake8 = "3.7.9"
 black = { version = "19.10b0", python = "^3.6" }
 isort = { version = "4.3.21", extras = ["pyproject"] }
 seed-isort-config = { version = "2.1.0", python = "^3.7" }
+pytest = "^5.4.1"
+pytest-mock = "^2.0.0"
+requests-mock = "^1.7.0"
+coverage = "^5.0.4"
+pytest-cov = "^2.8.1"
+xdoctest = "^0.11.0"
 
 [tool.black]
 include = '\.pyi?$'
@@ -50,7 +56,7 @@ exclude = '''
 
 [tool.isort]
 known_first_party = 'robinhood'
-known_third_party = ["dateutil", "flaky", "helpers", "pytest", "requests", "six"]
+known_third_party = ["dateutil", "pytest", "requests", "requests_mock"]
 multi_line_output = 3
 lines_after_imports = 2
 force_grid_wrap = 0

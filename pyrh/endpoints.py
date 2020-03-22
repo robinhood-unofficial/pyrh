@@ -1,20 +1,20 @@
-api_url = "https://api.robinhood.com"
+BASE_API = "https://api.robinhood.com"
 
 
 def login():
-    return api_url + "/oauth2/token/"
+    return BASE_API + "/oauth2/token/"
 
 
 def logout():
-    return api_url + "/oauth2/revoke_token/"
+    return BASE_API + "/oauth2/revoke_token/"
 
 
 def investment_profile():
-    return api_url + "/user/investment_profile/"
+    return BASE_API + "/user/investment_profile/"
 
 
 def accounts():
-    return api_url + "/accounts/"
+    return BASE_API + "/accounts/"
 
 
 def ach(option):
@@ -25,118 +25,108 @@ def ach(option):
         * transfers
     """
     return (
-        api_url + "/ach/iav/auth/"
-        if option == "iav"
-        else api_url + "/ach/{_option}/".format(_option=option)
+        BASE_API + "/ach/iav/auth/" if option == "iav" else BASE_API + f"/ach/{option}/"
     )
 
 
 def applications():
-    return api_url + "/applications/"
+    return BASE_API + "/applications/"
 
 
 def dividends():
-    return api_url + "/dividends/"
+    return BASE_API + "/dividends/"
 
 
 def edocuments():
-    return api_url + "/documents/"
+    return BASE_API + "/documents/"
 
 
-def instruments(instrumentId=None, option=None):
+def instruments(instrument_id, option):
     """
     Return information about a specific instrument by providing its instrument id.
     Add extra options for additional information such as "popularity"
     """
-    return (
-        api_url
-        + "/instruments/"
-        + ("{id}/".format(id=instrumentId) if instrumentId else "")
-        + ("{_option}/".format(_option=option) if option else "")
-    )
+    return BASE_API + f"/instruments/{instrument_id}/{option}/"
 
 
 def margin_upgrades():
-    return api_url + "/margin/upgrades/"
+    return BASE_API + "/margin/upgrades/"
 
 
 def markets():
-    return api_url + "/markets/"
+    return BASE_API + "/markets/"
 
 
 def notifications():
-    return api_url + "/notifications/"
+    return BASE_API + "/notifications/"
 
 
-def orders(orderId=None):
-    return api_url + "/orders/" + ("{id}/".format(id=orderId) if orderId else "")
+def orders(order_id=""):
+    return BASE_API + f"/orders/{order_id}"
 
 
 def password_reset():
-    return api_url + "/password_reset/request/"
+    return BASE_API + "/password_reset/request/"
 
 
 def portfolios():
-    return api_url + "/portfolios/"
+    return BASE_API + "/portfolios/"
 
 
 def positions():
-    return api_url + "/positions/"
+    return BASE_API + "/positions/"
 
 
 def quotes():
-    return api_url + "/quotes/"
+    return BASE_API + "/quotes/"
 
 
 def historicals():
-    return api_url + "/quotes/historicals/"
+    return BASE_API + "/quotes/historicals/"
 
 
 def document_requests():
-    return api_url + "/upload/document_requests/"
+    return BASE_API + "/upload/document_requests/"
 
 
 def user():
-    return api_url + "/user/"
+    return BASE_API + "/user/"
 
 
 def watchlists():
-    return api_url + "/watchlists/"
+    return BASE_API + "/watchlists/"
 
 
 def news(stock):
-    return api_url + "/midlands/news/{_stock}/".format(_stock=stock)
+    return BASE_API + f"/midlands/news/{stock}/"
 
 
 def fundamentals(stock):
-    return api_url + "/fundamentals/{_stock}/".format(_stock=stock)
+    return BASE_API + f"/fundamentals/{stock}/"
 
 
-def tags(tag=None):
+def tags(tag):
     """
     Returns endpoint with tag concatenated.
     """
-    return api_url + "/midlands/tags/tag/{_tag}/".format(_tag=tag)
+    return BASE_API + f"/midlands/tags/tag/{tag}/"
 
 
-def chain(instrumentid):
-    return api_url + "/options/chains/?equity_instrument_ids={_instrumentid}".format(
-        _instrumentid=instrumentid
-    )
+def chain(instrument_id):
+    return BASE_API + f"/options/chains/?equity_instrument_ids={instrument_id}"
 
 
-def options(chainid, dates, option_type):
+def options(chain_id, dates, option_type):
     return (
-        api_url
-        + "/options/instruments/?chain_id={_chainid}&expiration_dates={_dates}&state=active&tradability=tradable&type={_type}".format(  # noqa: E501
-            _chainid=chainid, _dates=dates, _type=option_type
-        )
+        BASE_API
+        + f"/options/instruments/?chain_id={chain_id}&expiration_dates={dates}"
+        + f"&state=active&tradability=tradable&type={option_type}"
     )
 
 
-def market_data(optionid):
-    return api_url + "/marketdata/options/{_optionid}/".format(_optionid=optionid)
+def market_data(option_id):
+    return BASE_API + f"/marketdata/options/{option_id}/"
 
 
 def convert_token():
-    return api_url + "/oauth2/migrate_token/"
+    return BASE_API + "/oauth2/migrate_token/"

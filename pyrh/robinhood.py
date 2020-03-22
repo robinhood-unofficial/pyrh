@@ -14,7 +14,13 @@ from urllib.request import getproxies
 import dateutil
 import requests
 
-from pyrh import endpoints, exceptions as RH_exception
+from pyrh import endpoints
+from pyrh.exceptions import (
+    InvalidInstrumentId,
+    InvalidOptionId,
+    InvalidTickerSymbol,
+    LoginFailed,
+)
 
 
 class Bounds(Enum):
@@ -168,7 +174,7 @@ class Robinhood:
                     return True
 
             except requests.exceptions.HTTPError:
-                raise RH_exception.LoginFailed()
+                raise LoginFailed()
 
         else:
             payload = {
@@ -224,7 +230,7 @@ class Robinhood:
                     return True
 
             except requests.exceptions.HTTPError:
-                raise RH_exception.LoginFailed()
+                raise LoginFailed()
 
         return False
 
@@ -251,7 +257,7 @@ class Robinhood:
                     return True
 
             except requests.exceptions.HTTPError:
-                raise RH_exception.LoginFailed()
+                raise LoginFailed()
 
         else:
             payload = {
@@ -276,7 +282,7 @@ class Robinhood:
                     return True
 
             except requests.exceptions.HTTPError:
-                raise RH_exception.LoginFailed()
+                raise LoginFailed()
 
         return False
 
@@ -358,7 +364,7 @@ class Robinhood:
             req.raise_for_status()
             data = req.json()
         except requests.exceptions.HTTPError:
-            raise RH_exception.InvalidInstrumentId()
+            raise InvalidInstrumentId()
 
         return data["results"][0]
 
@@ -378,7 +384,7 @@ class Robinhood:
         elif isinstance(stock, str):
             url = str(endpoints.quotes()) + stock + "/"
         else:
-            raise RH_exception.InvalidTickerSymbol()
+            raise InvalidTickerSymbol()
 
         # Check for validity of symbol
         try:
@@ -386,7 +392,7 @@ class Robinhood:
             req.raise_for_status()
             data = req.json()
         except requests.exceptions.HTTPError:
-            raise RH_exception.InvalidTickerSymbol()
+            raise InvalidTickerSymbol()
 
         return data
 
@@ -410,7 +416,7 @@ class Robinhood:
             req.raise_for_status()
             data = req.json()
         except requests.exceptions.HTTPError:
-            raise RH_exception.InvalidTickerSymbol()
+            raise InvalidTickerSymbol()
 
         return data["results"]
 
@@ -812,7 +818,7 @@ class Robinhood:
         try:
             market_data = self.get_url(endpoints.option_market_data(optionid)) or {}
         except requests.exceptions.HTTPError:
-            raise RH_exception.InvalidOptionId()
+            raise InvalidOptionId()
         return market_data
 
     def options_owned(self):
@@ -886,7 +892,7 @@ class Robinhood:
             req.raise_for_status()
             data = req.json()
         except requests.exceptions.HTTPError:
-            raise RH_exception.InvalidTickerSymbol()
+            raise InvalidTickerSymbol()
 
         return data
 
