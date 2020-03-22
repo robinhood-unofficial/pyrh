@@ -69,3 +69,4 @@ target/
 .idea/
 .python-version
 .DS_Store
+*.mypy_cache/*

@@ -1,51 +1,37 @@
-"""
-    Exceptions: custom exceptions for library
-"""
+"""Exceptions: custom exceptions for library"""
 
 
 class RobinhoodException(Exception):
-    """
-        Wrapper for custom robinhood library exceptions
-    """
+    """Wrapper for custom robinhood library exceptions."""
 
     pass
 
 
-class LoginFailed(RobinhoodException):
-    """
-        Unable to login to robinhood
-    """
+class AuthenticationError(RobinhoodException):
+    """Error when trying to login to robinhood."""
 
     pass
 
 
-class TwoFactorRequired(LoginFailed):
-    """
-        Unable to login because of 2FA failure
-    """
+class LoginFailed(RobinhoodException):  # TODO: Remove me
+    """Error when trying to login to robinhood."""
 
     pass
 
 
 class InvalidTickerSymbol(RobinhoodException):
-    """
-        When an invalid ticker (stock symbol) is given
-    """
+    """When an invalid ticker (stock symbol) is given/"""
 
     pass
 
 
 class InvalidInstrumentId(RobinhoodException):
-    """
-        When an invalid instrument id is given
-    """
+    """When an invalid instrument id is given/"""
 
     pass
 
 
 class InvalidOptionId(RobinhoodException):
-    """
-        When an invalid option id is given
-    """
+    """When an invalid option id is given/"""
 
     pass

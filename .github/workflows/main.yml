@@ -1,4 +1,4 @@
-name: ci
+name: build
 
 on:
   pull_request:
@@ -20,7 +20,7 @@ jobs:
           path: ~/.cache/pre-commit
           key: pre-commit|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
       - uses: pre-commit/action@v1.0.1
-  build:
+  test:
     needs: lint
     strategy:
       matrix:
@@ -60,3 +60,5 @@ jobs:
         run: |
           poetry install -vvv
         if: steps.cache-poetry.outputs.cache-hit != 'true'
+      - name: Run pytest
+        run : poetry run pytest

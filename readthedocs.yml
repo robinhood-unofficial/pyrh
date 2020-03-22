@@ -1,0 +1,11 @@
+# readthedocs.yml
+
+build:
+    image: latest
+
+python:
+  version: 3.7
+  pip_install: true
+  extra_requirements:
+    - doc
+  use_system_site_packages: true
