@@ -11,9 +11,9 @@ pyrh - Unofficial Robinhood API
    :target: https://github.com/robinhood-unofficial/Robinhood/workflows/build/
    :alt: build
 
-.. image:: https://img.shields.io/gitter/room/J-Robinhood/Lobby
-   :target: https://gitter.im/J-Robinhood/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
-   :alt: Gitter
+.. image:: https://img.shields.io/pypi/dm/pyrh?color=blue&style=plastic
+   :target: https://pypi.org/project/pyrh/
+   :alt: PyPI - Downloads
 
 .. image:: https://img.shields.io/github/license/robinhood-unofficial/Robinhood
    :target: https://github.com/robinhood-unofficial/Robinhood/blob/master/LICENSE
@@ -22,6 +22,10 @@ pyrh - Unofficial Robinhood API
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/psf/black
    :alt: Code style: black
+
+.. image:: https://img.shields.io/gitter/room/J-Robinhood/Lobby
+   :target: https://gitter.im/J-Robinhood/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+   :alt: Gitter
 
 Python Framework to make trades with Unofficial Robinhood API. Supports Python 3.6+
 
