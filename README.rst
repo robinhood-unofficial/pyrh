@@ -32,8 +32,8 @@ Quickstart
 
    from pyrh import Robinhood
 
-   rh = Robinhood()
-   rh.login(username="YOUR_EMAIL", password="YOUR_PASSWORD")
+   rh = Robinhood(username="YOUR_EMAIL", password="YOUR_PASSWORD")
+   rh.login()
    rh.print_quote("AAPL")
 
 How To Install:
