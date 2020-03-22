@@ -6,7 +6,7 @@ authors = [
     "Unofficial Robinhood Python API Developers"
 ]
 license = "MIT"
-readme = "README.md"
+readme = "README.rst"
 homepage = "https://github.com/georgianpartners/foreshadow"
 repository = "https://github.com/georgianpartners/foreshadow"
 keywords = [
