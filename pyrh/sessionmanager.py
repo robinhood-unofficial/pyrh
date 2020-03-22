@@ -1,60 +1,108 @@
-"""Manage Logging into Robinhood"""
+"""Manage Robinhood Sessions"""
 
 import json
 import uuid
 from copy import deepcopy
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Dict, Optional
 from urllib.request import getproxies
 
 import requests
+from requests.structures import CaseInsensitiveDict
 
-from pyrh.cache import CACHE_ROOT, create_file
+from pyrh.cache import CACHE_ROOT
 from pyrh.exceptions import AuthenticationError
 
 
-CERTS_PATH = Path(__file__).parent.joinpath("./ssl/certs.pem")
-CLIENT_ID = "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS"
-CACHE_LOGIN = create_file(CACHE_ROOT.joinpath("login.json"))
+CERTS_PATH: Path = Path(__file__).parent.joinpath("./ssl/certs.pem")
+"""Path to ssl files used when running post requests"""
+
+CLIENT_ID: str = "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS"
+"""Robinhood client id"""
+
+CACHE_LOGIN: Path = CACHE_ROOT.joinpath("login.json")
+"""Path to login.json config file"""
+CACHE_LOGIN.touch(exist_ok=True)
+
 # TODO: put urls in an API module
-OAUTH_TOKEN_URL = "https://api.robinhood.com/oauth2/token/"
-OAUTH_REVOKE_URL = "https://api.robinhood.com/oauth2/revoke_token/"
-HEADERS = {
-    "Accept": "*/*",
-    "Accept-Encoding": "gzip, deflate",
-    "Accept-Language": "en;q=1, fr;q=0.9, de;q=0.8, ja;q=0.7, nl;q=0.6, it;q=0.5",
-    "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
-    "X-Robinhood-API-Version": "1.0.0",
-    "Connection": "keep-alive",
-    "User-Agent": "Robinhood/823 (iPhone; iOS 7.1.2; Scale/2.00)",
-}
-EXPIRATION_TIME = 86400
+OAUTH_TOKEN_URL: str = "https://api.robinhood.com/oauth2/token/"
+"""Oauth token generation endpoint"""
+
+OAUTH_REVOKE_URL: str = "https://api.robinhood.com/oauth2/revoke_token/"
+"""Oauth revocation endpoint."""
+
+HEADERS: CaseInsensitiveDict = CaseInsensitiveDict(
+    {
+        "Accept": "*/*",
+        "Accept-Encoding": "gzip, deflate",
+        "Accept-Language": "en;q=1, fr;q=0.9, de;q=0.8, ja;q=0.7, nl;q=0.6, it;q=0.5",
+        "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
+        "X-Robinhood-API-Version": "1.0.0",
+        "Connection": "keep-alive",
+        "User-Agent": "Robinhood/823 (iPhone; iOS 7.1.2; Scale/2.00)",
+    }
+)
+"""Headers used when performing requests with robinhood api."""
+
+EXPIRATION_TIME: int = 86400
+"""Default expiration time for requests."""
 
 
 class SessionManager(object):
+    """Mange connectivity with Robinhood API.
+
+    >> sm = SessionManager()
+    >> sm.login(username="USERNAME", password="PASSWORD")  # xdoctest: +SKIP
+    >> sm.logout()  # xdoctest: +SKIP
+
+    Args:
+        username: The username to login to Robinhood.
+        password: The password to login to Robinhood.
+        challenge_type: Either sms or email. (only if not using mfa)
+        headers: Any optional header dict modifications for the session.
+        proxies: Any optional proxy dict modification for the session.
+
+    Attributes:
+        session: A requests session instance.
+        expires_at: The time the oauth token will expire at, default is \
+            1970-01-01 00:00:00.
+        certs: The path to the desired certs to check against.
+        device_token: A random guid representing the current device.
+        access_token: An oauth2 token to connect to the Robinhood API.
+        refresh_token: An oauth2 refresh token to refresh the access_token when \
+            required.
+        username: The username to login to Robinhood.
+        password: The password to login to Robinhood.
+        challenge_type: Either sms or email. (only if not using mfa)
+        headers: Any optional header dict modifications for the session.
+        proxies: Any optional proxy dict modification for the session.
+
+    """
+
     def __init__(
         self,
-        username=None,
-        password=None,
-        challenge_type="email",
-        headers=None,
-        proxies=None,
-    ):
-        self.session = requests.session()
-        self.session.headers = headers or HEADERS
-        self.session.proxies = proxies or getproxies()
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        challenge_type: Optional[str] = "email",
+        headers: Optional[CaseInsensitiveDict] = None,
+        proxies: Optional[Dict] = None,
+    ) -> None:
+        self.session: requests.Session = requests.session()
+        self.session.headers = HEADERS if headers is None else headers
+        self.session.proxies = getproxies() if proxies is None else proxies
         self.expires_at = datetime.strptime("1970", "%Y")  # some time in the past
-        self.certs = CERTS_PATH
+        self.certs: Path = CERTS_PATH
 
-        self.username = username
-        self.password = password
+        self.username: Optional[str] = username
+        self.password: Optional[str] = password
         if challenge_type not in ["email", "sms"]:
             raise ValueError("challenge_type must be email or sms")
-        self.challenge_type = challenge_type
-        self.device_token = str(uuid.uuid4())
+        self.challenge_type: str = challenge_type
+        self.device_token: str = str(uuid.uuid4())
 
-        self.access_token = None
-        self.refresh_token = None
+        self.access_token: Optional[str] = None
+        self.refresh_token: Optional[str] = None
 
     def to_json(self, path=None):
         path = path or CACHE_LOGIN

@@ -806,7 +806,6 @@ class Robinhood:
             )["results"]
         ]
 
-    @login_required
     def get_option_market_data(self, optionid):
         """Gets a list of market data for a given optionid.
 
@@ -1001,7 +1000,6 @@ class Robinhood:
 
         return float(self.portfolios()["market_value"])
 
-    @login_required
     def order_history(self, orderId=None):
         """Wrapper for portfolios
             Optional Args: add an order ID to retrieve information about a single order.

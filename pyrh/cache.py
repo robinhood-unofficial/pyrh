@@ -1,16 +1,11 @@
-"""Local machine data cache"""
+"""Project config/cache files"""
 
 from pathlib import Path
 
 
-def create_dir(directory):
-    directory.mkdir(parents=True, exist_ok=True)
-    return directory
+CACHE_ROOT: Path = Path("~/.robinhood").expanduser()
+"""The root directory where cache and config files are stores.
 
-
-def create_file(path):
-    path.touch(exist_ok=True)
-    return path
-
-
-CACHE_ROOT = create_dir(Path("~/.robinhood").expanduser())
+Creates the directory on first call.
+"""
+CACHE_ROOT.mkdir(parents=True, exist_ok=True)
