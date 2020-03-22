@@ -19,7 +19,7 @@ from pathlib import Path
 # sys.path.append(curr_file.joinpath("../..").resolve())
 
 
-def get_version():
+def get_version() -> str:
     import toml
 
     toml_path = Path(__file__).parent.joinpath("..", "pyproject.toml")
@@ -45,7 +45,13 @@ release = get_version()
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["sphinx.ext.autodoc", "sphinx.ext.napoleon", "sphinx.ext.intersphinx"]
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.intersphinx",
+    "autodocsumm",
+    "sphinx_autodoc_typehints",
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -75,3 +81,7 @@ source_suffix = [".rst"]
 intersphinx_mapping = {
     "requests": ("https://requests.readthedocs.io/en/master/", None),
 }
+
+# Autodoc
+autodoc_default_flags = ["members"]
+autosummary_generate = True

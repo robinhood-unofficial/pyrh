@@ -9,6 +9,15 @@ Developers
 
    developers
 
+API
+###
+
+.. toctree::
+   :maxdepth: 3
+
+   api
+
+
 Changelog
 #########
 .. toctree::

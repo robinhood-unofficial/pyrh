@@ -52,6 +52,17 @@ tests = ["coverage", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.i
 
 [[package]]
 category = "main"
+description = "Extended sphinx autodoc including automatic autosummaries"
+name = "autodocsumm"
+optional = true
+python-versions = "*"
+version = "0.1.13"
+
+[package.dependencies]
+sphinx = "*"
+
+[[package]]
+category = "main"
 description = "Internationalization utilities"
 name = "babel"
 optional = true
@@ -278,7 +289,7 @@ python-versions = ">=3.5"
 version = "8.2.0"
 
 [[package]]
-category = "main"
+category = "dev"
 description = "Optional static typing for Python"
 name = "mypy"
 optional = false
@@ -294,7 +305,7 @@ typing-extensions = ">=3.7.4"
 dmypy = ["psutil (>=4.0)"]
 
 [[package]]
-category = "main"
+category = "dev"
 description = "Experimental type system extensions for programs checked with the mypy typechecker."
 name = "mypy-extensions"
 optional = false
@@ -685,7 +696,7 @@ jinja2 = "*"
 toml = "*"
 
 [[package]]
-category = "main"
+category = "dev"
 description = "a fork of Python 2 and 3 ast modules with type comment support"
 name = "typed-ast"
 optional = false
@@ -693,7 +704,7 @@ python-versions = "*"
 version = "1.4.1"
 
 [[package]]
-category = "main"
+category = "dev"
 description = "Backported and Experimental Type Hints for Python 3.5+"
 name = "typing-extensions"
 optional = false
@@ -751,10 +762,10 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [extras]
-doc = ["sphinx", "sphinx_rtd_theme", "sphinx-autodoc-typehints"]
+doc = ["sphinx", "sphinx-autodoc-typehints", "sphinx_rtd_theme", "autodocsumm", "toml"]
 
 [metadata]
-content-hash = "d0670f93a744ef9ba0ea0f7f2ff1231915cc4f3385148c3be0a5615e115f81c8"
+content-hash = "3718c4c16dff49d5e79a2ee62053c251fc5f9c1c0361fc9e88eea960c1106c0c"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -777,6 +788,9 @@ atomicwrites = [
 attrs = [
     {file = "attrs-19.3.0-py2.py3-none-any.whl", hash = "sha256:08a96c641c3a74e44eb59afb61a24f2cb9f4d7188748e76ba4bb5edfa3cb7d1c"},
     {file = "attrs-19.3.0.tar.gz", hash = "sha256:f7b7ce16570fe9965acd6d30101a28f62fb4a7f9e926b3bbc9b61f8b04247e72"},
+]
+autodocsumm = [
+    {file = "autodocsumm-0.1.13.tar.gz", hash = "sha256:02cabadf090ed0e6de166709ef18c796536b3ed40607ff96c776884fe6aa1f75"},
 ]
 babel = [
     {file = "Babel-2.8.0-py2.py3-none-any.whl", hash = "sha256:d670ea0b10f8b723672d3a6abeb87b565b244da220d76b4dba1b66269ec152d4"},

@@ -1,4 +1,4 @@
-"""Project config/cache files"""
+"""Project config/cache files."""
 
 from pathlib import Path
 
