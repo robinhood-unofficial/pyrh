@@ -167,7 +167,7 @@ class SessionManager(object):
         """Check if login info is properly configured.
 
         Returns:
-            bool: Whether or not username and password are set.
+            Whether or not username and password are set.
         """
         return self.password is not None and self.username is not None
 
@@ -176,7 +176,7 @@ class SessionManager(object):
         """Check if the session is authenticated.
 
         Returns:
-            bool: Whether or not the session is logged in.
+            Whether or not the session is logged in.
         """
         return (
             "Authorization" in self.session.headers and datetime.now() < self.expires_at
@@ -221,7 +221,7 @@ class SessionManager(object):
                 errors.
 
         Returns:
-            Dict: The response
+            The POST response
 
         """
         res = self.session.get(url, headers={} if headers is None else headers)
@@ -256,7 +256,7 @@ class SessionManager(object):
                 errors.
 
         Returns:
-            Dict: The response or an empty dict if an empty response is returned.
+            The response or an empty dict if an empty response is returned.
 
         """
         res = self.session.post(
@@ -432,7 +432,7 @@ class SessionManager(object):
         """Return the object as a string.
 
         Returns:
-            str: The string representation of the object.
+            The string representation of the object.
 
         """
         return f"SessionManager<{self.username}>"
