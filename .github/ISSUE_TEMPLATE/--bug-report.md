@@ -5,8 +5,8 @@ run through a few quick checks. Please make sure to check off the following boxe
 
 <!-- Note: Checked checkbox should look like this: [x] -->
 #### Checklist
-- [ ] I am on the [latest](https://github.com/robinhood-unofficial/Robinhood/releases/latest) pyrh version.
-- [ ] I have searched the [issues](https://github.com/robinhood-unofficial/Robinhood/issues) of this repo and believe that this is not a duplicate.
+- [ ] I am on the [latest](https://github.com/robinhood-unofficial/pyrh/releases/latest) pyrh version.
+- [ ] I have searched the [issues](https://github.com/robinhood-unofficial/pyrh/issues) of this repo and believe that this is not a duplicate.
 
 # Description
 <!--

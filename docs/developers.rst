@@ -43,7 +43,7 @@ Installation
 
 .. code-block:: console
 
-    $ git clone https://github.com/robinhood-unofficial/Robinhood.git
+    $ git clone https://github.com/robinhood-unofficial/pyrh.git
     $ cd Robinhood
     $ brew install poetry
     $ brew install pre-commit
@@ -81,7 +81,7 @@ add a towncrier_ file of your changes to the newsfragment directory.
 .. code-block:: console
 
     (pyrh_env) $ git remote set-url origin https://github.com/{YOUR_USER_NAME}/Robinhood.git
-    (pyrh_env) $ git remote add upstream https://github.com/robinhood-unofficial/Robinhood.git
+    (pyrh_env) $ git remote add upstream https://github.com/robinhood-unofficial/pyrh.git
     (pyrh_env) $ git checkout -b some_changes
     (pyrh_env) $ # now make and commit your changes
     (pyrh_env) $ git push  --set-upstream origin some_changes

@@ -1,5 +1,5 @@
 .. image:: https://i.imgur.com/74CYw5g.png
-   :target: https://github.com/robinhood-unofficial/Robinhood
+   :target: https://github.com/robinhood-unofficial/pyrh
    :alt: robinhood-logo
 
 -------------------------------------------------------------
@@ -7,7 +7,7 @@
 pyrh - Unofficial Robinhood API
 ###############################
 
-.. image:: https://github.com/robinhood-unofficial/Robinhood/workflows/build/badge.svg?branch=master
+.. image:: https://github.com/robinhood-unofficial/pyrh/workflows/build/badge.svg?branch=master
    :target: https://github.com/robinhood-unofficial/pyrh/actions?query=workflow%3Abuild+branch%3Amaster
    :alt: build
 
@@ -16,7 +16,7 @@ pyrh - Unofficial Robinhood API
    :alt: PyPI - Downloads
 
 .. image:: https://img.shields.io/github/license/robinhood-unofficial/Robinhood
-   :target: https://github.com/robinhood-unofficial/Robinhood/blob/master/LICENSE
+   :target: https://github.com/robinhood-unofficial/pyrh/blob/master/LICENSE
    :alt: GitHub
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
@@ -61,7 +61,7 @@ Current Features
 Running example.ipynb_
 **********************
 
-.. _example.ipynb: https://github.com/robinhood-unofficial/Robinhood/blob/master/notebooks/example.ipynb
+.. _example.ipynb: https://github.com/robinhood-unofficial/pyrh/blob/master/notebooks/example.ipynb
 
 * Install jupyter
   .. code-block::
