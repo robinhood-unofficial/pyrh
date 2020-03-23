@@ -18,7 +18,7 @@ jobs:
       - uses: actions/cache@v1
         with:
           path: ~/.cache/pre-commit
-          key: pre-commit|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
+          key: pre-commit|v2|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
       - uses: pre-commit/action@v1.0.1
   test:
     needs: lint
@@ -53,7 +53,7 @@ jobs:
         id: cache-poetry
         with:
           path: ~/.virtualenvs
-          key: poetry|${{ matrix.os }}|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
+          key: poetry|v2|${{ matrix.os }}|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
           restore-keys: |
             poetry-${{ hashFiles('poetry.lock') }}
       - name: Install Project Dependencies (Poetry)
