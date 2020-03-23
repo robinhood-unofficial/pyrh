@@ -8,7 +8,7 @@ pyrh - Unofficial Robinhood API
 ###############################
 
 .. image:: https://github.com/robinhood-unofficial/Robinhood/workflows/build/badge.svg?branch=master
-   :target: https://github.com/robinhood-unofficial/Robinhood/workflows/build/
+   :target: https://github.com/robinhood-unofficial/pyrh/actions?query=workflow%3Abuild+branch%3Amaster
    :alt: build
 
 .. image:: https://img.shields.io/pypi/dm/pyrh?color=blue&style=plastic
