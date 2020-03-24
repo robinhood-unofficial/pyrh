@@ -509,7 +509,6 @@ class Robinhood(SessionManager):
     def security_tick(self,instrument):
         """Returns ticker of given instrument
         """
-
         return self.session.get(instrument).json()['symbol']
     
     def watchlists(self): 
