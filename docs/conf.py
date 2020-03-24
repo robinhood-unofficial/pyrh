@@ -4,30 +4,16 @@
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-# -- Path setup --------------------------------------------------------------
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-#
-import sys
-from pathlib import Path
+def _get_version() -> str:
+    from pathlib import Path
+    from tomlkit import parse
 
+    pyproject_path = Path(__file__).resolve().parent.joinpath("../pyproject.toml")
+    with open(pyproject_path) as file:
+        pyproject = parse(file.read())
 
-# curr_file = Path(__file__).parent
-# sys.path.append(curr_file.joinpath("..").resolve())
-# sys.path.append(curr_file.joinpath("../..").resolve())
-
-
-def get_version() -> str:
-    import toml
-
-    toml_path = Path(__file__).parent.joinpath("..", "pyproject.toml")
-
-    with open(toml_path, "r") as file:
-        pyproject = toml.load(file)
-
-    return pyproject["tool"]["poetry"]["version"]
+    return str(pyproject["tool"]["poetry"]["version"])
 
 
 # -- Project information -----------------------------------------------------
@@ -39,8 +25,7 @@ master_doc = "index"
 exclude_patterns = ["stubs/*"]  # ignore stubs from checks
 
 # The full version, including alpha/beta/rc tags
-release = get_version()
-
+release = _get_version()
 
 # -- General configuration ---------------------------------------------------
 
