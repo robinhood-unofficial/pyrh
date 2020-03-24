@@ -18,7 +18,6 @@ pyrh.Robinhood
       ~Robinhood.adjusted_previous_close
       ~Robinhood.ask_price
       ~Robinhood.ask_size
-      ~Robinhood.auth_method
       ~Robinhood.bid_price
       ~Robinhood.bid_size
       ~Robinhood.cancel_order
@@ -28,12 +27,12 @@ pyrh.Robinhood
       ~Robinhood.excess_margin
       ~Robinhood.extended_hours_equity
       ~Robinhood.extended_hours_market_value
+      ~Robinhood.from_json
       ~Robinhood.fundamentals
-      ~Robinhood.generate_device_token
+      ~Robinhood.get
       ~Robinhood.get_account
       ~Robinhood.get_fundamentals
       ~Robinhood.get_historical_quotes
-      ~Robinhood.get_mfa_token
       ~Robinhood.get_news
       ~Robinhood.get_open_orders
       ~Robinhood.get_option_chainid
@@ -56,7 +55,6 @@ pyrh.Robinhood
       ~Robinhood.last_updated_at
       ~Robinhood.last_updated_at_datetime
       ~Robinhood.login
-      ~Robinhood.login_required
       ~Robinhood.logout
       ~Robinhood.market_value
       ~Robinhood.options_owned
@@ -74,17 +72,18 @@ pyrh.Robinhood
       ~Robinhood.place_stop_loss_sell_order
       ~Robinhood.portfolios
       ~Robinhood.positions
+      ~Robinhood.post
       ~Robinhood.previous_close
       ~Robinhood.previous_close_date
       ~Robinhood.print_quote
       ~Robinhood.print_quotes
       ~Robinhood.quote_data
       ~Robinhood.quotes_data
-      ~Robinhood.relogin_oauth2
       ~Robinhood.securities_owned
       ~Robinhood.submit_buy_order
       ~Robinhood.submit_sell_order
       ~Robinhood.symbol
+      ~Robinhood.to_json
       ~Robinhood.user
 
 
@@ -95,10 +94,5 @@ pyrh.Robinhood
 
    .. autosummary::
 
-      ~Robinhood.auth_token
-      ~Robinhood.client_id
-      ~Robinhood.headers
-      ~Robinhood.password
-      ~Robinhood.refresh_token
-      ~Robinhood.session
-      ~Robinhood.username
+      ~Robinhood.authenticated
+      ~Robinhood.login_set
