@@ -1,3 +1,12 @@
+---
+name: "Feature Request"
+about: Have a feature request?
+title: ''
+labels: 'feature'
+assignees: ''
+
+---
+
 <!--
 Thank you for thinking about how we can make pyrh better! Before you submit
 this; let's run through a few quick checks. Please make sure to check off the following

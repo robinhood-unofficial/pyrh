@@ -1,3 +1,12 @@
+---
+name: "Documentation"
+about: Any issues with the docs (https://pyrh.readthedocs.io/en/latest/)?
+title: ''
+labels: 'documentation'
+assignees: ''
+
+---
+
 <!--
 Thank you for taking the time to find a gap in our documentation. Before you submit
 this; let's run through a few quick checks. Please make sure to check off the following
