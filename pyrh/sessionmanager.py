@@ -2,6 +2,7 @@
 
 import json
 import uuid
+import pyotp
 from copy import deepcopy
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -75,6 +76,7 @@ class SessionManager(object):
         challenge_type: Either sms or email. (only if not using mfa)
         headers: Any optional header dict modifications for the session.
         proxies: Any optional proxy dict modification for the session.
+        qr_code: Code used to generate time based OTP.
 
     Attributes:
         session: A requests session instance.
@@ -90,6 +92,7 @@ class SessionManager(object):
         challenge_type: Either sms or email. (only if not using mfa)
         headers: Any optional header dict modifications for the session.
         proxies: Any optional proxy dict modification for the session.
+        qr_code: Code used to generate time based OTP.
 
     """
 
@@ -100,6 +103,7 @@ class SessionManager(object):
         challenge_type: Optional[str] = "email",
         headers: Optional[CaseInsensitiveDict] = None,
         proxies: Optional[Dict] = None,
+        qr_code: Optional[str] = None,
     ) -> None:
         self.session: requests.Session = requests.session()
         self.session.headers = HEADERS if headers is None else headers
@@ -113,6 +117,7 @@ class SessionManager(object):
             raise ValueError("challenge_type must be email or sms")
         self.challenge_type: str = challenge_type
         self.device_token: str = str(uuid.uuid4())
+        self.qr_code: str = qr_code
 
         self.access_token: Optional[str] = None
         self.refresh_token: Optional[str] = None
@@ -377,8 +382,13 @@ class SessionManager(object):
                 auto_login=False,
             )
         elif "mfa_required" in res:
-            print(f"Input mfa code:")
-            mfa_code = input()
+            if self.qr_code:
+                totp = pyotp.TOTP(self.qr_code)
+                mfa_code = totp.now()
+                print("MFA: {}".format(mfa_code))
+            else:
+                print(f"Input mfa code:")
+                mfa_code = input()
             oauth_payload["mfa_code"] = mfa_code
             res = self.post(
                 OAUTH_TOKEN_URL,
