@@ -35,6 +35,8 @@ sphinx_rtd_theme = { version = "^0.4.3", optional = true }
 autodocsumm = { version = "^0.1.13", optional = true }
 tomlkit = "^0.5.11"
 yarl = "^1.4.2"
+marshmallow = "^3.5.1"
+pytz = "^2019.3"
 
 [tool.poetry.dev-dependencies]
 # Linting
@@ -77,7 +79,7 @@ exclude = '''
 
 [tool.isort]
 known_first_party = 'robinhood'
-known_third_party = ["dateutil", "pytest", "requests", "requests_mock", "yarl"]
+known_third_party = ["dateutil", "marshmallow", "pytest", "pytz", "requests", "requests_mock", "yarl"]
 multi_line_output = 3
 lines_after_imports = 2
 force_grid_wrap = 0

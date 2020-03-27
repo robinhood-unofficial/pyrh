@@ -1,18 +1,21 @@
 """Manage Robinhood Sessions."""
 
-import json
 import uuid
-from copy import deepcopy
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Tuple, Union
 from urllib.request import getproxies
 
+import pytz
 import requests
+from marshmallow import fields, post_load
+from requests.exceptions import HTTPError
 from requests.structures import CaseInsensitiveDict
 
+from pyrh import endpoints
 from pyrh.cache import CACHE_ROOT
 from pyrh.exceptions import AuthenticationError
+from pyrh.models import CHALLENGE_TYPE_VAL, BaseSchema, OAuth, OAuthSchema
 
 
 CERTS_PATH: Path = Path(__file__).parent.joinpath("./ssl/certs.pem")
@@ -24,13 +27,6 @@ CLIENT_ID: str = "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS"
 CACHE_LOGIN: Path = CACHE_ROOT.joinpath("login.json")
 """Path to login.json config file."""
 CACHE_LOGIN.touch(exist_ok=True)
-
-# TODO: put urls in an API module
-OAUTH_TOKEN_URL: str = "https://api.robinhood.com/oauth2/token/"
-"""Oauth token generation endpoint."""
-
-OAUTH_REVOKE_URL: str = "https://api.robinhood.com/oauth2/revoke_token/"
-"""Oauth revocation endpoint."""
 
 HEADERS: CaseInsensitiveDict = CaseInsensitiveDict(
     {
@@ -45,11 +41,11 @@ HEADERS: CaseInsensitiveDict = CaseInsensitiveDict(
 )
 """Headers used when performing requests with robinhood api."""
 
-EXPIRATION_TIME: int = 86400
+EXPIRATION_TIME: int = 10
 """Default expiration time for requests."""
 
 
-class SessionManager(object):
+class SessionManager:
     """Mange connectivity with Robinhood API.
 
     Once logged into the session, this class will manage automatic oauth token update
@@ -57,8 +53,8 @@ class SessionManager(object):
     authentication on initialization.
 
     Example:
-        >>> sm = SessionManager()
-        >>> sm.login(username="USERNAME", password="PASSWORD")  # xdoctest: +SKIP
+        >>> sm = SessionManager(username="USERNAME", password="PASSWORD")
+        >>> sm.login()  # xdoctest: +SKIP
         >>> sm.logout()  # xdoctest: +SKIP
 
     If you want to cache your session (you should) then you can use the following
@@ -66,8 +62,8 @@ class SessionManager(object):
     manually re-enter multi-factor authentication codes.
 
     Example:
-        >>> sm.to_json()  # xdoctest: +SKIP
-        >>> sm.from_json()  # xdoctest: +SKIP
+        >>> dump_session(sm)  # xdoctest: +SKIP
+        >>> load_session(sm)  # xdoctest: +SKIP
 
     Args:
         username: The username to login to Robinhood.
@@ -95,8 +91,8 @@ class SessionManager(object):
 
     def __init__(
         self,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+        username: str,
+        password: str,
         challenge_type: Optional[str] = "email",
         headers: Optional[CaseInsensitiveDict] = None,
         proxies: Optional[Dict] = None,
@@ -104,63 +100,23 @@ class SessionManager(object):
         self.session: requests.Session = requests.session()
         self.session.headers = HEADERS if headers is None else headers
         self.session.proxies = getproxies() if proxies is None else proxies
-        self.expires_at = datetime.strptime("1970", "%Y")  # some time in the past
+        self.expires_at = datetime.strptime("1970", "%Y").replace(
+            tzinfo=pytz.UTC
+        )  # some time in the past
         self.certs: Path = CERTS_PATH
 
-        self.username: Optional[str] = username
-        self.password: Optional[str] = password
+        self.username: str = username
+        self.password: str = password
         if challenge_type not in ["email", "sms"]:
             raise ValueError("challenge_type must be email or sms")
         self.challenge_type: str = challenge_type
-        self.device_token: str = str(uuid.uuid4())
 
-        self.access_token: Optional[str] = None
-        self.refresh_token: Optional[str] = None
+        self._gen_device_token: str = str(uuid.uuid4())
+        self.oauth: OAuth = OAuth()
 
-    def to_json(self, path: Optional[Union[Path, str]] = None) -> None:
-        """Save the current session parameters to a json file.
-
-        Note:
-            This function defaults to caching this information to
-            ~/.robinhood/login.json
-
-        Args:
-            path: The location to save the file and its name.
-
-        """
-        path = CACHE_LOGIN if path is None else path
-        data = deepcopy(self.__dict__)
-        data.pop("session")
-        data.pop("certs")
-        data["expires_at"] = self.expires_at.strftime("%Y-%m-%d %H:%M:%S")
-
-        with open(path, "w+") as file:
-            file.write(json.dumps(data, indent=4, default=str))
-
-    def from_json(self, path: Optional[Union[Path, str]] = None) -> None:
-        """Load cached session parameters from a json file.
-
-        Note:
-            This function defaults to caching this information to
-            ~/.robinhood/login.json
-
-        Args:
-            path: The location and file name to load from.
-
-        """
-        path = path or CACHE_LOGIN
-        with open(path) as file:
-            data = json.load(file)
-
-        for k, v in data.items():
-            if k == "expires_at":
-                v = datetime.strptime(v, "%Y-%m-%d %H:%M:%S")
-            setattr(self, k, v)
-
-        if self.access_token is not None:
-            self.session.headers.update(
-                {"Authorization": f"Bearer {self.access_token}"}
-            )
+    @property
+    def token_expired(self):
+        return datetime.now(tz=pytz.UTC) > self.expires_at
 
     @property
     def login_set(self) -> bool:
@@ -178,9 +134,7 @@ class SessionManager(object):
         Returns:
             Whether or not the session is logged in.
         """
-        return (
-            "Authorization" in self.session.headers and datetime.now() < self.expires_at
-        )
+        return "Authorization" in self.session.headers and not self.token_expired
 
     def login(self, force_refresh: bool = False) -> None:
         """Login to the session.
@@ -195,9 +149,7 @@ class SessionManager(object):
         """
         if "Authorization" not in self.session.headers:
             self._login_oauth2()
-        elif self.refresh_token is not None and (
-            self.expires_at < datetime.now() or force_refresh
-        ):
+        elif self.oauth.is_valid and (self.token_expired or force_refresh):
             self._refresh_oauth2()
 
     def get(
@@ -206,8 +158,9 @@ class SessionManager(object):
         params: dict = None,
         headers: Optional[CaseInsensitiveDict] = None,
         raise_errors: bool = True,
+        return_status: bool = False,
         auto_login: bool = True,
-    ) -> Dict:
+    ) -> Union[Tuple[Dict, int], Dict]:
         """Run a wrapped session HTTP GET request.
 
         Note:
@@ -239,7 +192,7 @@ class SessionManager(object):
         if raise_errors:
             res.raise_for_status()
 
-        return res.json()
+        return (res.json(), res.status_code) if return_status else res.json()
 
     def post(
         self,
@@ -247,8 +200,9 @@ class SessionManager(object):
         data: Optional[Dict] = None,
         headers: Optional[CaseInsensitiveDict] = None,
         raise_errors: bool = True,
+        return_status: bool = False,
         auto_login: bool = True,
-    ) -> Dict:
+    ) -> Union[Dict, Tuple[Dict, int]]:
         """Run a wrapped session HTTP POST request.
 
         Note:
@@ -259,6 +213,7 @@ class SessionManager(object):
             url: The url to post to.
             data: The payload to POST to the endpoint.
             headers: A dict adding to and overriding the session headers.
+            return_status: Whether to include status in the response.
             raise_errors: Whether or not raise errors on POST request.
             auto_login: Whether or not to automatically login on restricted endpoint
                 errors.
@@ -286,11 +241,13 @@ class SessionManager(object):
         if raise_errors:
             res.raise_for_status()
         if res.headers.get("Content-Length", None) == "0":
-            return {}
+            ret = {}
         else:
-            return res.json()
+            ret = res.json()
 
-    def _process_auth_body(self, res: Dict) -> None:
+        return (ret, res.status_code) if return_status else ret
+
+    def _configure_manager(self, oauth) -> None:
         """Process an authentication response dictionary.
 
         This method updates the internal state of the session based on a login or
@@ -303,17 +260,74 @@ class SessionManager(object):
             AuthenticationError: If the input dictionary is malformed.
 
         """
-        try:
-            self.access_token = res["access_token"]
-            self.refresh_token = res["refresh_token"]
-            self.expires_at = datetime.now() + timedelta(seconds=EXPIRATION_TIME)
-            self.session.headers.update(
-                {"Authorization": f"Bearer {self.access_token}"}
-            )
-        except KeyError:
-            raise AuthenticationError(
-                "Authorization result body missing required responses."
-            )
+        self.oauth = oauth
+        self.expires_at = datetime.now(tz=pytz.UTC) + timedelta(
+            seconds=self.oauth.expires_in
+        )
+        self.session.headers.update(
+            {"Authorization": f"Bearer {self.oauth.access_token}"}
+        )
+
+    def _challenge_oauth2(self, oauth, oauth_payload) -> OAuth:
+        # login challenge
+        challenge_url = endpoints.CHALLENGE(oauth.challenge.id)
+        print(
+            f"Input challenge code from {oauth.challenge.type.capitalize()} "
+            f"({oauth.challenge.remaining_attempts}/"
+            f"{oauth.challenge.remaining_retries}):"
+        )
+        challenge_code = input()
+        challenge_payload = {"response": str(challenge_code)}
+        challenge_header = CaseInsensitiveDict(
+            {"X-ROBINHOOD-CHALLENGE-RESPONSE-ID": str(oauth.challenge.id)}
+        )
+        res, status = self.post(
+            challenge_url,
+            data=challenge_payload,
+            raise_errors=False,
+            headers=challenge_header,
+            auto_login=False,
+            return_status=True,
+        )
+        oauth_inner = OAuthSchema().load(res)
+        if status == requests.codes.ok:
+            try:
+                res = self.post(
+                    endpoints.OAUTH,
+                    data=oauth_payload,
+                    headers=challenge_header,
+                    auto_login=False,
+                )
+            except HTTPError:
+                raise AuthenticationError("Error in finalizing auth token")
+            else:
+                oauth = OAuthSchema().load(res)
+                return oauth
+        elif oauth_inner.is_challenge and oauth_inner.challenge.can_retry:
+            print("Invalid code entered")
+            return self._challenge_oauth2(oauth, oauth_payload)
+        else:
+            raise AuthenticationError("Exceeded available attempts or code expired")
+
+    def _mfa_oauth2(self, oauth_payload, attempts=3) -> OAuth:
+        print(f"Input mfa code:")
+        mfa_code = input()
+        oauth_payload["mfa_code"] = mfa_code
+        res, status = self.post(
+            endpoints.OAUTH,
+            data=oauth_payload,
+            raise_errors=False,
+            auto_login=False,
+            return_status=True,
+        )
+        attempts -= 1
+        if (status != requests.codes.ok) and (attempts > 0):
+            print("Invalid mfa code")
+            return self._mfa_oauth2(oauth_payload, attempts)
+        elif status == requests.codes.ok:
+            return OAuthSchema().load(res)
+        else:
+            raise AuthenticationError("Too many incorrect mfa attempts")
 
     def _login_oauth2(self) -> None:
         """Create a new oauth2 token.
@@ -323,11 +337,6 @@ class SessionManager(object):
                 wasn't accepted, or if an mfa code is not accepted.
 
         """
-        if not self.login_set:
-            raise AuthenticationError(
-                "Username and password must be passed to constructor or must be loaded "
-                "from json"
-            )
         self.session.headers.pop("Authorization", None)
 
         oauth_payload = {
@@ -337,59 +346,30 @@ class SessionManager(object):
             "client_id": CLIENT_ID,
             "expires_in": EXPIRATION_TIME,
             "scope": "internal",
-            "device_token": self.device_token,
+            "device_token": self._gen_device_token,
             "challenge_type": self.challenge_type,
         }
 
-        res = self.post(
-            OAUTH_TOKEN_URL, data=oauth_payload, raise_errors=False, auto_login=False
+        res, status = self.post(
+            endpoints.OAUTH,
+            data=oauth_payload,
+            raise_errors=False,
+            auto_login=False,
+            return_status=True,
         )
 
-        if res is None or "error" in res:
-            raise AuthenticationError("Unknown login error")
-        elif "detail" in res and any(k in res["detail"] for k in ["Invalid", "Unable"]):
-            raise AuthenticationError(f"{res['detail']}")
-        elif "challenge" in res:
-            challenge_id = res["challenge"]["id"]
-            # TODO: use api module
-            challenge_url = (
-                f"https://api.robinhood.com/challenge/{challenge_id}/respond/"
-            )
-            print(f"Input challenge code from {self.challenge_type.capitalize()}:")
-            challenge_code = input()
-            challenge_payload = {"response": str(challenge_code)}
-            challenge_header = CaseInsensitiveDict(
-                {"X-ROBINHOOD-CHALLENGE-RESPONSE-ID": challenge_id}
-            )
-            challenge = self.post(
-                challenge_url,
-                data=challenge_payload,
-                raise_errors=False,
-                headers=challenge_header,
-                auto_login=False,
-            )
-            if challenge is None or challenge.get("status", "") != "validated":
-                raise AuthenticationError("Challenge response was not accepted")
-            res = self.post(
-                OAUTH_TOKEN_URL,
-                data=oauth_payload,
-                headers=challenge_header,
-                auto_login=False,
-            )
-        elif "mfa_required" in res:
-            print(f"Input mfa code:")
-            mfa_code = input()
-            oauth_payload["mfa_code"] = mfa_code
-            res = self.post(
-                OAUTH_TOKEN_URL,
-                data=oauth_payload,
-                raise_errors=False,
-                auto_login=False,
-            )
-            if res is None or (res.get("detail", "") == "Please enter a valid code."):
-                raise AuthenticationError("Mfa code was not accepted")
+        oauth = OAuthSchema().load(res)
 
-        self._process_auth_body(res)
+        if status == 401 and oauth.is_challenge:
+            oauth = self._challenge_oauth2(oauth, oauth_payload)
+        elif status == requests.codes.ok and oauth.is_mfa:
+            oauth = self._mfa_oauth2(oauth_payload)
+
+        if not oauth.is_valid:
+            msg = f"{oauth.error}" if hasattr(oauth, "error") else "Unknown login error"
+            raise AuthenticationError(msg)
+        else:
+            self._configure_manager(oauth)
 
     def _refresh_oauth2(self) -> None:
         """Refresh an oauth2 token.
@@ -399,22 +379,23 @@ class SessionManager(object):
                 when trying to refresh a token.
 
         """
-        if self.refresh_token is None:
+        if not self.oauth.is_valid:
             raise AuthenticationError("Cannot refresh login with unset refresh token")
         relogin_payload = {
             "grant_type": "refresh_token",
-            "refresh_token": self.refresh_token,
+            "refresh_token": self.oauth.refresh_token,
             "scope": "internal",
             "client_id": CLIENT_ID,
             "expires_in": EXPIRATION_TIME,
         }
         self.session.headers.pop("Authorization", None)
-        res = self.post(
-            OAUTH_TOKEN_URL, data=relogin_payload, auto_login=False, raise_errors=False
-        )
-        if "error" in res:
+        try:
+            res = self.post(endpoints.OAUTH, data=relogin_payload, auto_login=False)
+        except HTTPError:
             raise AuthenticationError("Failed to refresh token")
-        self._process_auth_body(res)
+
+        oauth = OAuthSchema().load(res)
+        self._configure_manager(oauth)
 
     def logout(self) -> None:
         """Logout from the session.
@@ -423,17 +404,12 @@ class SessionManager(object):
             AuthenticationError: If there is an error when logging out.
 
         """
-        logout_payload = {
-            "client_id": CLIENT_ID,
-            "token": self.refresh_token,
-        }
-        res = self.post(
-            OAUTH_REVOKE_URL, data=logout_payload, raise_errors=False, auto_login=False
-        )
-        if len(res) == 0:
-            self.access_token = None
-            self.refresh_token = None
-        else:
+        logout_payload = {"client_id": CLIENT_ID, "token": self.oauth.refresh_token}
+        try:
+            self.post(endpoints.OAUTH_REVOKE, data=logout_payload, auto_login=False)
+            self.oauth = OAuth()
+            self.session.headers.pop("Authorization", None)
+        except HTTPError:
             raise AuthenticationError("Could not log out")
 
     def __repr__(self) -> str:
@@ -444,3 +420,67 @@ class SessionManager(object):
 
         """
         return f"SessionManager<{self.username}>"
+
+
+class SessionManagerSchema(BaseSchema):
+    __model__ = SessionManager
+
+    username = fields.Email()
+    password = fields.Str()
+    challenge_type = fields.Str(validate=CHALLENGE_TYPE_VAL)
+    oauth = fields.Nested(OAuthSchema)
+    expires_at = fields.AwareDateTime()
+    device_token = fields.Str()
+    headers = fields.Dict()
+    proxies = fields.Dict()
+
+    @post_load
+    def make_object(self, data, **kwargs):
+        oauth = data.pop("oauth", None)
+        expires_at = data.pop("expires_at", None)
+        session_manager = self.__model__(**data)
+
+        if oauth is not None and oauth.is_valid:
+            session_manager.oauth = oauth
+            session_manager.session.headers.update(
+                {"Authorization": f"Bearer {session_manager.oauth.access_token}"}
+            )
+        if expires_at:
+            session_manager.expires_at = expires_at
+
+        return session_manager
+
+
+def dump_session(session_manager, path: Optional[Union[Path, str]] = None) -> None:
+    """Save the current session parameters to a json file.
+
+    Note:
+        This function defaults to caching this information to
+        ~/.robinhood/login.json
+
+    Args:
+        session_manager: A SessionManager instance.
+        path: The location to save the file and its name.
+
+    """
+    path = CACHE_LOGIN if path is None else path
+    json_str = SessionManagerSchema().dumps(session_manager, indent=4)
+
+    with open(path, "w+") as file:
+        file.write(json_str)
+
+
+def load_session(path: Optional[Union[Path, str]] = None) -> SessionManager:
+    """Load cached session parameters from a json file.
+
+    Note:
+        This function defaults to caching this information to
+        ~/.robinhood/login.json
+
+    Args:
+        path: The location and file name to load from.
+
+    """
+    path = path or CACHE_LOGIN
+    with open(path) as file:
+        return SessionManagerSchema().loads(file.read())
