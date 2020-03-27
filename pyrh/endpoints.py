@@ -1,20 +1,25 @@
-BASE_API = "https://api.robinhood.com"
+"""Define Robinhood endpoints."""
+
+from yarl import URL
+
+
+BASE = URL("https://api.robinhood.com")
 
 
 def login():
-    return BASE_API + "/oauth2/token/"
+    return BASE.with_path("/oauth2/token/")
 
 
 def logout():
-    return BASE_API + "/oauth2/revoke_token/"
+    return BASE.with_path("/oauth2/revoke_token/")
 
 
 def investment_profile():
-    return BASE_API + "/user/investment_profile/"
+    return BASE.with_path("/user/investment_profile/")
 
 
 def accounts():
-    return BASE_API + "/accounts/"
+    return BASE.with_path("/accounts/")
 
 
 def ach(option):
@@ -25,20 +30,22 @@ def ach(option):
         * transfers
     """
     return (
-        BASE_API + "/ach/iav/auth/" if option == "iav" else BASE_API + f"/ach/{option}/"
+        BASE.with_path("/ach/iav/auth/")
+        if option == "iav"
+        else BASE.with_path(f"/ach/{option}/")
     )
 
 
 def applications():
-    return BASE_API + "/applications/"
+    return BASE.with_path("/applications/")
 
 
 def dividends():
-    return BASE_API + "/dividends/"
+    return BASE.with_path("/dividends/")
 
 
 def edocuments():
-    return BASE_API + "/documents/"
+    return BASE.with_path("/documents/")
 
 
 def instruments(instrument_id=None, option=None):
@@ -46,7 +53,7 @@ def instruments(instrument_id=None, option=None):
     Return information about a specific instrument by providing its instrument id.
     Add extra options for additional information such as "popularity"
     """
-    url = BASE_API + f"/instruments/"
+    url = BASE.with_path(f"/instruments/")
     if instrument_id is not None:
         url += f"{instrument_id}"
     if option is not None:
@@ -56,83 +63,82 @@ def instruments(instrument_id=None, option=None):
 
 
 def margin_upgrades():
-    return BASE_API + "/margin/upgrades/"
+    return BASE.with_path("/margin/upgrades/")
 
 
 def markets():
-    return BASE_API + "/markets/"
+    return BASE.with_path("/markets/")
 
 
 def notifications():
-    return BASE_API + "/notifications/"
+    return BASE.with_path("/notifications/")
 
 
 def orders(order_id=""):
-    return BASE_API + f"/orders/{order_id}"
+    return BASE.with_path(f"/orders/{order_id}/")
 
 
 def password_reset():
-    return BASE_API + "/password_reset/request/"
+    return BASE.with_path("/password_reset/request/")
 
 
 def portfolios():
-    return BASE_API + "/portfolios/"
+    return BASE.with_path("/portfolios/")
 
 
 def positions():
-    return BASE_API + "/positions/"
+    return BASE.with_path("/positions/")
 
 
 def quotes():
-    return BASE_API + "/quotes/"
+    return BASE.with_path("/quotes/")
 
 
 def historicals():
-    return BASE_API + "/quotes/historicals/"
+    return BASE.with_path("/quotes/historicals/")
 
 
 def document_requests():
-    return BASE_API + "/upload/document_requests/"
+    return BASE.with_path("/upload/document_requests/")
 
 
 def user():
-    return BASE_API + "/user/"
+    return BASE.with_path("/user/")
 
 
 def watchlists():
-    return BASE_API + "/watchlists/"
+    return BASE.with_path("/watchlists/")
 
 
 def news(stock):
-    return BASE_API + f"/midlands/news/{stock}/"
+    return BASE.with_path(f"/midlands/news/{stock}/")
 
 
 def fundamentals(stock):
-    return BASE_API + f"/fundamentals/{stock}/"
+    return BASE.with_path(f"/fundamentals/{stock}/")
 
 
 def tags(tag):
     """
     Returns endpoint with tag concatenated.
     """
-    return BASE_API + f"/midlands/tags/tag/{tag}/"
+    return BASE.with_path(f"/midlands/tags/tag/{tag}/")
 
 
 def chain(instrument_id):
-    return BASE_API + f"/options/chains/?equity_instrument_ids={instrument_id}"
+    return BASE.with_path(f"/options/chains/?equity_instrument_ids={instrument_id}/")
 
 
 def options(chain_id, dates, option_type):
-    return (
-        BASE_API
-        + f"/options/instruments/?chain_id={chain_id}&expiration_dates={dates}"
-        + f"&state=active&tradability=tradable&type={option_type}"
+    return BASE.with_path(
+        f"/options/instruments/?chain_id={chain_id}&expiration_dates={dates}"
+        f"&state=active&tradability=tradable&type={option_type}"
     )
 
 
 def market_data(option_id):
-    return BASE_API + f"/marketdata/options/{option_id}/"
+    return BASE.with_path(f"/marketdata/options/{option_id}/")
 
 
 def convert_token():
-    return BASE_API + "/oauth2/migrate_token/"
+    return BASE.with_path("/oauth2/migrate_token/")
