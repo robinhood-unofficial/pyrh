@@ -29,6 +29,11 @@ pyrh - Unofficial Robinhood API
 
 Python Framework to make trades with Unofficial Robinhood API. Supports Python 3.6+
 
+*Please note that parts of this project maybe non-functional / under rapid development*
+#######################################################################################
+
+* A stable release is iminent
+
 Quickstart
 **********
 
@@ -36,8 +41,8 @@ Quickstart
 
    from pyrh import Robinhood
 
-   rh = Robinhood(username="YOUR_EMAIL", password="YOUR_PASSWORD")
-   rh.login()
+   rh = Robinhood()
+   rh.login(username="YOUR_EMAIL", password="YOUR_PASSWORD")
    rh.print_quote("AAPL")
 
 How To Install:
