@@ -154,7 +154,7 @@ class Robinhood(SessionManager):
             keys = key.split(",")
             myStr = ""
             for item in keys:
-                myStr += stock[item] + ","
+                myStr += f"{stock[item]},"
 
             return myStr.split(",")
 
