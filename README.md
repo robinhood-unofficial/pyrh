@@ -1,5 +1,8 @@
 # Robinhood
 
+EDIT: This repo has been made private and the main file removed. If there should be a need for collaboration in readdressing material issues in the API, the main file will be reinstated.
+
+
 WARNING!!
 
 Robinhood is now requiring a mandatory MFA.
