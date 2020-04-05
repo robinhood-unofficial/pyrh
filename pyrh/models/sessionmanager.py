@@ -3,19 +3,25 @@
 import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Union, cast, overload
 from urllib.request import getproxies
 
 import pytz
 import requests
 from marshmallow import fields, post_load
+from requests import Response
 from requests.exceptions import HTTPError
 from requests.structures import CaseInsensitiveDict
+from typing_extensions import Literal
+from yarl import URL
 
 from pyrh import endpoints
 from pyrh.cache import CACHE_ROOT
+from pyrh.common import JSON
 from pyrh.exceptions import AuthenticationError
-from pyrh.models import CHALLENGE_TYPE_VAL, BaseSchema, OAuth, OAuthSchema
+
+from .base import BaseSchema
+from .oauth import CHALLENGE_TYPE_VAL, OAuth, OAuthSchema
 
 
 CERTS_PATH: Path = Path(__file__).parent.joinpath("./ssl/certs.pem")
@@ -28,7 +34,9 @@ CACHE_LOGIN: Path = CACHE_ROOT.joinpath("login.json")
 """Path to login.json config file."""
 CACHE_LOGIN.touch(exist_ok=True)
 
-HEADERS: CaseInsensitiveDict = CaseInsensitiveDict(
+HTTPHeader = CaseInsensitiveDict[str]
+Proxies = Dict[str, str]
+HEADERS: HTTPHeader = HTTPHeader(
     {
         "Accept": "*/*",
         "Accept-Encoding": "gzip, deflate",
@@ -94,8 +102,8 @@ class SessionManager:
         username: str,
         password: str,
         challenge_type: Optional[str] = "email",
-        headers: Optional[CaseInsensitiveDict] = None,
-        proxies: Optional[Dict] = None,
+        headers: Optional[HTTPHeader] = None,
+        proxies: Optional[Proxies] = None,
     ) -> None:
         self.session: requests.Session = requests.session()
         self.session.headers = HEADERS if headers is None else headers
@@ -115,7 +123,12 @@ class SessionManager:
         self.oauth: OAuth = OAuth()
 
     @property
-    def token_expired(self):
+    def token_expired(self) -> bool:
+        """Check if the issued auth token has expired.
+
+        Returns:
+            True if expired otherwise False
+        """
         return datetime.now(tz=pytz.UTC) > self.expires_at
 
     @property
@@ -152,15 +165,42 @@ class SessionManager:
         elif self.oauth.is_valid and (self.token_expired or force_refresh):
             self._refresh_oauth2()
 
+    @overload
     def get(
         self,
-        url: str,
-        params: dict = None,
-        headers: Optional[CaseInsensitiveDict] = None,
+        url: Union[str, URL],
+        params: Optional[Dict[str, Any]] = None,
+        *,
+        headers: Optional[HTTPHeader] = None,
         raise_errors: bool = True,
-        return_status: bool = False,
+        return_response: Literal[True],
         auto_login: bool = True,
-    ) -> Union[Tuple[Dict, int], Dict]:
+    ) -> Response:
+        ...
+
+    @overload
+    def get(
+        self,
+        url: Union[str, URL],
+        params: Optional[Dict[str, Any]] = None,
+        *,
+        headers: Optional[HTTPHeader] = None,
+        raise_errors: bool = True,
+        return_response: Literal[False] = ...,
+        auto_login: bool = True,
+    ) -> JSON:
+        ...
+
+    def get(
+        self,
+        url: Union[str, URL],
+        params: Optional[Dict[str, Any]] = None,
+        *,
+        headers: Optional[HTTPHeader] = None,
+        raise_errors: bool = True,
+        return_response: bool = False,
+        auto_login: bool = True,
+    ) -> Union[Response, JSON]:
         """Run a wrapped session HTTP GET request.
 
         Note:
@@ -179,30 +219,56 @@ class SessionManager:
             The POST response
 
         """
-        if params is None:
-            params = {}
+        params = {} if params is None else params
         res = self.session.get(
-            url, params=params, headers={} if headers is None else headers
+            str(url), params=params, headers={} if headers is None else headers
         )
         if res.status_code == 401 and auto_login:
             self.login(force_refresh=True)
             res = self.session.get(
-                url, params=params, headers={} if headers is None else headers
+                str(url), params=params, headers={} if headers is None else headers
             )
         if raise_errors:
             res.raise_for_status()
 
-        return (res.json(), res.status_code) if return_status else res.json()
+        return res if return_response else res.json()
+
+    @overload
+    def post(
+        self,
+        url: Union[str, URL],
+        data: Optional[JSON] = None,
+        *,
+        headers: Optional[HTTPHeader] = None,
+        raise_errors: bool = True,
+        return_response: Literal[True],
+        auto_login: bool = True,
+    ) -> Response:
+        ...
+
+    @overload
+    def post(
+        self,
+        url: Union[str, URL],
+        data: Optional[JSON] = None,
+        *,
+        headers: Optional[HTTPHeader] = None,
+        raise_errors: bool = True,
+        return_response: Literal[False] = ...,
+        auto_login: bool = True,
+    ) -> JSON:
+        ...
 
     def post(
         self,
-        url: str,
-        data: Optional[Dict] = None,
-        headers: Optional[CaseInsensitiveDict] = None,
+        url: Union[str, URL],
+        data: Optional[JSON] = None,
+        *,
+        headers: Optional[HTTPHeader] = None,
         raise_errors: bool = True,
-        return_status: bool = False,
+        return_response: bool = False,
         auto_login: bool = True,
-    ) -> Union[Dict, Tuple[Dict, int]]:
+    ) -> Union[JSON, Response]:
         """Run a wrapped session HTTP POST request.
 
         Note:
@@ -213,7 +279,7 @@ class SessionManager:
             url: The url to post to.
             data: The payload to POST to the endpoint.
             headers: A dict adding to and overriding the session headers.
-            return_status: Whether to include status in the response.
+            return_response: Whether to include status_code in the response.
             raise_errors: Whether or not raise errors on POST request.
             auto_login: Whether or not to automatically login on restricted endpoint
                 errors.
@@ -223,7 +289,7 @@ class SessionManager:
 
         """
         res = self.session.post(
-            url,
+            str(url),
             data=data,
             timeout=15,
             verify=self.certs,
@@ -232,7 +298,7 @@ class SessionManager:
         if (res.status_code == 401) and auto_login:
             self.login(force_refresh=True)
             res = self.session.post(
-                url,
+                str(url),
                 data=data,
                 timeout=15,
                 verify=self.certs,
@@ -240,21 +306,17 @@ class SessionManager:
             )
         if raise_errors:
             res.raise_for_status()
-        if res.headers.get("Content-Length", None) == "0":
-            ret = {}
-        else:
-            ret = res.json()
 
-        return (ret, res.status_code) if return_status else ret
+        return res if return_response else res.json()
 
-    def _configure_manager(self, oauth) -> None:
+    def _configure_manager(self, oauth: OAuth) -> None:
         """Process an authentication response dictionary.
 
         This method updates the internal state of the session based on a login or
         token refresh request.
 
         Args:
-            res: A response dictionary from a login request.
+            oauth: An oauth response model from a login request.
 
         Raises:
             AuthenticationError: If the input dictionary is malformed.
@@ -268,7 +330,8 @@ class SessionManager:
             {"Authorization": f"Bearer {self.oauth.access_token}"}
         )
 
-    def _challenge_oauth2(self, oauth, oauth_payload) -> OAuth:
+    def _challenge_oauth2(self, oauth: OAuth, oauth_payload: JSON) -> OAuth:
+        """TODO."""
         # login challenge
         challenge_url = endpoints.CHALLENGE(oauth.challenge.id)
         print(
@@ -281,18 +344,18 @@ class SessionManager:
         challenge_header = CaseInsensitiveDict(
             {"X-ROBINHOOD-CHALLENGE-RESPONSE-ID": str(oauth.challenge.id)}
         )
-        res, status = self.post(
+        res = self.post(
             challenge_url,
             data=challenge_payload,
             raise_errors=False,
             headers=challenge_header,
             auto_login=False,
-            return_status=True,
+            return_response=True,
         )
-        oauth_inner = OAuthSchema().load(res)
-        if status == requests.codes.ok:
+        oauth_inner = OAuthSchema().load(res.json())
+        if res.status_code == requests.codes.ok:
             try:
-                res = self.post(
+                res2 = self.post(
                     endpoints.OAUTH,
                     data=oauth_payload,
                     headers=challenge_header,
@@ -301,7 +364,7 @@ class SessionManager:
             except HTTPError:
                 raise AuthenticationError("Error in finalizing auth token")
             else:
-                oauth = OAuthSchema().load(res)
+                oauth = OAuthSchema().load(res2)
                 return oauth
         elif oauth_inner.is_challenge and oauth_inner.challenge.can_retry:
             print("Invalid code entered")
@@ -309,23 +372,24 @@ class SessionManager:
         else:
             raise AuthenticationError("Exceeded available attempts or code expired")
 
-    def _mfa_oauth2(self, oauth_payload, attempts=3) -> OAuth:
+    def _mfa_oauth2(self, oauth_payload: JSON, attempts: int = 3) -> OAuth:
         print(f"Input mfa code:")
         mfa_code = input()
         oauth_payload["mfa_code"] = mfa_code
-        res, status = self.post(
+        res = self.post(
             endpoints.OAUTH,
             data=oauth_payload,
             raise_errors=False,
             auto_login=False,
-            return_status=True,
+            return_response=True,
         )
         attempts -= 1
-        if (status != requests.codes.ok) and (attempts > 0):
+        if (res.status_code != requests.codes.ok) and (attempts > 0):
             print("Invalid mfa code")
             return self._mfa_oauth2(oauth_payload, attempts)
-        elif status == requests.codes.ok:
-            return OAuthSchema().load(res)
+        elif res.status_code == requests.codes.ok:
+            # TODO: Write mypy issue on why this needs to be casted?
+            return cast(OAuth, OAuthSchema().load(res.json()))
         else:
             raise AuthenticationError("Too many incorrect mfa attempts")
 
@@ -350,19 +414,19 @@ class SessionManager:
             "challenge_type": self.challenge_type,
         }
 
-        res, status = self.post(
+        res = self.post(
             endpoints.OAUTH,
             data=oauth_payload,
             raise_errors=False,
             auto_login=False,
-            return_status=True,
+            return_response=True,
         )
 
-        oauth = OAuthSchema().load(res)
+        oauth = OAuthSchema().load(res.json())
 
-        if status == 401 and oauth.is_challenge:
+        if res.status_code == 401 and oauth.is_challenge:
             oauth = self._challenge_oauth2(oauth, oauth_payload)
-        elif status == requests.codes.ok and oauth.is_mfa:
+        elif res.status_code == requests.codes.ok and oauth.is_mfa:
             oauth = self._mfa_oauth2(oauth_payload)
 
         if not oauth.is_valid:
@@ -425,7 +489,7 @@ class SessionManager:
 class SessionManagerSchema(BaseSchema):
     __model__ = SessionManager
 
-    username = fields.Email()
+    username = fields.Email()  # type: ignore # Call untyped "Email" in typed context
     password = fields.Str()
     challenge_type = fields.Str(validate=CHALLENGE_TYPE_VAL)
     oauth = fields.Nested(OAuthSchema)
@@ -435,7 +499,7 @@ class SessionManagerSchema(BaseSchema):
     proxies = fields.Dict()
 
     @post_load
-    def make_object(self, data, **kwargs):
+    def make_object(self, data: JSON, **kwargs: Any) -> SessionManager:
         oauth = data.pop("oauth", None)
         expires_at = data.pop("expires_at", None)
         session_manager = self.__model__(**data)
@@ -451,7 +515,9 @@ class SessionManagerSchema(BaseSchema):
         return session_manager
 
 
-def dump_session(session_manager, path: Optional[Union[Path, str]] = None) -> None:
+def dump_session(
+    session_manager: SessionManager, path: Optional[Union[Path, str]] = None
+) -> None:
     """Save the current session parameters to a json file.
 
     Note:
@@ -483,4 +549,4 @@ def load_session(path: Optional[Union[Path, str]] = None) -> SessionManager:
     """
     path = path or CACHE_LOGIN
     with open(path) as file:
-        return SessionManagerSchema().loads(file.read())
+        return cast(SessionManager, SessionManagerSchema().loads(file.read()))

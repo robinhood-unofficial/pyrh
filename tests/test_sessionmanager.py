@@ -4,6 +4,7 @@ from unittest import mock
 
 import pytest
 import requests_mock
+from freezegun import freeze_time
 
 
 MOCK_URL = "mock://test.com"
@@ -11,7 +12,7 @@ MOCK_URL = "mock://test.com"
 
 @pytest.fixture
 def sm():
-    from pyrh.sessionmanager import SessionManager
+    from pyrh.models import SessionManager
 
     sample_user = {
         "username": "user@example.com",
@@ -23,7 +24,7 @@ def sm():
 
 @pytest.fixture
 def sm_adap(monkeypatch):
-    from pyrh.sessionmanager import SessionManager
+    from pyrh.models import SessionManager
 
     sample_user = {
         "username": "user@example.com",
@@ -46,7 +47,7 @@ def test_repr(sm):
 
 
 def test_bad_challenge_type(sm):
-    from pyrh.sessionmanager import SessionManager
+    from pyrh.models import SessionManager
 
     sample_user = {
         "username": "user@example.com",
@@ -78,17 +79,15 @@ def test_login_oauth2_errors(monkeypatch, sm_adap):
     assert "Some error" in str(e.value)
 
 
-@mock.patch("pyrh.sessionmanager.datetime")
-def test_login_oauth2_challenge_valid(dt, monkeypatch, sm_adap):
+@freeze_time("2005-01-01")
+def test_login_oauth2_challenge_valid(monkeypatch, sm_adap):
     import uuid
     from datetime import datetime
     import pytz
-    from pyrh.models import OAuthSchema
+    from pyrh.models.oauth import OAuthSchema
 
     monkeypatch.setattr("builtins.input", lambda: "123456")
-    now = datetime.strptime("2005", "%Y").replace(tzinfo=pytz.UTC)
     expiry = datetime.strptime("2010", "%Y").replace(tzinfo=pytz.UTC)
-    dt.now = mock.Mock(return_value=now)
     responses = [
         {
             "detail": "Request blocked, challenge issued.",
@@ -135,18 +134,16 @@ def test_login_oauth2_challenge_valid(dt, monkeypatch, sm_adap):
     assert sm.oauth.is_valid
 
 
-@mock.patch("pyrh.sessionmanager.datetime")
-def test_login_oauth2_challenge_invalid(dt, monkeypatch, sm_adap):
+@freeze_time("2005-01-01")
+def test_login_oauth2_challenge_invalid(monkeypatch, sm_adap):
     from pyrh.exceptions import AuthenticationError
     from datetime import datetime
-    from pyrh.models import OAuthSchema
+    from pyrh.models.oauth import OAuthSchema
     import pytz
     import uuid
 
     monkeypatch.setattr("builtins.input", lambda: "123456")
-    now = datetime.strptime("2005", "%Y").replace(tzinfo=pytz.UTC)
     expiry = datetime.strptime("2010", "%Y").replace(tzinfo=pytz.UTC)
-    dt.now = mock.Mock(return_value=now)
     responses = [
         {
             "detail": "Request blocked, challenge issued.",
@@ -216,7 +213,7 @@ def test_login_oauth2_challenge_invalid(dt, monkeypatch, sm_adap):
 
 
 def test_login_oauth2_mfa_valid(monkeypatch, sm_adap):
-    from pyrh.models import OAuthSchema
+    from pyrh.models.oauth import OAuthSchema
 
     mfa_code = "123456"
     monkeypatch.setattr("builtins.input", lambda: mfa_code)
@@ -245,7 +242,7 @@ def test_login_oauth2_mfa_valid(monkeypatch, sm_adap):
 
 def test_login_oauth2_mfa_invalid(monkeypatch, sm_adap):
     from pyrh.exceptions import AuthenticationError
-    from pyrh.models import OAuthSchema
+    from pyrh.models.oauth import OAuthSchema
 
     monkeypatch.setattr("builtins.input", lambda: "123456")
     responses = [
@@ -269,7 +266,7 @@ def test_login_oauth2_mfa_invalid(monkeypatch, sm_adap):
 
 
 def test_refresh_oauth2_success(sm_adap):
-    from pyrh.models import OAuthSchema
+    from pyrh.models.oauth import OAuthSchema
 
     response = {
         "access_token": "some_token",
@@ -296,7 +293,7 @@ def test_refresh_oauth2_success(sm_adap):
 
 def test_refresh_oauth2_failure(sm_adap):
     from pyrh.exceptions import AuthenticationError
-    from pyrh.models import OAuthSchema
+    from pyrh.models.oauth import OAuthSchema
 
     response = {"error": "some_error"}
     sm, adapter = sm_adap
@@ -314,14 +311,14 @@ def test_refresh_oauth2_failure(sm_adap):
     assert "Failed to refresh" in str(e.value)
 
 
-@mock.patch("pyrh.sessionmanager.SessionManager._login_oauth2")
+@mock.patch("pyrh.models.SessionManager._login_oauth2")
 def test_login_init(login_mock, sm):
     sm.login()
 
     assert login_mock.call_count == 1
 
 
-@mock.patch("pyrh.sessionmanager.SessionManager._refresh_oauth2")
+@mock.patch("pyrh.models.SessionManager._refresh_oauth2")
 def test_login_refresh_default(refresh_mock, sm):
     # default expires_at is 1970
     sm.oauth.access_token = "some_token"
@@ -332,7 +329,7 @@ def test_login_refresh_default(refresh_mock, sm):
     assert refresh_mock.call_count == 1
 
 
-@mock.patch("pyrh.sessionmanager.SessionManager._refresh_oauth2")
+@mock.patch("pyrh.models.SessionManager._refresh_oauth2")
 def test_login_refresh_force(refresh_mock, sm):
     sm.oauth.access_token = "some_token"
     sm.oauth.refresh_token = "some_refresh_token"
@@ -342,7 +339,7 @@ def test_login_refresh_force(refresh_mock, sm):
     assert refresh_mock.call_count == 1
 
 
-@mock.patch("pyrh.sessionmanager.SessionManager.post")
+@mock.patch("pyrh.models.SessionManager.post")
 def test_logout_success(post_mock, sm):
     post_mock.return_value = {}
     sm.oauth.access_token = "some_token"
@@ -352,7 +349,7 @@ def test_logout_success(post_mock, sm):
     assert post_mock.call_count == 1
 
 
-@mock.patch("pyrh.sessionmanager.SessionManager.post")
+@mock.patch("pyrh.models.SessionManager.post")
 def test_logout_failure(post_mock, sm):
     from pyrh.exceptions import AuthenticationError
     from requests.exceptions import HTTPError
@@ -375,7 +372,7 @@ def test_logout_failure(post_mock, sm):
 def test_jsonify(tmpdir, sm):
     import json
 
-    from pyrh.sessionmanager import dump_session, load_session
+    from pyrh.models import dump_session, load_session
 
     sm.oauth.access_token = "some_token"
     sm.oauth.refresh_token = "some_refresh_token"
@@ -394,17 +391,18 @@ def test_jsonify(tmpdir, sm):
     assert sm.oauth == sm1.oauth
 
 
-@mock.patch("pyrh.sessionmanager.datetime")
-def test_authenticated(dt_mock, sm, monkeypatch):
+@freeze_time("2000-01-01")
+def test_authenticated(sm, monkeypatch):
     import pytz
     from datetime import datetime as dt, timedelta
 
-    from pyrh.sessionmanager import EXPIRATION_TIME
+    from pyrh.models.sessionmanager import EXPIRATION_TIME
 
-    dt_mock.now.return_value = dt.strptime("2000", "%Y").replace(tzinfo=pytz.UTC)
     assert not sm.authenticated
 
-    expires_at_time = dt_mock.now() + timedelta(seconds=EXPIRATION_TIME)
+    expires_at_time = dt.now().replace(tzinfo=pytz.UTC) + timedelta(
+        seconds=EXPIRATION_TIME
+    )
 
     sm.session.headers["Authorization"] = "Bearer some_token"
     sm.expires_at = expires_at_time
@@ -412,7 +410,7 @@ def test_authenticated(dt_mock, sm, monkeypatch):
     assert sm.authenticated
 
 
-@mock.patch("pyrh.sessionmanager.SessionManager.login")
+@mock.patch("pyrh.models.SessionManager.login")
 def test_get(mock_login, sm):
     import json
 
@@ -441,7 +439,7 @@ def test_get(mock_login, sm):
     assert "404 Client Error" in str(e.value)
 
 
-@mock.patch("pyrh.sessionmanager.SessionManager.login")
+@mock.patch("pyrh.models.SessionManager.login")
 def test_post(mock_login, sm):
     import json
 

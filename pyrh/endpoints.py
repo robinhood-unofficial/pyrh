@@ -1,5 +1,7 @@
 """Define Robinhood endpoints."""
 
+from typing import Callable
+
 from yarl import URL
 
 
@@ -8,7 +10,9 @@ BASE = URL("https://api.robinhood.com")
 # OAuth
 OAUTH: URL = BASE.with_path("/oauth2/token/")
 OAUTH_REVOKE: URL = BASE.with_path("/oauth2/revoke_token/")
-CHALLENGE: URL = lambda cid: BASE.with_path(f"/challenge/{cid}/respond")
+CHALLENGE: Callable[[str], URL] = lambda cid: BASE.with_path(
+    f"/challenge/{cid}/respond"
+)
 
 
 def logout():

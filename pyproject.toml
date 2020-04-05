@@ -25,42 +25,48 @@ include = [
 
 [tool.poetry.dependencies]
 python = "^3.6"
-requests = "^2.23"
-python-dateutil = "^2.8"
 
-# docs need to be distributed for readthedocs
+# Doc Dependencies (need to be distributed for readthedocs)
+autodocsumm = { version = "^0.1.13", optional = true }
 sphinx = { version = "^2.4.4", optional = true }
 sphinx-autodoc-typehints = { version = "^1.10.3", optional = true }
 sphinx_rtd_theme = { version = "^0.4.3", optional = true }
-autodocsumm = { version = "^0.1.13", optional = true }
-tomlkit = "^0.5.11"
-yarl = "^1.4.2"
+tomlkit = {version = "^0.5.11", optional = true }
+
+# Main Dependencies
 marshmallow = "^3.5.1"
+python-dateutil = "^2.8"
 pytz = "^2019.3"
+requests = "^2.23"
+yarl = "^1.4.2"
+typing-extensions = "^3.7.4"
 
 [tool.poetry.dev-dependencies]
 # Linting
+# These are version locked so .pre-commit-config is even
 flake8 = "3.7.9"
 flake8-docstrings = "1.5.0"
 black = { version = "19.10b0", python = "^3.6" }
+darglint = { version = "1.2.1", python = "^3.7"}
 isort = { version = "4.3.21", extras = ["pyproject"] }
 seed-isort-config = { version = "2.1.0", python = "^3.7" }
 mypy = "0.770"
 nbstripout = "^0.3.7"
 
 # Testing
+coverage = "^5.0.4"
+freezegun = "^0.3.15"
 pytest = "^5.4.1"
+pytest-cov = "^2.8.1"
 pytest-mock = "^2.0.0"
 requests-mock = "^1.7.0"
-coverage = "^5.0.4"
-pytest-cov = "^2.8.1"
 xdoctest = "^0.11.0"
 
 # Automation
 towncrier = "^19.2.0"
 
 [tool.poetry.extras]
-doc = ["sphinx", "sphinx-autodoc-typehints", "sphinx_rtd_theme", "autodocsumm", "toml"]
+doc = ["sphinx", "sphinx-autodoc-typehints", "sphinx_rtd_theme", "autodocsumm", "tomlkit"]
 
 [tool.black]
 include = '\.pyi?$'
@@ -79,7 +85,7 @@ exclude = '''
 
 [tool.isort]
 known_first_party = 'robinhood'
-known_third_party = ["dateutil", "marshmallow", "pytest", "pytz", "requests", "requests_mock", "yarl"]
+known_third_party = ["dateutil", "freezegun", "marshmallow", "pytest", "pytz", "requests", "requests_mock", "typing_extensions", "yarl"]
 multi_line_output = 3
 lines_after_imports = 2
 force_grid_wrap = 0
