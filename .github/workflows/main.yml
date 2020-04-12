@@ -23,19 +23,23 @@ jobs:
         run: echo "::add-path::$HOME/.poetry/bin"
       - name: Configure Poetry
         run: |
-          poetry config virtualenvs.create false
-      - name: Cache pip
+          poetry config virtualenvs.in-project false
+          poetry config virtualenvs.path ~/.virtualenvs
+      - name: Cache Poetry virtualenv
         uses: actions/cache@v1
         id: cache-poetry
         with:
-          path: ~/.cache/pip
-          key: ${{ matrix.os }}|${{ env.PY }}|poetry|pre-commit|${{ hashFiles('poetry.lock') }}
+          path: ~/.virtualenvs
+          key: poetry|pre-commit|v2|${{ matrix.os }}|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
           restore-keys: |
-            ${{ matrix.os }}|${{ env.PY }}|poetry|pre-commit|
+            poetry|pre-commit|v2|${{ matrix.os }}|${{ env.PY }}|
       - name: Install Project Dependencies (Poetry)
         run: |
           poetry install -vvv
         if: steps.cache-poetry.outputs.cache-hit != 'true'
+      - name: Add poetry env to PATH
+        run: |
+          echo "::add-path::$( poetry env info --path )/bin"
       - uses: actions/cache@v1
         with:
           path: ~/.cache/pre-commit
