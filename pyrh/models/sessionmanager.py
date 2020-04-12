@@ -24,7 +24,7 @@ from .base import BaseModel, BaseSchema
 from .oauth import CHALLENGE_TYPE_VAL, OAuth, OAuthSchema
 
 
-CERTS_PATH: Path = Path(__file__).parent.joinpath("./ssl/certs.pem")
+CERTS_PATH: Path = Path(__file__).parent.parent.joinpath("./ssl/certs.pem")
 """Path to ssl files used when running post requests."""
 
 CLIENT_ID: str = "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS"

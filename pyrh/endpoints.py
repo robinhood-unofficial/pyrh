@@ -11,7 +11,7 @@ BASE = URL("https://api.robinhood.com")
 OAUTH: URL = BASE.with_path("/oauth2/token/")
 OAUTH_REVOKE: URL = BASE.with_path("/oauth2/revoke_token/")
 CHALLENGE: Callable[[str], URL] = lambda cid: BASE.with_path(
-    f"/challenge/{cid}/respond"
+    f"/challenge/{cid}/respond/"
 )
 
 
