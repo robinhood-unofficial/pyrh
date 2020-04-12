@@ -15,6 +15,27 @@ jobs:
           python-version: 3.7
       - name: set PY
         run: echo "::set-env name=PY::$(python -c 'import hashlib, sys;print(hashlib.sha256(sys.version.encode()+sys.executable.encode()).hexdigest())')"
+      - name: Install Poetry
+        run: |
+          pip install --upgrade pip
+          curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
+      - name: Add Poetry to Path Unix
+        run: echo "::add-path::$HOME/.poetry/bin"
+      - name: Configure Poetry
+        run: |
+          poetry config virtualenvs.create false
+      - name: Cache pip
+        uses: actions/cache@v1
+        id: cache-poetry
+        with:
+          path: ~/.cache/pip
+          key: ${{ matrix.os }}|${{ env.PY }}|poetry|pre-commit|${{ hashFiles('poetry.lock') }}
+          restore-keys: |
+            ${{ matrix.os }}|${{ env.PY }}|poetry|pre-commit|
+      - name: Install Project Dependencies (Poetry)
+        run: |
+          poetry install -vvv
+        if: steps.cache-poetry.outputs.cache-hit != 'true'
       - uses: actions/cache@v1
         with:
           path: ~/.cache/pre-commit
@@ -55,7 +76,7 @@ jobs:
           path: ~/.virtualenvs
           key: poetry|v2|${{ matrix.os }}|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
           restore-keys: |
-            poetry-${{ hashFiles('poetry.lock') }}
+            poetry|v2|${{ matrix.os }}|${{ env.PY }}|
       - name: Install Project Dependencies (Poetry)
         run: |
           poetry install -vvv

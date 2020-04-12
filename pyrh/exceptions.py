@@ -1,37 +1,31 @@
 """Exceptions: custom exceptions for library"""
 
 
-class RobinhoodException(Exception):
+class RHException(Exception):
     """Wrapper for custom robinhood library exceptions."""
 
     pass
 
 
-class AuthenticationError(RobinhoodException):
+class AuthenticationError(RHException):
     """Error when trying to login to robinhood."""
 
     pass
 
 
-class LoginFailed(RobinhoodException):  # TODO: Remove me
-    """Error when trying to login to robinhood."""
-
-    pass
-
-
-class InvalidTickerSymbol(RobinhoodException):
+class InvalidTickerSymbol(RHException):
     """When an invalid ticker (stock symbol) is given/"""
 
     pass
 
 
-class InvalidInstrumentId(RobinhoodException):
+class InvalidInstrumentId(RHException):
     """When an invalid instrument id is given/"""
 
     pass
 
 
-class InvalidOptionId(RobinhoodException):
+class InvalidOptionId(RHException):
     """When an invalid option id is given/"""
 
     pass

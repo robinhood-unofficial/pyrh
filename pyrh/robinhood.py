@@ -12,7 +12,7 @@ from pyrh.exceptions import (
     InvalidOptionId,
     InvalidTickerSymbol,
 )
-from pyrh.sessionmanager import SessionManager
+from pyrh.models import SessionManager
 
 
 class Bounds(Enum):
