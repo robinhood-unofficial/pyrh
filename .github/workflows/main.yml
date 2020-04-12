@@ -38,6 +38,9 @@ jobs:
         run: |
           poetry install -vvv
         if: steps.cache-poetry.outputs.cache-hit != 'true'
+      - name: Activate poetry env
+        run: |
+          source "$( poetry env info --path )/bin/activate"
       - uses: actions/cache@v1
         with:
           path: ~/.cache/pre-commit
