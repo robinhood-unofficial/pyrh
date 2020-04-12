@@ -449,7 +449,6 @@ def test_post(mock_login, sm):
     sm.session.mount("mock", adapter)
     mock_url = "mock://test.com"
     expected = [
-        {"text": "", "status_code": 200, "headers": {"Content-Length": "0"}},
         {"text": '{"error": "login error"}', "status_code": 401},
         {"text": '{"test": "321"}', "status_code": 200},
         {"text": '{"error": "resource not found"}', "status_code": 404},
@@ -457,12 +456,10 @@ def test_post(mock_login, sm):
     adapter.register_uri("POST", mock_url, expected)
 
     resp1 = sm.post(mock_url)
-    resp2 = sm.post(mock_url)
 
     with pytest.raises(HTTPError) as e:
         sm.post(mock_url)
 
-    assert resp1 == {}
-    assert resp2 == json.loads(expected[2]["text"])
+    assert resp1 == json.loads(expected[1]["text"])
     assert mock_login.call_count == 1
     assert "404 Client Error" in str(e.value)

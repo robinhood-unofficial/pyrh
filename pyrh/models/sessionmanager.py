@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, Optional, Union, cast, overload
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union, cast, overload
 from urllib.request import getproxies
 
 import pytz
@@ -34,9 +34,13 @@ CACHE_LOGIN: Path = CACHE_ROOT.joinpath("login.json")
 """Path to login.json config file."""
 CACHE_LOGIN.touch(exist_ok=True)
 
-HTTPHeader = CaseInsensitiveDict[str]
+if TYPE_CHECKING:
+    CaseInsensitiveDictType = CaseInsensitiveDict[str]
+else:
+    CaseInsensitiveDictType = CaseInsensitiveDict
+
 Proxies = Dict[str, str]
-HEADERS: HTTPHeader = HTTPHeader(
+HEADERS: CaseInsensitiveDictType = CaseInsensitiveDict(
     {
         "Accept": "*/*",
         "Accept-Encoding": "gzip, deflate",
@@ -102,7 +106,7 @@ class SessionManager:
         username: str,
         password: str,
         challenge_type: Optional[str] = "email",
-        headers: Optional[HTTPHeader] = None,
+        headers: Optional[CaseInsensitiveDictType] = None,
         proxies: Optional[Proxies] = None,
     ) -> None:
         self.session: requests.Session = requests.session()
@@ -171,7 +175,7 @@ class SessionManager:
         url: Union[str, URL],
         params: Optional[Dict[str, Any]] = None,
         *,
-        headers: Optional[HTTPHeader] = None,
+        headers: Optional[CaseInsensitiveDictType] = None,
         raise_errors: bool = True,
         return_response: Literal[True],
         auto_login: bool = True,
@@ -184,7 +188,7 @@ class SessionManager:
         url: Union[str, URL],
         params: Optional[Dict[str, Any]] = None,
         *,
-        headers: Optional[HTTPHeader] = None,
+        headers: Optional[CaseInsensitiveDictType] = None,
         raise_errors: bool = True,
         return_response: Literal[False] = ...,
         auto_login: bool = True,
@@ -196,7 +200,7 @@ class SessionManager:
         url: Union[str, URL],
         params: Optional[Dict[str, Any]] = None,
         *,
-        headers: Optional[HTTPHeader] = None,
+        headers: Optional[CaseInsensitiveDictType] = None,
         raise_errors: bool = True,
         return_response: bool = False,
         auto_login: bool = True,
@@ -239,7 +243,7 @@ class SessionManager:
         url: Union[str, URL],
         data: Optional[JSON] = None,
         *,
-        headers: Optional[HTTPHeader] = None,
+        headers: Optional[CaseInsensitiveDictType] = None,
         raise_errors: bool = True,
         return_response: Literal[True],
         auto_login: bool = True,
@@ -252,7 +256,7 @@ class SessionManager:
         url: Union[str, URL],
         data: Optional[JSON] = None,
         *,
-        headers: Optional[HTTPHeader] = None,
+        headers: Optional[CaseInsensitiveDictType] = None,
         raise_errors: bool = True,
         return_response: Literal[False] = ...,
         auto_login: bool = True,
@@ -264,7 +268,7 @@ class SessionManager:
         url: Union[str, URL],
         data: Optional[JSON] = None,
         *,
-        headers: Optional[HTTPHeader] = None,
+        headers: Optional[CaseInsensitiveDictType] = None,
         raise_errors: bool = True,
         return_response: bool = False,
         auto_login: bool = True,
