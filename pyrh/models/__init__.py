@@ -1,4 +1,4 @@
-"""pyrh models and schemas"""
+"""pyrh models and schemas."""
 
 from .oauth import Challenge, OAuth
 from .sessionmanager import SessionManager, dump_session, load_session

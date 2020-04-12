@@ -20,7 +20,7 @@ from pyrh.cache import CACHE_ROOT
 from pyrh.common import JSON
 from pyrh.exceptions import AuthenticationError
 
-from .base import BaseSchema
+from .base import BaseModel, BaseSchema
 from .oauth import CHALLENGE_TYPE_VAL, OAuth, OAuthSchema
 
 
@@ -56,8 +56,11 @@ HEADERS: CaseInsensitiveDictType = CaseInsensitiveDict(
 EXPIRATION_TIME: int = 10
 """Default expiration time for requests."""
 
+# TODO: Watch this issue and remove the F811 ignores when it is fixed
+# https://gitlab.com/pycqa/flake8/-/merge_requests/417 (we need at least pyflakes 2.2.0)
 
-class SessionManager:
+
+class SessionManager(BaseModel):
     """Mange connectivity with Robinhood API.
 
     Once logged into the session, this class will manage automatic oauth token update
@@ -83,6 +86,7 @@ class SessionManager:
         challenge_type: Either sms or email. (only if not using mfa)
         headers: Any optional header dict modifications for the session.
         proxies: Any optional proxy dict modification for the session.
+        **kwargs: Any other passed parameters as converted to instance attributes.
 
     Attributes:
         session: A requests session instance.
@@ -108,6 +112,7 @@ class SessionManager:
         challenge_type: Optional[str] = "email",
         headers: Optional[CaseInsensitiveDictType] = None,
         proxies: Optional[Proxies] = None,
+        **kwargs: Any,
     ) -> None:
         self.session: requests.Session = requests.session()
         self.session.headers = HEADERS if headers is None else headers
@@ -125,6 +130,8 @@ class SessionManager:
 
         self._gen_device_token: str = str(uuid.uuid4())
         self.oauth: OAuth = OAuth()
+
+        super().__init__(**kwargs)
 
     @property
     def token_expired(self) -> bool:
@@ -169,6 +176,10 @@ class SessionManager:
         elif self.oauth.is_valid and (self.token_expired or force_refresh):
             self._refresh_oauth2()
 
+    # The following type hints helps mypy determine what the output type to assign based
+    # on the `return_response` parameter. The same "stub" method approach is used for
+    # the post method as well.
+    # https://github.com/python/mypy/issues/8634#issuecomment-609411104
     @overload
     def get(
         self,
@@ -179,10 +190,10 @@ class SessionManager:
         raise_errors: bool = True,
         return_response: Literal[True],
         auto_login: bool = True,
-    ) -> Response:
+    ) -> Response:  # noqa: D102
         ...
 
-    @overload
+    @overload  # noqa: F811
     def get(
         self,
         url: Union[str, URL],
@@ -192,10 +203,10 @@ class SessionManager:
         raise_errors: bool = True,
         return_response: Literal[False] = ...,
         auto_login: bool = True,
-    ) -> JSON:
+    ) -> JSON:  # noqa: D102
         ...
 
-    def get(
+    def get(  # noqa: F811
         self,
         url: Union[str, URL],
         params: Optional[Dict[str, Any]] = None,
@@ -216,6 +227,8 @@ class SessionManager:
             params: query string parameters
             headers: A dict adding to and overriding the session headers.
             raise_errors: Whether or not raise errors on GET request result.
+            return_response: Whether or not return a `requests.Response` object or the
+                JSON response from the request.
             auto_login: Whether or not to automatically login on restricted endpoint
                 errors.
 
@@ -247,10 +260,10 @@ class SessionManager:
         raise_errors: bool = True,
         return_response: Literal[True],
         auto_login: bool = True,
-    ) -> Response:
+    ) -> Response:  # noqa: D102
         ...
 
-    @overload
+    @overload  # noqa: F811
     def post(
         self,
         url: Union[str, URL],
@@ -260,10 +273,10 @@ class SessionManager:
         raise_errors: bool = True,
         return_response: Literal[False] = ...,
         auto_login: bool = True,
-    ) -> JSON:
+    ) -> JSON:  # noqa: D102
         ...
 
-    def post(
+    def post(  # noqa: F811
         self,
         url: Union[str, URL],
         data: Optional[JSON] = None,
@@ -283,7 +296,8 @@ class SessionManager:
             url: The url to post to.
             data: The payload to POST to the endpoint.
             headers: A dict adding to and overriding the session headers.
-            return_response: Whether to include status_code in the response.
+            return_response: Whether or not return a `requests.Response` object or the
+                JSON response from the request.
             raise_errors: Whether or not raise errors on POST request.
             auto_login: Whether or not to automatically login on restricted endpoint
                 errors.
@@ -322,9 +336,6 @@ class SessionManager:
         Args:
             oauth: An oauth response model from a login request.
 
-        Raises:
-            AuthenticationError: If the input dictionary is malformed.
-
         """
         self.oauth = oauth
         self.expires_at = datetime.now(tz=pytz.UTC) + timedelta(
@@ -335,7 +346,22 @@ class SessionManager:
         )
 
     def _challenge_oauth2(self, oauth: OAuth, oauth_payload: JSON) -> OAuth:
-        """TODO."""
+        """Process the ouath challenge flow.
+
+        Args:
+            oauth: An oauth response model from a login request.
+            oauth_payload: The payload to use once the challenge has been processed.
+
+        Returns:
+            An OAuth response model from the login request.
+
+        Raises:
+            AuthenticationError: If there is an error in the initial challenge response.
+
+        .. # noqa: DAR202
+        .. https://github.com/terrencepreilly/darglint/issues/81
+
+        """
         # login challenge
         challenge_url = endpoints.CHALLENGE(oauth.challenge.id)
         print(
@@ -377,6 +403,22 @@ class SessionManager:
             raise AuthenticationError("Exceeded available attempts or code expired")
 
     def _mfa_oauth2(self, oauth_payload: JSON, attempts: int = 3) -> OAuth:
+        """Mfa auth flow.
+
+         For people with 2fa.
+
+        Args:
+            oauth_payload: JSON payload to send on mfa approval.
+            attempts: The number of attempts to allow for mfa approval.
+
+        Returns:
+            An OAuth response model object.
+
+        Raises:
+            AuthenticationError: If the mfa code is incorrect more than specified \
+                number of attempts.
+
+        """
         print(f"Input mfa code:")
         mfa_code = input()
         oauth_payload["mfa_code"] = mfa_code
@@ -491,6 +533,8 @@ class SessionManager:
 
 
 class SessionManagerSchema(BaseSchema):
+    """Schema class for the SessionManager model."""
+
     __model__ = SessionManager
 
     username = fields.Email()  # type: ignore # Call untyped "Email" in typed context
@@ -504,6 +548,15 @@ class SessionManagerSchema(BaseSchema):
 
     @post_load
     def make_object(self, data: JSON, **kwargs: Any) -> SessionManager:
+        """Override default method to configure SessionManager object on load.
+
+        Args:
+            data: The JSON dictionary to process
+            **kwargs: Not used but matches signature of `BaseSchema.make_object`
+
+        Returns:
+            A configured instance of SessionManager.
+        """
         oauth = data.pop("oauth", None)
         expires_at = data.pop("expires_at", None)
         session_manager = self.__model__(**data)
@@ -549,6 +602,9 @@ def load_session(path: Optional[Union[Path, str]] = None) -> SessionManager:
 
     Args:
         path: The location and file name to load from.
+
+    Returns:
+        A configured instance of SessionManager.
 
     """
     path = path or CACHE_LOGIN
