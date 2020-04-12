@@ -21,26 +21,21 @@ jobs:
           curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
       - name: Add Poetry to Path Unix
         run: echo "::add-path::$HOME/.poetry/bin"
-        if: (${{ runner.os }} == "Linux") || (${{ runner.os }} == "macOS")
       - name: Configure Poetry
         run: |
-          poetry config virtualenvs.in-project false
-          poetry config virtualenvs.path ~/.virtualenvs
-      - name: Cache Poetry virtualenv
+          poetry config virtualenvs.create false
+      - name: Cache pip
         uses: actions/cache@v1
         id: cache-poetry
         with:
-          path: ~/.virtualenvs
-          key: poetry|pre-commit|${{ matrix.os }}|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
+          path: ~/.cache/pip
+          key: ${{ matrix.os }}|${{ env.PY }}|poetry|pre-commit|${{ hashFiles('poetry.lock') }}
           restore-keys: |
-            poetry-${{ hashFiles('poetry.lock') }}
+            ${{ matrix.os }}|${{ env.PY }}|poetry|pre-commit|
       - name: Install Project Dependencies (Poetry)
         run: |
           poetry install -vvv
         if: steps.cache-poetry.outputs.cache-hit != 'true'
-      - name: Activate poetry env
-        run: |
-          source "$( poetry env info --path )/bin/activate"
       - uses: actions/cache@v1
         with:
           path: ~/.cache/pre-commit
@@ -81,7 +76,7 @@ jobs:
           path: ~/.virtualenvs
           key: poetry|v2|${{ matrix.os }}|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
           restore-keys: |
-            poetry-${{ hashFiles('poetry.lock') }}
+            poetry|v2|${{ matrix.os }}|${{ env.PY }}|
       - name: Install Project Dependencies (Poetry)
         run: |
           poetry install -vvv
