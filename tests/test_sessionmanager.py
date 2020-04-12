@@ -9,6 +9,8 @@ from freezegun import freeze_time
 
 MOCK_URL = "mock://test.com"
 
+# TODO: refactor this to remove internal method testing and only test the public methods
+
 
 @pytest.fixture
 def sm():
@@ -463,3 +465,25 @@ def test_post(mock_login, sm):
     assert resp1 == json.loads(expected[1]["text"])
     assert mock_login.call_count == 1
     assert "404 Client Error" in str(e.value)
+
+
+@freeze_time("2020-01-01")
+def test_token_expired(sm):
+    from datetime import datetime
+    import pytz
+
+    # Assumes default token expired is set to 1970
+    assert sm.token_expired
+
+    sm.expires_at = datetime.strptime("2020-01-03", "%Y-%m-%d").replace(tzinfo=pytz.UTC)
+
+    assert not sm.token_expired
+
+
+def test_login_set(sm):
+    assert sm.login_set
+
+    sm.username = None
+    sm.password = None
+
+    assert not sm.login_set

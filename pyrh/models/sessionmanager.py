@@ -34,7 +34,7 @@ CACHE_LOGIN: Path = CACHE_ROOT.joinpath("login.json")
 """Path to login.json config file."""
 CACHE_LOGIN.touch(exist_ok=True)
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     CaseInsensitiveDictType = CaseInsensitiveDict[str]
 else:
     CaseInsensitiveDictType = CaseInsensitiveDict
@@ -190,7 +190,7 @@ class SessionManager(BaseModel):
         raise_errors: bool = True,
         return_response: Literal[True],
         auto_login: bool = True,
-    ) -> Response:  # noqa: D102
+    ) -> Response:  # noqa: D102  # pragma: no cover
         ...
 
     @overload  # noqa: F811
@@ -203,7 +203,7 @@ class SessionManager(BaseModel):
         raise_errors: bool = True,
         return_response: Literal[False] = ...,
         auto_login: bool = True,
-    ) -> JSON:  # noqa: D102
+    ) -> JSON:  # noqa: D102  # pragma: no cover
         ...
 
     def get(  # noqa: F811
@@ -260,7 +260,7 @@ class SessionManager(BaseModel):
         raise_errors: bool = True,
         return_response: Literal[True],
         auto_login: bool = True,
-    ) -> Response:  # noqa: D102
+    ) -> Response:  # noqa: D102  # pragma: no cover
         ...
 
     @overload  # noqa: F811
@@ -273,7 +273,7 @@ class SessionManager(BaseModel):
         raise_errors: bool = True,
         return_response: Literal[False] = ...,
         auto_login: bool = True,
-    ) -> JSON:  # noqa: D102
+    ) -> JSON:  # noqa: D102  # pragma: no cover
         ...
 
     def post(  # noqa: F811
@@ -470,9 +470,9 @@ class SessionManager(BaseModel):
 
         oauth = OAuthSchema().load(res.json())
 
-        if res.status_code == 401 and oauth.is_challenge:
+        if oauth.is_challenge:
             oauth = self._challenge_oauth2(oauth, oauth_payload)
-        elif res.status_code == requests.codes.ok and oauth.is_mfa:
+        elif oauth.is_mfa:
             oauth = self._mfa_oauth2(oauth_payload)
 
         if not oauth.is_valid:

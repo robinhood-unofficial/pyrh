@@ -1,7 +1,7 @@
 """Base Model."""
 
 from types import SimpleNamespace
-from typing import Any, Dict, List, Mapping, Union
+from typing import Any, Mapping
 
 from marshmallow import INCLUDE, Schema, post_load
 
@@ -11,22 +11,23 @@ from pyrh.common import JSON
 MAX_REPR_LEN = 50
 
 
-def _process_dict_values(
-    value: Union[Dict[str, Any], List[Any]]
-) -> Union["UnknownModel", List[Any]]:
+def _process_dict_values(value: Any) -> Any:
     """Process a returned from a JSON response.
 
     Args:
-        value: A dict or a list returned from a JSON response.
+        value: A dict, list, or value returned from a JSON response.
 
     Returns:
-        Either an UnknownModel or a List of processed values.
+        Either an UnknownModel, a List of processed values, or the original value \
+            passed through.
 
     """
     if isinstance(value, Mapping):
         return UnknownModel(**value)
-    if isinstance(value, list):
+    elif isinstance(value, list):
         return [_process_dict_values(v) for v in value]
+    else:
+        return value
 
 
 class BaseModel(SimpleNamespace):
