@@ -7,6 +7,11 @@ repos:
     -   id: check-yaml
     -   id: end-of-file-fixer
     -   id: trailing-whitespace
+-   repo: https://github.com/kynan/nbstripout
+    rev: 0.3.7
+    hooks:
+    -   id: nbstripout
+        files: ".ipynb"
 -   repo: https://github.com/asottile/seed-isort-config
     rev: v2.1.0
     hooks:
