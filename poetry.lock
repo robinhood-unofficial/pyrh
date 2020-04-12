@@ -942,7 +942,7 @@ testing = ["jaraco.itertools", "func-timeout"]
 doc = ["sphinx", "sphinx-autodoc-typehints", "sphinx_rtd_theme", "autodocsumm", "tomlkit"]
 
 [metadata]
-content-hash = "ea1d8069d64d9480fd2b40cd50107dafc0688606674d23ed1268dff0e1bc33c4"
+content-hash = "7c9aae465d2da37302994f38ded870214339a48855fd84023c27b1a32a6f5fe8"
 python-versions = "^3.6"
 
 [metadata.files]

@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, Optional, Union, cast, overload
 from urllib.request import getproxies
 
+import certifi
 import pytz
 import requests
 from marshmallow import fields, post_load
@@ -23,9 +24,6 @@ from pyrh.exceptions import AuthenticationError
 from .base import BaseModel, BaseSchema
 from .oauth import CHALLENGE_TYPE_VAL, OAuth, OAuthSchema
 
-
-CERTS_PATH: Path = Path(__file__).parent.parent.joinpath("./ssl/certs.pem")
-"""Path to ssl files used when running post requests."""
 
 CLIENT_ID: str = "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS"
 """Robinhood client id."""
@@ -117,10 +115,10 @@ class SessionManager(BaseModel):
         self.session: requests.Session = requests.session()
         self.session.headers = HEADERS if headers is None else headers
         self.session.proxies = getproxies() if proxies is None else proxies
+        self.session.verify = certifi.where()
         self.expires_at = datetime.strptime("1970", "%Y").replace(
             tzinfo=pytz.UTC
         )  # some time in the past
-        self.certs: Path = CERTS_PATH
 
         self.username: str = username
         self.password: str = password
@@ -307,11 +305,7 @@ class SessionManager(BaseModel):
 
         """
         res = self.session.post(
-            str(url),
-            data=data,
-            timeout=15,
-            verify=self.certs,
-            headers={} if headers is None else headers,
+            str(url), data=data, timeout=15, headers={} if headers is None else headers,
         )
         if (res.status_code == 401) and auto_login:
             self.login(force_refresh=True)
@@ -319,7 +313,6 @@ class SessionManager(BaseModel):
                 str(url),
                 data=data,
                 timeout=15,
-                verify=self.certs,
                 headers={} if headers is None else headers,
             )
         if raise_errors:
