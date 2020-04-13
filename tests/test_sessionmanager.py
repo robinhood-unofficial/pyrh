@@ -33,9 +33,9 @@ def sm_adap(monkeypatch):
         "password": "some password",
     }
 
-    monkeypatch.setattr("pyrh.endpoints.OAUTH", MOCK_URL)
-    monkeypatch.setattr("pyrh.endpoints.OAUTH_REVOKE", MOCK_URL)
-    monkeypatch.setattr("pyrh.endpoints.CHALLENGE", lambda x: MOCK_URL)
+    monkeypatch.setattr("pyrh.models.sessionmanager.OAUTH", MOCK_URL)
+    monkeypatch.setattr("pyrh.models.sessionmanager.OAUTH_REVOKE", MOCK_URL)
+    monkeypatch.setattr("pyrh.models.sessionmanager.CHALLENGE", lambda x: MOCK_URL)
 
     session_manager = SessionManager(**sample_user)
     adapter = requests_mock.Adapter()
@@ -71,7 +71,6 @@ def test_login_oauth2_errors(monkeypatch, sm_adap):
     # oauth from the mfa approaches as those individual functions will error
     # out themselves
 
-    monkeypatch.setattr("pyrh.endpoints.OAUTH", MOCK_URL)
     adapter.register_uri(
         "POST", MOCK_URL, text='{"error": "Some error"}', status_code=400
     )

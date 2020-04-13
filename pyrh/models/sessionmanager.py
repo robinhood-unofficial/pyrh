@@ -3,7 +3,16 @@
 import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, Optional, Union, cast, overload
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Optional,
+    Union,
+    cast,
+    overload,
+)
 from urllib.request import getproxies
 
 import certifi
@@ -16,9 +25,8 @@ from requests.structures import CaseInsensitiveDict
 from typing_extensions import Literal
 from yarl import URL
 
-from pyrh import endpoints
 from pyrh.cache import CACHE_ROOT
-from pyrh.common import JSON
+from pyrh.common import API_BASE, JSON
 from pyrh.exceptions import AuthenticationError
 
 from .base import BaseModel, BaseSchema
@@ -36,6 +44,13 @@ if TYPE_CHECKING:  # pragma: no cover
     CaseInsensitiveDictType = CaseInsensitiveDict[str]
 else:
     CaseInsensitiveDictType = CaseInsensitiveDict
+
+# Endpoints
+OAUTH: URL = API_BASE.with_path("/oauth2/token/")
+OAUTH_REVOKE: URL = API_BASE.with_path("/oauth2/revoke_token/")
+CHALLENGE: Callable[[str], URL] = lambda cid: API_BASE.with_path(
+    f"/challenge/{cid}/respond/"
+)
 
 Proxies = Dict[str, str]
 HEADERS: CaseInsensitiveDictType = CaseInsensitiveDict(
@@ -356,7 +371,7 @@ class SessionManager(BaseModel):
 
         """
         # login challenge
-        challenge_url = endpoints.CHALLENGE(oauth.challenge.id)
+        challenge_url = CHALLENGE(oauth.challenge.id)
         print(
             f"Input challenge code from {oauth.challenge.type.capitalize()} "
             f"({oauth.challenge.remaining_attempts}/"
@@ -379,7 +394,7 @@ class SessionManager(BaseModel):
         if res.status_code == requests.codes.ok:
             try:
                 res2 = self.post(
-                    endpoints.OAUTH,
+                    OAUTH,
                     data=oauth_payload,
                     headers=challenge_header,
                     auto_login=False,
@@ -416,7 +431,7 @@ class SessionManager(BaseModel):
         mfa_code = input()
         oauth_payload["mfa_code"] = mfa_code
         res = self.post(
-            endpoints.OAUTH,
+            OAUTH,
             data=oauth_payload,
             raise_errors=False,
             auto_login=False,
@@ -454,7 +469,7 @@ class SessionManager(BaseModel):
         }
 
         res = self.post(
-            endpoints.OAUTH,
+            OAUTH,
             data=oauth_payload,
             raise_errors=False,
             auto_login=False,
@@ -493,7 +508,7 @@ class SessionManager(BaseModel):
         }
         self.session.headers.pop("Authorization", None)
         try:
-            res = self.post(endpoints.OAUTH, data=relogin_payload, auto_login=False)
+            res = self.post(OAUTH, data=relogin_payload, auto_login=False)
         except HTTPError:
             raise AuthenticationError("Failed to refresh token")
 
@@ -509,7 +524,7 @@ class SessionManager(BaseModel):
         """
         logout_payload = {"client_id": CLIENT_ID, "token": self.oauth.refresh_token}
         try:
-            self.post(endpoints.OAUTH_REVOKE, data=logout_payload, auto_login=False)
+            self.post(OAUTH_REVOKE, data=logout_payload, auto_login=False)
             self.oauth = OAuth()
             self.session.headers.pop("Authorization", None)
         except HTTPError:
