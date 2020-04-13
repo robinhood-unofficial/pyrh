@@ -1,31 +1,37 @@
 """Exceptions: custom exceptions for library"""
 
 
-class RHException(Exception):
+class PyrhException(Exception):
     """Wrapper for custom robinhood library exceptions."""
 
     pass
 
 
-class AuthenticationError(RHException):
+class InvalidCacheFile(PyrhException):
+    """Error when the cache config file is found to be invalid."""
+
+    pass
+
+
+class AuthenticationError(PyrhException):
     """Error when trying to login to robinhood."""
 
     pass
 
 
-class InvalidTickerSymbol(RHException):
+class InvalidTickerSymbol(PyrhException):
     """When an invalid ticker (stock symbol) is given/"""
 
     pass
 
 
-class InvalidInstrumentId(RHException):
+class InvalidInstrumentId(PyrhException):
     """When an invalid instrument id is given/"""
 
     pass
 
 
-class InvalidOptionId(RHException):
+class InvalidOptionId(PyrhException):
     """When an invalid option id is given/"""
 
     pass

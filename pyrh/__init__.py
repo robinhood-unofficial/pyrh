@@ -1,7 +1,7 @@
 """Export pyrh sub classes."""
 
 from . import exceptions
-from .models import dump_session, load_session
+from .cache import dump_session, load_session
 from .robinhood import Robinhood
 
 

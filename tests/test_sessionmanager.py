@@ -371,19 +371,18 @@ def test_logout_failure(post_mock, sm):
 
 
 def test_jsonify(tmpdir, sm):
-    import json
-
-    from pyrh.models import dump_session, load_session
+    from pyrh import dump_session, load_session
+    from pyrh.exceptions import InvalidCacheFile
 
     sm.oauth.access_token = "some_token"
     sm.oauth.refresh_token = "some_refresh_token"
     file = tmpdir.join("login.json")
     file.ensure(file=True)  # this will likely migrate to pathlib at some point
 
-    with pytest.raises(json.JSONDecodeError) as e:
+    with pytest.raises(InvalidCacheFile) as e:
         load_session(file)
 
-    assert "Expecting value" in str(e.value)
+    assert "The cache file at" in str(e.value)
 
     dump_session(sm, file)
     sm1 = load_session(file)

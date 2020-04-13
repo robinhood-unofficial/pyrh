@@ -2,7 +2,6 @@
 
 import uuid
 from datetime import datetime, timedelta
-from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -25,7 +24,6 @@ from requests.structures import CaseInsensitiveDict
 from typing_extensions import Literal
 from yarl import URL
 
-from pyrh.cache import CACHE_ROOT
 from pyrh.common import API_BASE, JSON
 from pyrh.exceptions import AuthenticationError
 
@@ -35,10 +33,6 @@ from .oauth import CHALLENGE_TYPE_VAL, OAuth, OAuthSchema
 
 CLIENT_ID: str = "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS"
 """Robinhood client id."""
-
-CACHE_LOGIN: Path = CACHE_ROOT.joinpath("login.json")
-"""Path to login.json config file."""
-CACHE_LOGIN.touch(exist_ok=True)
 
 if TYPE_CHECKING:  # pragma: no cover
     CaseInsensitiveDictType = CaseInsensitiveDict[str]
@@ -578,43 +572,3 @@ class SessionManagerSchema(BaseSchema):
             session_manager.expires_at = expires_at
 
         return session_manager
-
-
-def dump_session(
-    session_manager: SessionManager, path: Optional[Union[Path, str]] = None
-) -> None:
-    """Save the current session parameters to a json file.
-
-    Note:
-        This function defaults to caching this information to
-        ~/.robinhood/login.json
-
-    Args:
-        session_manager: A SessionManager instance.
-        path: The location to save the file and its name.
-
-    """
-    path = CACHE_LOGIN if path is None else path
-    json_str = SessionManagerSchema().dumps(session_manager, indent=4)
-
-    with open(path, "w+") as file:
-        file.write(json_str)
-
-
-def load_session(path: Optional[Union[Path, str]] = None) -> SessionManager:
-    """Load cached session parameters from a json file.
-
-    Note:
-        This function defaults to caching this information to
-        ~/.robinhood/login.json
-
-    Args:
-        path: The location and file name to load from.
-
-    Returns:
-        A configured instance of SessionManager.
-
-    """
-    path = path or CACHE_LOGIN
-    with open(path) as file:
-        return cast(SessionManager, SessionManagerSchema().loads(file.read()))

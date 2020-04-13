@@ -13,6 +13,7 @@ from pyrh.exceptions import (
     InvalidTickerSymbol,
 )
 from pyrh.models import SessionManager
+from pyrh.models.sessionmanager import SessionManagerSchema
 
 
 class Bounds(Enum):
@@ -1652,3 +1653,7 @@ class Robinhood(SessionManager):
         # Order type cannot be cancelled without a valid cancel link
         else:
             raise ValueError("Unable to cancel order ID: " + order_id)
+
+
+class RobinhoodSchema(SessionManagerSchema):
+    __model__ = Robinhood
