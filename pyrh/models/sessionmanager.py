@@ -188,7 +188,7 @@ class SessionManager(BaseModel):
         raise_errors: bool = True,
         return_response: Literal[True],
         auto_login: bool = True,
-    ) -> Response:  # noqa: D102  # pragma: no cover
+    ) -> Response:  # noqa: D102
         ...
 
     @overload  # noqa: F811
@@ -201,7 +201,7 @@ class SessionManager(BaseModel):
         raise_errors: bool = True,
         return_response: Literal[False] = ...,
         auto_login: bool = True,
-    ) -> JSON:  # noqa: D102  # pragma: no cover
+    ) -> JSON:  # noqa: D102
         ...
 
     def get(  # noqa: F811
@@ -258,7 +258,7 @@ class SessionManager(BaseModel):
         raise_errors: bool = True,
         return_response: Literal[True],
         auto_login: bool = True,
-    ) -> Response:  # noqa: D102  # pragma: no cover
+    ) -> Response:  # noqa: D102
         ...
 
     @overload  # noqa: F811
@@ -271,7 +271,7 @@ class SessionManager(BaseModel):
         raise_errors: bool = True,
         return_response: Literal[False] = ...,
         auto_login: bool = True,
-    ) -> JSON:  # noqa: D102  # pragma: no cover
+    ) -> JSON:  # noqa: D102
         ...
 
     def post(  # noqa: F811
