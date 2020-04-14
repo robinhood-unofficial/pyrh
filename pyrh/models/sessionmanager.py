@@ -2,26 +2,15 @@
 
 import uuid
 from datetime import datetime, timedelta
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Dict,
-    Optional,
-    Union,
-    cast,
-    overload,
-)
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Union, cast
 from urllib.request import getproxies
 
 import certifi
 import pytz
 import requests
-from marshmallow import fields, post_load
-from requests import Response
+from marshmallow import Schema, fields, post_load
 from requests.exceptions import HTTPError
 from requests.structures import CaseInsensitiveDict
-from typing_extensions import Literal
 from yarl import URL
 
 from pyrh.common import API_BASE, JSON
@@ -183,37 +172,7 @@ class SessionManager(BaseModel):
         elif self.oauth.is_valid and (self.token_expired or force_refresh):
             self._refresh_oauth2()
 
-    # The following type hints helps mypy determine what the output type to assign based
-    # on the `return_response` parameter. The same "stub" method approach is used for
-    # the post method as well.
-    # https://github.com/python/mypy/issues/8634#issuecomment-609411104
-    @overload
     def get(
-        self,
-        url: Union[str, URL],
-        params: Optional[Dict[str, Any]] = None,
-        *,
-        headers: Optional[CaseInsensitiveDictType] = None,
-        raise_errors: bool = True,
-        return_response: Literal[True],
-        auto_login: bool = True,
-    ) -> Response:  # noqa: D102
-        ...
-
-    @overload  # noqa: F811
-    def get(
-        self,
-        url: Union[str, URL],
-        params: Optional[Dict[str, Any]] = None,
-        *,
-        headers: Optional[CaseInsensitiveDictType] = None,
-        raise_errors: bool = True,
-        return_response: Literal[False] = ...,
-        auto_login: bool = True,
-    ) -> JSON:  # noqa: D102
-        ...
-
-    def get(  # noqa: F811
         self,
         url: Union[str, URL],
         params: Optional[Dict[str, Any]] = None,
@@ -222,7 +181,8 @@ class SessionManager(BaseModel):
         raise_errors: bool = True,
         return_response: bool = False,
         auto_login: bool = True,
-    ) -> Union[Response, JSON]:
+        schema: Optional[Schema] = None,
+    ) -> Any:
         """Run a wrapped session HTTP GET request.
 
         Note:
@@ -238,9 +198,12 @@ class SessionManager(BaseModel):
                 JSON response from the request.
             auto_login: Whether or not to automatically login on restricted endpoint
                 errors.
+            schema: An instance of a `marshmallow.Schema` that represents the object
+                to build.
 
         Returns:
-            The POST response
+            A JSON dictionary or a constructed object if a schema is passed. If \
+                `return_response` is set then a tuple of (response, data) is passed.
 
         """
         params = {} if params is None else params
@@ -255,35 +218,11 @@ class SessionManager(BaseModel):
         if raise_errors:
             res.raise_for_status()
 
-        return res if return_response else res.json()
+        data = res.json() if schema is None else schema.load(res.json())
 
-    @overload
+        return (data, res) if return_response else data
+
     def post(
-        self,
-        url: Union[str, URL],
-        data: Optional[JSON] = None,
-        *,
-        headers: Optional[CaseInsensitiveDictType] = None,
-        raise_errors: bool = True,
-        return_response: Literal[True],
-        auto_login: bool = True,
-    ) -> Response:  # noqa: D102
-        ...
-
-    @overload  # noqa: F811
-    def post(
-        self,
-        url: Union[str, URL],
-        data: Optional[JSON] = None,
-        *,
-        headers: Optional[CaseInsensitiveDictType] = None,
-        raise_errors: bool = True,
-        return_response: Literal[False] = ...,
-        auto_login: bool = True,
-    ) -> JSON:  # noqa: D102
-        ...
-
-    def post(  # noqa: F811
         self,
         url: Union[str, URL],
         data: Optional[JSON] = None,
@@ -292,7 +231,8 @@ class SessionManager(BaseModel):
         raise_errors: bool = True,
         return_response: bool = False,
         auto_login: bool = True,
-    ) -> Union[JSON, Response]:
+        schema: Optional[Schema] = None,
+    ) -> Any:
         """Run a wrapped session HTTP POST request.
 
         Note:
@@ -308,9 +248,12 @@ class SessionManager(BaseModel):
             raise_errors: Whether or not raise errors on POST request.
             auto_login: Whether or not to automatically login on restricted endpoint
                 errors.
+            schema: An instance of a `marshmallow.Schema` that represents the object
+                to build.
 
         Returns:
-            The response or an empty dict if an empty response is returned.
+            A JSON dictionary or a constructed object if a schema is passed. If \
+                `return_response` is set then a tuple of (response, data) is passed.
 
         """
         res = self.session.post(
@@ -327,7 +270,9 @@ class SessionManager(BaseModel):
         if raise_errors:
             res.raise_for_status()
 
-        return res if return_response else res.json()
+        data = res.json() if schema is None else schema.load(res.json())
+
+        return (data, res) if return_response else data
 
     def _configure_manager(self, oauth: OAuth) -> None:
         """Process an authentication response dictionary.
@@ -376,28 +321,30 @@ class SessionManager(BaseModel):
         challenge_header = CaseInsensitiveDict(
             {"X-ROBINHOOD-CHALLENGE-RESPONSE-ID": str(oauth.challenge.id)}
         )
-        res = self.post(
+        oauth_inner, res = self.post(
             challenge_url,
             data=challenge_payload,
             raise_errors=False,
             headers=challenge_header,
             auto_login=False,
             return_response=True,
+            schema=OAuthSchema(),
         )
-        oauth_inner = OAuthSchema().load(res.json())
         if res.status_code == requests.codes.ok:
             try:
-                res2 = self.post(
-                    OAUTH,
-                    data=oauth_payload,
-                    headers=challenge_header,
-                    auto_login=False,
+                # the cast is required for mypy
+                return cast(
+                    OAuth,
+                    self.post(
+                        OAUTH,
+                        data=oauth_payload,
+                        headers=challenge_header,
+                        auto_login=False,
+                        schema=OAuthSchema(),
+                    ),
                 )
             except HTTPError:
                 raise AuthenticationError("Error in finalizing auth token")
-            else:
-                oauth = OAuthSchema().load(res2)
-                return oauth
         elif oauth_inner.is_challenge and oauth_inner.challenge.can_retry:
             print("Invalid code entered")
             return self._challenge_oauth2(oauth, oauth_payload)
@@ -424,12 +371,13 @@ class SessionManager(BaseModel):
         print(f"Input mfa code:")
         mfa_code = input()
         oauth_payload["mfa_code"] = mfa_code
-        res = self.post(
+        oauth, res = self.post(
             OAUTH,
             data=oauth_payload,
             raise_errors=False,
             auto_login=False,
             return_response=True,
+            schema=OAuthSchema(),
         )
         attempts -= 1
         if (res.status_code != requests.codes.ok) and (attempts > 0):
@@ -437,7 +385,7 @@ class SessionManager(BaseModel):
             return self._mfa_oauth2(oauth_payload, attempts)
         elif res.status_code == requests.codes.ok:
             # TODO: Write mypy issue on why this needs to be casted?
-            return cast(OAuth, OAuthSchema().load(res.json()))
+            return cast(OAuth, oauth)
         else:
             raise AuthenticationError("Too many incorrect mfa attempts")
 
@@ -462,15 +410,13 @@ class SessionManager(BaseModel):
             "challenge_type": self.challenge_type,
         }
 
-        res = self.post(
+        oauth = self.post(
             OAUTH,
             data=oauth_payload,
             raise_errors=False,
             auto_login=False,
-            return_response=True,
+            schema=OAuthSchema(),
         )
-
-        oauth = OAuthSchema().load(res.json())
 
         if oauth.is_challenge:
             oauth = self._challenge_oauth2(oauth, oauth_payload)
@@ -507,11 +453,12 @@ class SessionManager(BaseModel):
         }
         self.session.headers.pop("Authorization", None)
         try:
-            res = self.post(OAUTH, data=relogin_payload, auto_login=False)
+            oauth = self.post(
+                OAUTH, data=relogin_payload, auto_login=False, schema=OAuthSchema()
+            )
         except HTTPError:
             raise AuthenticationError("Failed to refresh token")
 
-        oauth = OAuthSchema().load(res)
         self._configure_manager(oauth)
 
     def logout(self) -> None:

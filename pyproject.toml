@@ -39,7 +39,6 @@ python-dateutil = "^2.8"
 pytz = "^2019.3"
 requests = "^2.23"
 yarl = "^1.4.2"
-typing-extensions = "^3.7.4"
 certifi = "^2020.4.5"
 
 [tool.poetry.dev-dependencies]
@@ -67,7 +66,7 @@ xdoctest = "^0.11.0"
 towncrier = "^19.2.0"
 
 [tool.poetry.extras]
-doc = ["sphinx", "sphinx-autodoc-typehints", "sphinx_rtd_theme", "autodocsumm", "tomlkit"]
+docs = ["sphinx", "sphinx-autodoc-typehints", "sphinx_rtd_theme", "autodocsumm", "tomlkit"]
 
 [tool.black]
 include = '\.pyi?$'
@@ -86,7 +85,7 @@ exclude = '''
 
 [tool.isort]
 known_first_party = 'robinhood'
-known_third_party = ["certifi", "dateutil", "freezegun", "marshmallow", "pytest", "pytz", "requests", "requests_mock", "typing_extensions", "yarl"]
+known_third_party = ["certifi", "dateutil", "freezegun", "marshmallow", "pytest", "pytz", "requests", "requests_mock", "yarl"]
 multi_line_output = 3
 lines_after_imports = 2
 force_grid_wrap = 0
