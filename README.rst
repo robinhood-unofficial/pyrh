@@ -59,7 +59,7 @@ Current Features
 * Placing sell order (\ ``Robinhood.place_sell_order``\ )
 * Fetch and cancel orders (\ ``Robinhood.order_history`` and ``Robinhood.cancel_order``\ )
 * Quote information (\ ``Robinhood.quote_data``\ )
-* User portfolio data (\ ``Robinhood.portfolios``\ )
+* User portfolio data (\ ``Robinhood.portfolio``\ )
 * User positions data (\ ``Robinhood.positions``\ )
 * More coming soon
 

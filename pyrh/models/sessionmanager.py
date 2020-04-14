@@ -49,7 +49,9 @@ HEADERS: CaseInsensitiveDictType = CaseInsensitiveDict(
 )
 """Headers used when performing requests with robinhood api."""
 
-EXPIRATION_TIME: int = 10
+# 8.5 days (you have a small window to refresh after this)
+# I would refresh the token proactively every day in a script
+EXPIRATION_TIME: int = 734000
 """Default expiration time for requests."""
 
 # TODO: Watch this issue and remove the F811 ignores when it is fixed

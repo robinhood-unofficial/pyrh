@@ -7,13 +7,13 @@ import dateutil
 import requests
 
 from pyrh import endpoints
+from pyrh.common import API_BASE
 from pyrh.exceptions import (
     InvalidInstrumentId,
     InvalidOptionId,
     InvalidTickerSymbol,
 )
-from pyrh.models import SessionManager
-from pyrh.models.sessionmanager import SessionManagerSchema
+from pyrh.models import PortfolioSchema, SessionManager, SessionManagerSchema
 
 
 class Bounds(Enum):
@@ -634,12 +634,11 @@ class Robinhood(SessionManager):
     #                           PORTFOLIOS DATA
     ###########################################################################
 
-    def portfolios(self):
+    def portfolio(self):
         """Returns the user's portfolio data """
+        portfolio_endpoint = API_BASE.with_path("/portfolios/")
 
-        req = self.get(endpoints.portfolios())
-
-        return req["results"][0]
+        return self.get(portfolio_endpoint, schema=PortfolioSchema())
 
     def adjusted_equity_previous_close(self):
         """Wrapper for portfolios
