@@ -135,8 +135,8 @@ class SessionManager(BaseModel):
             raise ValueError("challenge_type must be email or sms")
         self.challenge_type: str = challenge_type
 
-        self._gen_device_token: str = str(uuid.uuid4())
-        self.oauth: OAuth = OAuth()
+        self.device_token: str = kwargs.pop("device_token", str(uuid.uuid4()))
+        self.oauth: OAuth = kwargs.pop("ouath", OAuth())
 
         super().__init__(**kwargs)
 
@@ -458,7 +458,7 @@ class SessionManager(BaseModel):
             "client_id": CLIENT_ID,
             "expires_in": EXPIRATION_TIME,
             "scope": "internal",
-            "device_token": self._gen_device_token,
+            "device_token": self.device_token,
             "challenge_type": self.challenge_type,
         }
 
@@ -478,7 +478,12 @@ class SessionManager(BaseModel):
             oauth = self._mfa_oauth2(oauth_payload)
 
         if not oauth.is_valid:
-            msg = f"{oauth.error}" if hasattr(oauth, "error") else "Unknown login error"
+            if hasattr(oauth, "error"):
+                msg = f"{oauth.error}"
+            elif hasattr(oauth, "detail"):
+                msg = f"{oauth.detail}"
+            else:
+                msg = "Unknown login error"
             raise AuthenticationError(msg)
         else:
             self._configure_manager(oauth)
@@ -539,7 +544,8 @@ class SessionManagerSchema(BaseSchema):
 
     __model__ = SessionManager
 
-    username = fields.Email()  # type: ignore # Call untyped "Email" in typed context
+    # Call untyped "Email" in typed context
+    username = fields.Email()  # type: ignore
     password = fields.Str()
     challenge_type = fields.Str(validate=CHALLENGE_TYPE_VAL)
     oauth = fields.Nested(OAuthSchema)
