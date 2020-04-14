@@ -76,6 +76,27 @@ class Robinhood(InstrumentManager, SessionManager):
             results.extend(res.get("results", []))
         return results
 
+    def get_instruments(self, symbol, match=True, options=False):
+    """Query for instruments that match with the given ticker.
+
+    Args:
+        symbol (str): stock ticker
+        match (bool): True if want exact match, False for partial match
+
+    Returns:
+        (:obj: (list)): JSON contents from `instruments` endpoint - list
+        of instruments that match the ticker
+    """
+    ticker = stock.upper()
+    params = {"symbol": ticker} if match else {"query": ticker}
+    res = self.get(endpoints.instruments(options=options), params=params)
+    results = res.get("results", [])
+    while res.get("next"):
+        res = res.get("next")
+        results.extend(res.get("results", []))
+    return results
+
+    @deprecated
     def instruments(self, stock):
         """Fetch instruments endpoint.
 
@@ -95,6 +116,7 @@ class Robinhood(InstrumentManager, SessionManager):
 
         return res["results"]
 
+    @deprecated
     def instrument(self, id):
         """Fetch instrument info.
 
