@@ -506,9 +506,7 @@ class Robinhood(SessionManager):
 
         """
         stock_instrument = self.get_url(self.quote_data(stock)["instrument"])["id"]
-        return self.get_url(endpoints.instruments(stock_instrument, "popularity"))[
-            "num_open_positions"
-        ]
+        return self.get(endpoints.popularity())["num_open_positions"]
 
     def get_tickers_by_tag(self, tag=None):
         """Get a list of instruments belonging to a tag

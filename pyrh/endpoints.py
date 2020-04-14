@@ -131,3 +131,6 @@ def market_data(option_id):
 
 def convert_token():
     return API_BASE.with_path("/oauth2/migrate_token/")
+
+def popularity(ticker):
+    return API_BASE.with_path(f"/instruments/{ticker}/popularity")
