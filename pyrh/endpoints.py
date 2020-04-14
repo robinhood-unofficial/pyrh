@@ -37,18 +37,13 @@ def edocuments():
     return API_BASE.with_path("/documents/")
 
 
-def instruments(instrument_id=None, option=None):
+def instruments(options=False):
     """
     Return information about a specific instrument by providing its instrument id.
     Add extra options for additional information such as "popularity"
     """
-    url = API_BASE.with_path(f"/instruments/")
-    if instrument_id is not None:
-        url += f"{instrument_id}"
-    if option is not None:
-        url += f"{option}"
-
-    return url
+    opt = "/options" if options else ""
+    return API_BASE.with_path(f"{opt}/instruments/")
 
 
 def margin_upgrades():
@@ -63,9 +58,9 @@ def notifications():
     return API_BASE.with_path("/notifications/")
 
 
-def orders(order_id=""):
-    return API_BASE.with_path(f"/orders/{order_id}/")
-
+def orders(order_id="", options=False):
+    opt = "/options" if options else ""
+    return base.with_path(f"{opt}/orders/{order_id}/")
 
 def password_reset():
     return API_BASE.with_path("/password_reset/request/")
@@ -75,16 +70,19 @@ def portfolios():
     return API_BASE.with_path("/portfolios/")
 
 
-def positions():
-    return API_BASE.with_path("/positions/")
+def positions(options=False):
+    opt = "/options" if options else ""
+    return API_BASE.with_path("{opt}/positions/")
 
 
 def quotes():
     return API_BASE.with_path("/quotes/")
 
 
-def historicals():
-    return API_BASE.with_path("/quotes/historicals/")
+def historicals(options=False):
+    if options:
+        return API_BASE.with_path(f"/marketdata/options/historicals/")
+    return API_BASE.with_path(f"/quotes/historicals/")
 
 
 def document_requests():
