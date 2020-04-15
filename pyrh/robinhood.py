@@ -67,7 +67,7 @@ class Robinhood(InstrumentManager, SessionManager):
             (:obj: (list)): JSON contents from `instruments` endpoint - list
             of instruments that match the ticker
         """
-        ticker = stock.upper()
+        ticker = symbol.upper()
         params = {"symbol": ticker} if match else {"query": ticker}
         res = self.get(endpoints.instruments(options=options), params=params)
         results = res.get("results", [])
@@ -512,9 +512,7 @@ class Robinhood(InstrumentManager, SessionManager):
 
         """
         stock_instrument = self.get_url(self.quote_data(stock)["instrument"])["id"]
-        return self.get_url(urls.build_instruments(stock_instrument, "popularity"))[
-            "num_open_positions"
-        ]
+        return self.get(endpoints.popularity(stock_instrument))["num_open_positions"]
 
     def get_tickers_by_tag(self, tag=None):
         """Get a list of instruments belonging to a tag
