@@ -47,6 +47,4 @@ class OptionSchema(BaseSchema):
             An instance of the Option class.
 
         """
-        # Can potentially move this preprocessing part to a helper file
-        data = data.get("results", [{}])[0]
         return self.__model__(**data)
