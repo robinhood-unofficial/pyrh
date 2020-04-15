@@ -57,14 +57,14 @@ class Robinhood(SessionManager):
         (:obj: (list)): JSON contents from `instruments` endpoint - list
         of instruments that match the ticker
     """
-    ticker = stock.upper()
-    params = {"symbol": ticker} if match else {"query": ticker}
-    res = self.get(endpoints.instruments(options=options), params=params)
-    results = res.get("results", [])
-    while res.get("next"):
-        res = res.get("next")
-        results.extend(res.get("results", []))
-    return results
+        ticker = stock.upper()
+        params = {"symbol": ticker} if match else {"query": ticker}
+        res = self.get(endpoints.instruments(options=options), params=params)
+        results = res.get("results", [])
+        while res.get("next"):
+            res = res.get("next")
+            results.extend(res.get("results", []))
+        return results
 
     def instruments(self, stock):
         """Fetch instruments endpoint.
