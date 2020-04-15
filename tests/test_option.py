@@ -27,7 +27,7 @@ def test_chain_symbol():
 
 
 def test_strike_price():
-    strike = option_obj.strike
+    strike = option_obj.strike_price
     assert isinstance(strike, numbers.Real)
     assert format(strike, ".4f") == 232.5000
 
