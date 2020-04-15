@@ -54,7 +54,65 @@ class Robinhood(InstrumentManager, SessionManager):
 
     def investment_profile(self):
         """Fetch investment_profile."""
-        return self.get(urls.INVESTMENT_PROFILE)
+        return self.get(endpoints.investment_profile())
+
+    def get_instruments(self, symbol, match=True, options=False):
+    """Query for instruments that match with the given ticker.
+
+    Args:
+        symbol (str): stock ticker
+        match (bool): True if want exact match, False for partial match
+
+    Returns:
+        (:obj: (list)): JSON contents from `instruments` endpoint - list
+        of instruments that match the ticker
+    """
+        ticker = stock.upper()
+        params = {"symbol": ticker} if match else {"query": ticker}
+        res = self.get(endpoints.instruments(options=options), params=params)
+        results = res.get("results", [])
+        while res.get("next"):
+            res = res.get("next")
+            results.extend(res.get("results", []))
+        return results
+
+    def instruments(self, stock):
+        """Fetch instruments endpoint.
+
+        Args:
+            stock (str): stock ticker
+
+        Returns:
+            (:obj:`dict`): JSON contents from `instruments` endpoint
+
+        """
+
+        res = self.get(endpoints.instruments(), params={"query": stock.upper()})
+
+        # if requesting all, return entire object so may paginate with ['next']
+        if stock == "":
+            return res
+
+        return res["results"]
+
+    def instrument(self, id):
+        """Fetch instrument info.
+
+        Args:
+            id (str): instrument id
+
+        Returns:
+            (:obj:`dict`): JSON dict of instrument
+
+        """
+        url = str(endpoints.instruments()) + "?symbol=" + str(id)
+
+        try:
+            data = requests.get(url)
+        except requests.exceptions.HTTPError:
+            raise InvalidInstrumentId()
+
+        return data["results"][0]
 
     def quote_data(self, stock=""):
         """Fetch stock quote.
