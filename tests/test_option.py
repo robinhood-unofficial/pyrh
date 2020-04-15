@@ -1,11 +1,13 @@
 import datetime as dt
 import numbers
-import requests
 from os import path
+
 import pytest
+import requests
 from six import string_types
 
 from pyrh.models.option import OptionSchema
+
 
 HERE = path.abspath(path.dirname(__file__))
 ROOT = path.dirname(HERE)
@@ -44,7 +46,8 @@ def test_created_at():
 def test_min_ticks():
     min_ticks = option_obj.min_ticks
     assert isinstance(dict(), min_ticks)
-    assert min_ticks == {"above_tick": "0.05",
-                         "below_tick": "0.01",
-                         "cutoff_price": "3.00"}
-
+    assert min_ticks == {
+        "above_tick": "0.05",
+        "below_tick": "0.01",
+        "cutoff_price": "3.00",
+    }
