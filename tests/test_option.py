@@ -16,7 +16,8 @@ ROOT = path.dirname(HERE)
 sample_url = "https://api.robinhood.com/options/instruments/f098f169-74f9-4b91-b955-6834e1b67a12/"
 response = requests.get(sample_url)
 data = response.json()
-option_obj = OptionSchema.make_object(data=data)
+option_schema = OptionSchema()
+option_obj = option_schema.make_object(data=data)
 
 
 def test_chain_symbol():
