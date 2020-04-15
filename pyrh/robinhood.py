@@ -66,7 +66,6 @@ class Robinhood(SessionManager):
         results.extend(res.get("results", []))
     return results
 
-    @deprecated
     def instruments(self, stock):
         """Fetch instruments endpoint.
 
@@ -86,7 +85,6 @@ class Robinhood(SessionManager):
 
         return res["results"]
 
-    @deprecated
     def instrument(self, id):
         """Fetch instrument info.
 
