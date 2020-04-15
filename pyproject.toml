@@ -85,7 +85,7 @@ exclude = '''
 
 [tool.isort]
 known_first_party = 'robinhood'
-known_third_party = ["certifi", "dateutil", "freezegun", "marshmallow", "pytest", "pytz", "requests", "requests_mock", "yarl"]
+known_third_party = ["certifi", "dateutil", "freezegun", "marshmallow", "pytest", "pytz", "requests", "requests_mock", "six", "yarl"]
 multi_line_output = 3
 lines_after_imports = 2
 force_grid_wrap = 0
