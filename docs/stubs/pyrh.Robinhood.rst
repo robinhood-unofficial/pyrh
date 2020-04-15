@@ -33,6 +33,7 @@ pyrh.Robinhood
       ~Robinhood.get_account
       ~Robinhood.get_fundamentals
       ~Robinhood.get_historical_quotes
+      ~Robinhood.get_instruments
       ~Robinhood.get_news
       ~Robinhood.get_open_orders
       ~Robinhood.get_option_chainid
