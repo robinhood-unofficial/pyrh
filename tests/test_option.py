@@ -22,31 +22,31 @@ option_obj = option_schema.make_object(data=data)
 
 def test_chain_symbol():
     symbol = option_obj.chain_symbol
-    assert isinstance(string_types, symbol)
+    assert isinstance(symbol, string_types)
     assert symbol == "AAPL"
 
 
 def test_strike_price():
     strike = option_obj.strike
-    assert isinstance(numbers.Real, strike)
+    assert isinstance(strike, numbers.Real)
     assert format(strike, ".4f") == 232.5000
 
 
 def test_expiration_date():
     expiry = option_obj.expiration_date
-    assert isinstance(dt.datetime.date, expiry)
+    assert isinstance(expiry, dt.datetime.date)
     assert expiry == dt.date(2020, 4, 17)
 
 
 def test_created_at():
     created_at = option_obj.created_at
-    assert isinstance(dt.datetime, created_at)
+    assert isinstance(created_at, dt.datetime)
     assert created_at == dt.datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%S.%fZ")
 
 
 def test_min_ticks():
     min_ticks = option_obj.min_ticks
-    assert isinstance(dict(), min_ticks)
+    assert isinstance(min_ticks, dict())
     assert min_ticks == {
         "above_tick": "0.05",
         "below_tick": "0.01",
