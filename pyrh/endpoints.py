@@ -60,7 +60,8 @@ def notifications():
 
 def orders(order_id="", options=False):
     opt = "/options" if options else ""
-    return base.with_path(f"{opt}/orders/{order_id}/")
+    return API_BASE.with_path(f"{opt}/orders/{order_id}/")
+
 
 def password_reset():
     return API_BASE.with_path("/password_reset/request/")
@@ -72,7 +73,7 @@ def portfolios():
 
 def positions(options=False):
     opt = "/options" if options else ""
-    return API_BASE.with_path("{opt}/positions/")
+    return API_BASE.with_path(f"{opt}/positions/")
 
 
 def quotes():
@@ -131,6 +132,7 @@ def market_data(option_id):
 
 def convert_token():
     return API_BASE.with_path("/oauth2/migrate_token/")
+
 
 def popularity(ticker):
     return API_BASE.with_path(f"/instruments/{ticker}/popularity")

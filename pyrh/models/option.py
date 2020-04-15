@@ -1,4 +1,4 @@
-"""Option data class"""
+"""Option data class."""
 
 from typing import Any
 
@@ -10,13 +10,13 @@ from .base import BaseModel, BaseSchema
 
 
 class Option(BaseModel):
-    """Robinhood Option data class. Represents an options instrument"""
+    """Robinhood Option data class. Represents an options instrument."""
 
     pass
 
 
 class OptionSchema(BaseSchema):
-    """Robinhood Option schema data loader. """
+    """Robinhood Option schema data loader."""
 
     __model__ = Option
 
@@ -24,14 +24,14 @@ class OptionSchema(BaseSchema):
     chain_symbol = fields.String()
     created_at = fields.NaiveDateTime()
     expiration_date = fields.Date()
-    options_id = fields.String() 
+    id = fields.String()
     issue_date = fields.Date()
     min_ticks = fields.Dict()
     rhs_tradability = fields.String()
     state = fields.String()
     strike_price = fields.Float()
     tradability = fields.String()
-    options_type = fields.String()  
+    type = fields.String()
     updated_at = fields.NaiveDateTime()
     url = fields.URL()
 
@@ -48,6 +48,5 @@ class OptionSchema(BaseSchema):
 
         """
         # Can potentially move this preprocessing part to a helper file
-        prefix = self.__class__.__name__.lower()
         data = data.get("results", [{}])[0]
         return self.__model__(**data)
