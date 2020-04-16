@@ -1,13 +1,12 @@
 """Base Model."""
 
 from types import SimpleNamespace
-from typing import Any, Mapping
+from typing import Any, Dict, Mapping
 
 from marshmallow import INCLUDE, Schema, post_load
 
-from pyrh.common import JSON
 
-
+JSON = Dict[str, Any]
 MAX_REPR_LEN = 50
 
 

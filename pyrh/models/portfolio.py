@@ -4,9 +4,7 @@ from typing import Any
 
 from marshmallow import fields, post_load
 
-from pyrh.common import JSON
-
-from .base import BaseModel, BaseSchema
+from .base import JSON, BaseModel, BaseSchema
 
 
 class Portfolio(BaseModel):

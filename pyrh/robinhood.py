@@ -7,7 +7,6 @@ import dateutil
 import requests
 
 from pyrh import endpoints
-from pyrh.common import API_BASE
 from pyrh.exceptions import (
     InvalidInstrumentId,
     InvalidOptionId,
@@ -42,11 +41,11 @@ class Robinhood(SessionManager):
     ###########################################################################
 
     def user(self):
-        return self.get(endpoints.user())
+        return self.get(endpoints.USER)
 
     def investment_profile(self):
         """Fetch investment_profile."""
-        return self.get(endpoints.investment_profile())
+        return self.get(endpoints.INVESTMENT_PROFILE)
 
     def instruments(self, stock):
         """Fetch instruments endpoint.
@@ -99,9 +98,9 @@ class Robinhood(SessionManager):
 
         if isinstance(stock, dict):
             if "symbol" in stock.keys():
-                url = str(endpoints.quotes()) + stock["symbol"] + "/"
+                url = str(endpoints.QUOTES) + stock["symbol"] + "/"
         elif isinstance(stock, str):
-            url = str(endpoints.quotes()) + stock + "/"
+            url = str(endpoints.QUOTES) + stock + "/"
         else:
             raise InvalidTickerSymbol()
 
@@ -127,7 +126,7 @@ class Robinhood(SessionManager):
 
         """
 
-        url = str(endpoints.quotes()) + "?symbols=" + ",".join(stocks)
+        url = str(endpoints.QUOTES) + "?symbols=" + ",".join(stocks)
 
         try:
             data = self.get(url)
@@ -216,7 +215,7 @@ class Robinhood(SessionManager):
             bounds = Bounds(bounds)
 
         historicals = (
-            endpoints.historicals()
+            endpoints.HISTORICALS
             + "/?symbols="
             + ",".join(stock).upper()
             + "&interval="
@@ -464,7 +463,7 @@ class Robinhood(SessionManager):
 
         """
 
-        res = self.get(endpoints.accounts())
+        res = self.get(endpoints.ACCOUNTS)
 
         return res["results"][0]
 
@@ -636,105 +635,8 @@ class Robinhood(SessionManager):
 
     def portfolio(self):
         """Returns the user's portfolio data """
-        portfolio_endpoint = API_BASE.with_path("/portfolios/")
 
-        return self.get(portfolio_endpoint, schema=PortfolioSchema())
-
-    def adjusted_equity_previous_close(self):
-        """Wrapper for portfolios
-
-        Returns:
-            (float): `adjusted_equity_previous_close` value
-
-        """
-
-        return float(self.portfolios()["adjusted_equity_previous_close"])
-
-    def equity(self):
-        """Wrapper for portfolios
-
-        Returns:
-            (float): `equity` value
-
-        """
-
-        return float(self.portfolios()["equity"])
-
-    def equity_previous_close(self):
-        """Wrapper for portfolios
-
-        Returns:
-            (float): `equity_previous_close` value
-
-        """
-
-        return float(self.portfolios()["equity_previous_close"])
-
-    def excess_margin(self):
-        """Wrapper for portfolios
-
-        Returns:
-            (float): `excess_margin` value
-
-        """
-
-        return float(self.portfolios()["excess_margin"])
-
-    def extended_hours_equity(self):
-        """Wrapper for portfolios
-
-        Returns:
-            (float): `extended_hours_equity` value
-
-        """
-
-        try:
-            return float(self.portfolios()["extended_hours_equity"])
-        except TypeError:
-            return None
-
-    def extended_hours_market_value(self):
-        """Wrapper for portfolios
-
-        Returns:
-            (float): `extended_hours_market_value` value
-
-        """
-
-        try:
-            return float(self.portfolios()["extended_hours_market_value"])
-        except TypeError:
-            return None
-
-    def last_core_equity(self):
-        """Wrapper for portfolios
-
-        Returns:
-            (float): `last_core_equity` value
-
-        """
-
-        return float(self.portfolios()["last_core_equity"])
-
-    def last_core_market_value(self):
-        """Wrapper for portfolios
-
-        Returns:
-            (float): `last_core_market_value` value
-
-        """
-
-        return float(self.portfolios()["last_core_market_value"])
-
-    def market_value(self):
-        """Wrapper for portfolios
-
-        Returns:
-            (float): `market_value` value
-
-        """
-
-        return float(self.portfolios()["market_value"])
+        return self.get(endpoints.PORTFOLIOS, schema=PortfolioSchema())
 
     def order_history(self, orderId=None):
         """Wrapper for portfolios
@@ -756,7 +658,7 @@ class Robinhood(SessionManager):
 
         """
 
-        return self.get(endpoints.dividends())
+        return self.get(endpoints.DIVIDENDS)
 
     ###########################################################################
     #                           POSITIONS DATA
@@ -770,7 +672,7 @@ class Robinhood(SessionManager):
 
         """
 
-        return self.get(endpoints.positions())
+        return self.get(endpoints.POSITIONS)
 
     def securities_owned(self):
         """Returns list of securities' symbols that the user has shares in
@@ -780,7 +682,7 @@ class Robinhood(SessionManager):
 
         """
 
-        return self.get(endpoints.positions() + "?nonzero=true")
+        return self.get(endpoints.POSITIONS + "?nonzero=true")
 
     ###########################################################################
     #                               PLACE ORDER

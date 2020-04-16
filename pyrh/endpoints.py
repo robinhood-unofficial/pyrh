@@ -1,17 +1,56 @@
 """Define Robinhood endpoints."""
 
-from .common import API_BASE
+from yarl import URL
 
 
-def investment_profile():
-    return API_BASE.with_path("/user/investment_profile/")
+# Base
+API_BASE = URL("https://api.robinhood.com")
+
+# General
+ACCOUNTS = API_BASE.with_path("/accounts/")
+ACH_BASE = API_BASE.with_path("/ach/")  # not implemented
+APPLICATIONS = API_BASE.with_path("/applications/")  # not implemented
+DIVIDENDS = API_BASE.with_path("/dividends/")
+DOCUMENTS = API_BASE.with_path("/documents/")  # not implemented
+INSTRUMENTS_BASE = API_BASE.with_path("/instruments/")
+MARGIN_UPGRADES = API_BASE.with_path("/margin/upgrades/")  # not implemented
+MARKETS = API_BASE.with_path("/markets/")  # not implemented
+NOTIFICATIONS = API_BASE.with_path("/notifications/")  # not implemented
+DOCUMENT_REQUESTS = API_BASE.with_path("/upload/document_requests/")  # not implemented
+PORTFOLIOS = API_BASE.with_path("/portfolios/")
+POSITIONS = API_BASE.with_path("/positions/")
+WATCHLISTS = API_BASE.with_path("/watchlists/")  # not implemented
+
+# User
+USER = API_BASE.with_path("/user/")
+INVESTMENT_PROFILE = USER.with_path("/investment_profile/")
+
+# Quotes
+QUOTES = API_BASE.with_path("/quotes/")
+HISTORICALS = QUOTES.with_path("/historicals/")
+
+# Auth
+OAUTH_BASE: URL = API_BASE.with_path("/oauth2/")
+OAUTH: URL = OAUTH_BASE.with_path("/token/")
+OAUTH_REVOKE: URL = OAUTH_BASE.with_path("/revoke_token/")
+MIGRATE_TOKEN: URL = OAUTH_BASE.with_path("/migrate_token/")  # not implemented
+PASSWORD_RESET: URL = API_BASE.with_path("/password_reset/request/")  # not implemented
 
 
-def accounts():
-    return API_BASE.with_path("/accounts/")
+def build_challenge(challenge_id: str) -> URL:
+    """Build challenge response url.
+
+    Args:
+        challenge_id: the id of the challenge passed in the oauth request flow.
+
+    Returns:
+        The constructed URL with the challenge_id embedded in teh url path.
+
+    """
+    return API_BASE.with_path(f"/challenge/{challenge_id}/respond/")
 
 
-def ach(option):
+def build_ach(option):
     """
     Combination of 3 ACH endpoints. Options include:
         * iav
@@ -19,22 +58,10 @@ def ach(option):
         * transfers
     """
     return (
-        API_BASE.with_path("/ach/iav/auth/")
+        ACH_BASE.with_path("/iav/auth/")
         if option == "iav"
-        else API_BASE.with_path(f"/ach/{option}/")
+        else ACH_BASE.with_path(f"/{option}/")
     )
-
-
-def applications():
-    return API_BASE.with_path("/applications/")
-
-
-def dividends():
-    return API_BASE.with_path("/dividends/")
-
-
-def edocuments():
-    return API_BASE.with_path("/documents/")
 
 
 def instruments(instrument_id=None, option=None):
@@ -42,8 +69,9 @@ def instruments(instrument_id=None, option=None):
     Return information about a specific instrument by providing its instrument id.
     Add extra options for additional information such as "popularity"
     """
-    url = API_BASE.with_path(f"/instruments/")
+    url = INSTRUMENTS_BASE
     if instrument_id is not None:
+        url.with_path(f"{instrument_id}")
         url += f"{instrument_id}"
     if option is not None:
         url += f"{option}"
@@ -51,52 +79,8 @@ def instruments(instrument_id=None, option=None):
     return url
 
 
-def margin_upgrades():
-    return API_BASE.with_path("/margin/upgrades/")
-
-
-def markets():
-    return API_BASE.with_path("/markets/")
-
-
-def notifications():
-    return API_BASE.with_path("/notifications/")
-
-
 def orders(order_id=""):
     return API_BASE.with_path(f"/orders/{order_id}/")
-
-
-def password_reset():
-    return API_BASE.with_path("/password_reset/request/")
-
-
-def portfolios():
-    return API_BASE.with_path("/portfolios/")
-
-
-def positions():
-    return API_BASE.with_path("/positions/")
-
-
-def quotes():
-    return API_BASE.with_path("/quotes/")
-
-
-def historicals():
-    return API_BASE.with_path("/quotes/historicals/")
-
-
-def document_requests():
-    return API_BASE.with_path("/upload/document_requests/")
-
-
-def user():
-    return API_BASE.with_path("/user/")
-
-
-def watchlists():
-    return API_BASE.with_path("/watchlists/")
 
 
 def news(stock):
@@ -129,7 +113,3 @@ def options(chain_id, dates, option_type):
 
 def market_data(option_id):
     return API_BASE.with_path(f"/marketdata/options/{option_id}/")
-
-
-def convert_token():
-    return API_BASE.with_path("/oauth2/migrate_token/")
