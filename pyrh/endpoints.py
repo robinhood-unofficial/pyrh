@@ -1,40 +1,54 @@
 """Define Robinhood endpoints."""
 
+from typing import Optional
+
 from yarl import URL
 
+
+# TODO: All url construction should happen here, not in robinhood.py
 
 # Base
 API_BASE = URL("https://api.robinhood.com")
 
 # General
-ACCOUNTS = API_BASE.with_path("/accounts/")
-ACH_BASE = API_BASE.with_path("/ach/")  # not implemented
-APPLICATIONS = API_BASE.with_path("/applications/")  # not implemented
-DIVIDENDS = API_BASE.with_path("/dividends/")
-DOCUMENTS = API_BASE.with_path("/documents/")  # not implemented
-INSTRUMENTS_BASE = API_BASE.with_path("/instruments/")
-MARGIN_UPGRADES = API_BASE.with_path("/margin/upgrades/")  # not implemented
-MARKETS = API_BASE.with_path("/markets/")  # not implemented
-NOTIFICATIONS = API_BASE.with_path("/notifications/")  # not implemented
-DOCUMENT_REQUESTS = API_BASE.with_path("/upload/document_requests/")  # not implemented
-PORTFOLIOS = API_BASE.with_path("/portfolios/")
-POSITIONS = API_BASE.with_path("/positions/")
-WATCHLISTS = API_BASE.with_path("/watchlists/")  # not implemented
+ACCOUNTS = API_BASE / "accounts/"
+ACH_BASE = API_BASE / "ach/"  # not implemented
+APPLICATIONS = API_BASE / "applications/"  # not implemented
+DIVIDENDS = API_BASE / "dividends/"
+DOCUMENTS = API_BASE / "documents/"  # not implemented
+INSTRUMENTS_BASE = API_BASE / "instruments/"
+MARGIN_UPGRADES = API_BASE / "margin/upgrades/"  # not implemented
+MARKETS = API_BASE / "markets/"  # not implemented
+NOTIFICATIONS = API_BASE / "notifications/"  # not implemented
+DOCUMENT_REQUESTS = API_BASE / "upload/document_requests/"  # not implemented
+PORTFOLIOS = API_BASE / "portfolios/"
+POSITIONS = API_BASE / "positions/"
+WATCHLISTS = API_BASE / "watchlists/"  # not implemented
+NEWS_BASE = API_BASE / "midlands/news/"
+FUNDAMENTALS_BASE = API_BASE / "fundamentals/"
+ORDERS_BASE = API_BASE / "orders/"
+MARKET_DATA_BASE = API_BASE / "marketdata/options/"
+TAGS_BASE = API_BASE / "midlands/tags/tag/"
+
+# Options
+OPTIONS_BASE = API_BASE / "options/"
+OPTIONS_CHAIN_BASE = OPTIONS_BASE / "chains/"
+OPTIONS_INSTRUMENTS_BASE = OPTIONS_BASE / "instruments/"
 
 # User
-USER = API_BASE.with_path("/user/")
-INVESTMENT_PROFILE = USER.with_path("/investment_profile/")
+USER = API_BASE / "user/"
+INVESTMENT_PROFILE = USER / "investment_profile/"
 
 # Quotes
-QUOTES = API_BASE.with_path("/quotes/")
-HISTORICALS = QUOTES.with_path("/historicals/")
+QUOTES = API_BASE / "quotes/"
+HISTORICALS = QUOTES / "historicals/"
 
 # Auth
-OAUTH_BASE: URL = API_BASE.with_path("/oauth2/")
-OAUTH: URL = OAUTH_BASE.with_path("/token/")
-OAUTH_REVOKE: URL = OAUTH_BASE.with_path("/revoke_token/")
-MIGRATE_TOKEN: URL = OAUTH_BASE.with_path("/migrate_token/")  # not implemented
-PASSWORD_RESET: URL = API_BASE.with_path("/password_reset/request/")  # not implemented
+OAUTH_BASE: URL = API_BASE / "oauth2/"
+OAUTH: URL = OAUTH_BASE / "token/"
+OAUTH_REVOKE: URL = OAUTH_BASE / "revoke_token/"
+MIGRATE_TOKEN: URL = OAUTH_BASE / "migrate_token/"  # not implemented
+PASSWORD_RESET: URL = API_BASE / "password_reset/request/"  # not implemented
 
 
 def build_challenge(challenge_id: str) -> URL:
@@ -47,69 +61,139 @@ def build_challenge(challenge_id: str) -> URL:
         The constructed URL with the challenge_id embedded in teh url path.
 
     """
-    return API_BASE.with_path(f"/challenge/{challenge_id}/respond/")
+    return API_BASE / f"challenge/{challenge_id}/respond/"
 
 
-def build_ach(option):
+def build_ach(option: str) -> URL:
     """
     Combination of 3 ACH endpoints. Options include:
         * iav
         * relationships
         * transfers
     """
-    return (
-        ACH_BASE.with_path("/iav/auth/")
-        if option == "iav"
-        else ACH_BASE.with_path(f"/{option}/")
-    )
+    return ACH_BASE / "iav/auth/" if option == "iav" else ACH_BASE / f"{option}/"
 
 
-def instruments(instrument_id=None, option=None):
-    """
-    Return information about a specific instrument by providing its instrument id.
-    Add extra options for additional information such as "popularity"
+def build_instruments(
+    instrument_id: Optional[str] = None, option: Optional[str] = None
+):
+    """Build instrument endpoint.
+
+    Args:
+        instrument_id: The id of the queried instrument.
+        option: The queried option. # TODO: (type of option?)
     """
     url = INSTRUMENTS_BASE
     if instrument_id is not None:
-        url.with_path(f"{instrument_id}")
-        url += f"{instrument_id}"
+        url /= f"{instrument_id}/"
     if option is not None:
-        url += f"{option}"
+        url /= f"{option}/"
 
     return url
 
 
-def orders(order_id=""):
-    return API_BASE.with_path(f"/orders/{order_id}/")
+def build_orders(order_id: str = None) -> URL:
+    """Build endpoint to place orders."
 
+    Args:
+        order_id: the id of the order
 
-def news(stock):
-    return API_BASE.with_path(f"/midlands/news/{stock}/")
+    Returns:
+        A constructed URL for a particular order or the base URL for all orders.
 
-
-def fundamentals(stock):
-    return API_BASE.with_path(f"/fundamentals/{stock}/")
-
-
-def tags(tag):
     """
-    Returns endpoint with tag concatenated.
+    if order_id is not None:
+        return ORDERS_BASE / f"/{order_id}/"
+    else:
+        return ORDERS_BASE
+
+
+def build_news(stock: str) -> URL:
+    """Build news endpoint for a particular stock
+
+    Args:
+        stock: The stock ticker to build the URL
+
+    Returns:
+        A constructed URL for the input stock ticker.
+
     """
-    return API_BASE.with_path(f"/midlands/tags/tag/{tag}/")
+    return NEWS_BASE / f"/{stock}/"
 
 
-def chain(instrument_id):
-    return API_BASE.with_path(
-        f"/options/chains/?equity_instrument_ids={instrument_id}/"
+def build_fundamentals(stock: str) -> URL:
+    """Build fundamentals endpoint for a particular stock
+
+    Args:
+        stock: The stock ticker to build the URL
+
+    Returns:
+        A constructed URL of the fundamentals for the input stock ticker.
+
+    """
+    return FUNDAMENTALS_BASE / f"/{stock}/"
+
+
+def build_tags(tag: str) -> URL:
+    """Build endpoints for tickers with a particular tag.
+
+    Args:
+        tag: The tag to search for.
+
+    Returns:
+        A constructed URL for a particular tag.
+
+    """
+    return TAGS_BASE / f"/{tag}/"
+
+
+def build_chain(instrument_id: str) -> URL:
+    """Build the query for a particular options chain.
+
+    # TODO: this isn't best practice
+    # (query construction should be a separate function)
+
+    Args:
+        instrument_id: The instrument in question.
+
+    Returns:
+        A constructed URL for the particular options chain search.
+
+    """
+    return (
+        OPTIONS_CHAIN_BASE.with_query(equity_instrument_ids=f"{instrument_id}") / "/"
+    )  # TODO: find out if this trailing slash is required.
+
+
+def build_options(chain_id: str, dates: str, option_type: str) -> URL:
+    """Build options search endpoint.
+
+    # TODO: this really isn't best practice.
+
+    Args:
+        chain_id: The id for a particular options chain.
+        dates: The range of dates to procure # TODO: document the format of the dates
+        option_type: The type of the option # TODO: document the types
+    """
+    return OPTIONS_INSTRUMENTS_BASE.with_query(
+        chain_id=f"{chain_id}",
+        expiration_dates=f"{dates}",
+        state="active",
+        tradability="tradable",
+        type=f"{option_type}",
     )
 
 
-def options(chain_id, dates, option_type):
-    return API_BASE.with_path(
-        f"/options/instruments/?chain_id={chain_id}&expiration_dates={dates}"
-        f"&state=active&tradability=tradable&type={option_type}"
-    )
+def build_market_data(option_id: Optional[str] = None) -> URL:
+    """Build market data endpoint.
 
+    Args:
+        option_id: the id of the option.
 
-def market_data(option_id):
-    return API_BASE.with_path(f"/marketdata/options/{option_id}/")
+    Returns:
+        A constructed URL for market data for a particular `option_id`.
+    """
+    if option_id is None:
+        return MARKET_DATA_BASE / f"/{option_id}/"
+    else:
+        return MARKET_DATA_BASE
