@@ -33,9 +33,9 @@ def sm_adap(monkeypatch):
         "password": "some password",
     }
 
-    monkeypatch.setattr("pyrh.endpoints.OAUTH", MOCK_URL)
-    monkeypatch.setattr("pyrh.endpoints.OAUTH_REVOKE", MOCK_URL)
-    monkeypatch.setattr("pyrh.endpoints.build_challenge", lambda x: MOCK_URL)
+    monkeypatch.setattr("pyrh.urls.OAUTH", MOCK_URL)
+    monkeypatch.setattr("pyrh.urls.OAUTH_REVOKE", MOCK_URL)
+    monkeypatch.setattr("pyrh.urls.build_challenge", lambda x: MOCK_URL)
 
     session_manager = SessionManager(**sample_user)
     adapter = requests_mock.Adapter()
