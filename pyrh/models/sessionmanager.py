@@ -13,7 +13,7 @@ from requests.exceptions import HTTPError
 from requests.structures import CaseInsensitiveDict
 from yarl import URL
 
-from pyrh import endpoints
+from pyrh import urls
 from pyrh.exceptions import AuthenticationError
 
 from .base import JSON, BaseModel, BaseSchema
@@ -303,7 +303,7 @@ class SessionManager(BaseModel):
 
         """
         # login challenge
-        challenge_url = endpoints.build_challenge(oauth.challenge.id)
+        challenge_url = urls.build_challenge(oauth.challenge.id)
         print(
             f"Input challenge code from {oauth.challenge.type.capitalize()} "
             f"({oauth.challenge.remaining_attempts}/"
@@ -329,7 +329,7 @@ class SessionManager(BaseModel):
                 return cast(
                     OAuth,
                     self.post(
-                        endpoints.OAUTH,
+                        urls.OAUTH,
                         data=oauth_payload,
                         headers=challenge_header,
                         auto_login=False,
@@ -365,7 +365,7 @@ class SessionManager(BaseModel):
         mfa_code = input()
         oauth_payload["mfa_code"] = mfa_code
         oauth, res = self.post(
-            endpoints.OAUTH,
+            urls.OAUTH,
             data=oauth_payload,
             raise_errors=False,
             auto_login=False,
@@ -404,7 +404,7 @@ class SessionManager(BaseModel):
         }
 
         oauth = self.post(
-            endpoints.OAUTH,
+            urls.OAUTH,
             data=oauth_payload,
             raise_errors=False,
             auto_login=False,
@@ -447,7 +447,7 @@ class SessionManager(BaseModel):
         self.session.headers.pop("Authorization", None)
         try:
             oauth = self.post(
-                endpoints.OAUTH,
+                urls.OAUTH,
                 data=relogin_payload,
                 auto_login=False,
                 schema=OAuthSchema(),
@@ -466,7 +466,7 @@ class SessionManager(BaseModel):
         """
         logout_payload = {"client_id": CLIENT_ID, "token": self.oauth.refresh_token}
         try:
-            self.post(endpoints.OAUTH_REVOKE, data=logout_payload, auto_login=False)
+            self.post(urls.OAUTH_REVOKE, data=logout_payload, auto_login=False)
             self.oauth = OAuth()
             self.session.headers.pop("Authorization", None)
         except HTTPError:
