@@ -69,7 +69,7 @@ class Robinhood(InstrumentManager, SessionManager):
         """
         ticker = symbol.upper()
         params = {"symbol": ticker} if match else {"query": ticker}
-        res = self.get(endpoints.instruments(options=options), params=params)
+        res = self.get(urls.instruments(options=options), params=params)
         results = res.get("results", [])
         while res.get("next"):
             res = res.get("next")
@@ -520,19 +520,6 @@ class Robinhood(InstrumentManager, SessionManager):
         """Flat wrapper for fetching URL directly/"""
 
         return self.get(url)
-
-    def get_popularity(self, stock=""):
-        """Get the number of robinhood users who own the given stock
-
-        Args:
-            stock (str): stock ticker
-
-        Returns:
-            (int): number of users who own the stock
-
-        """
-        stock_instrument = self.get_url(self.quote_data(stock)["instrument"])["id"]
-        return self.get(endpoints.popularity(stock_instrument))["num_open_positions"]
 
     def get_tickers_by_tag(self, tag=None):
         """Get a list of instruments belonging to a tag
