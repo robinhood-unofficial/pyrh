@@ -14,11 +14,13 @@ from requests.structures import CaseInsensitiveDict
 from yarl import URL
 
 from pyrh import urls
-from pyrh.exceptions import AuthenticationError
+from pyrh.exceptions import AuthenticationError, PyrhValueError
 
 from .base import JSON, BaseModel, BaseSchema
 from .oauth import CHALLENGE_TYPE_VAL, OAuth, OAuthSchema
 
+
+# TODO: merge get and post duplicated code into a single function.
 
 # Types
 if TYPE_CHECKING:  # pragma: no cover
@@ -47,6 +49,9 @@ HEADERS: CaseInsensitiveDictType = CaseInsensitiveDict(
 # I would refresh the token proactively every day in a script
 EXPIRATION_TIME: int = 734000
 """Default expiration time for requests."""
+
+TIMEOUT: int = 1
+"""Default timeout in seconds"""
 
 
 class SessionManager(BaseModel):
@@ -169,12 +174,12 @@ class SessionManager(BaseModel):
         self,
         url: Union[str, URL],
         params: Optional[Dict[str, Any]] = None,
-        *,
         headers: Optional[CaseInsensitiveDictType] = None,
         raise_errors: bool = True,
         return_response: bool = False,
         auto_login: bool = True,
         schema: Optional[Schema] = None,
+        many: bool = False,
     ) -> Any:
         """Run a wrapped session HTTP GET request.
 
@@ -193,25 +198,39 @@ class SessionManager(BaseModel):
                 errors.
             schema: An instance of a `marshmallow.Schema` that represents the object
                 to build.
+            many: Whether to treat the output as a list of the passed schema.
 
         Returns:
             A JSON dictionary or a constructed object if a schema is passed. If \
                 `return_response` is set then a tuple of (response, data) is passed.
 
+        Raises:
+            PyrhValueError: If the schema is not an instance of `Schema` and is instead
+                a class.
+
         """
+        # Guard against common gotcha, passing schema class instead of instance.
+        if isinstance(schema, type):
+            raise PyrhValueError("Passed Schema should be an instance not a class.")
         params = {} if params is None else params
         res = self.session.get(
-            str(url), params=params, headers={} if headers is None else headers
+            str(url),
+            params=params,
+            timeout=TIMEOUT,
+            headers={} if headers is None else headers,
         )
         if res.status_code == 401 and auto_login:
             self.login(force_refresh=True)
             res = self.session.get(
-                str(url), params=params, headers={} if headers is None else headers
+                str(url),
+                params=params,
+                timeout=TIMEOUT,
+                headers={} if headers is None else headers,
             )
         if raise_errors:
             res.raise_for_status()
 
-        data = res.json() if schema is None else schema.load(res.json())
+        data = res.json() if schema is None else schema.load(res.json(), many=many)
 
         return (data, res) if return_response else data
 
@@ -219,12 +238,12 @@ class SessionManager(BaseModel):
         self,
         url: Union[str, URL],
         data: Optional[JSON] = None,
-        *,
         headers: Optional[CaseInsensitiveDictType] = None,
         raise_errors: bool = True,
         return_response: bool = False,
         auto_login: bool = True,
         schema: Optional[Schema] = None,
+        many: bool = False,
     ) -> Any:
         """Run a wrapped session HTTP POST request.
 
@@ -243,27 +262,39 @@ class SessionManager(BaseModel):
                 errors.
             schema: An instance of a `marshmallow.Schema` that represents the object
                 to build.
+            many: Whether to treat the output as a list of the passed schema.
 
         Returns:
             A JSON dictionary or a constructed object if a schema is passed. If \
                 `return_response` is set then a tuple of (response, data) is passed.
 
+        Raises:
+            PyrhValueError: If the schema is not an instance of `Schema` and is instead
+                a class.
+
         """
+        # Guard against common gotcha, passing schema class instead of instance.
+        if isinstance(schema, type):
+            raise PyrhValueError("Passed Schema should be an instance not a class.")
+
         res = self.session.post(
-            str(url), data=data, timeout=15, headers={} if headers is None else headers,
+            str(url),
+            data=data,
+            timeout=TIMEOUT,
+            headers={} if headers is None else headers,
         )
         if (res.status_code == 401) and auto_login:
             self.login(force_refresh=True)
             res = self.session.post(
                 str(url),
                 data=data,
-                timeout=15,
+                timeout=TIMEOUT,
                 headers={} if headers is None else headers,
             )
         if raise_errors:
             res.raise_for_status()
 
-        data = res.json() if schema is None else schema.load(res.json())
+        data = res.json() if schema is None else schema.load(res.json(), many=many)
 
         return (data, res) if return_response else data
 

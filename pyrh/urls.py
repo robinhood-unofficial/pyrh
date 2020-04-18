@@ -16,19 +16,19 @@ ACH_BASE = API_BASE / "ach/"  # not implemented
 APPLICATIONS = API_BASE / "applications/"  # not implemented
 DIVIDENDS = API_BASE / "dividends/"
 DOCUMENTS = API_BASE / "documents/"  # not implemented
+DOCUMENT_REQUESTS = API_BASE / "upload/document_requests/"  # not implemented
+FUNDAMENTALS_BASE = API_BASE / "fundamentals/"
 INSTRUMENTS_BASE = API_BASE / "instruments/"
 MARGIN_UPGRADES = API_BASE / "margin/upgrades/"  # not implemented
 MARKETS = API_BASE / "markets/"  # not implemented
+MARKET_DATA_BASE = API_BASE / "marketdata/options/"
+NEWS_BASE = API_BASE / "midlands/news/"
 NOTIFICATIONS = API_BASE / "notifications/"  # not implemented
-DOCUMENT_REQUESTS = API_BASE / "upload/document_requests/"  # not implemented
+ORDERS_BASE = API_BASE / "orders/"
 PORTFOLIOS = API_BASE / "portfolios/"
 POSITIONS = API_BASE / "positions/"
-WATCHLISTS = API_BASE / "watchlists/"  # not implemented
-NEWS_BASE = API_BASE / "midlands/news/"
-FUNDAMENTALS_BASE = API_BASE / "fundamentals/"
-ORDERS_BASE = API_BASE / "orders/"
-MARKET_DATA_BASE = API_BASE / "marketdata/options/"
 TAGS_BASE = API_BASE / "midlands/tags/tag/"
+WATCHLISTS = API_BASE / "watchlists/"  # not implemented
 
 # Options
 OPTIONS_BASE = API_BASE / "options/"
@@ -74,22 +74,33 @@ def build_ach(option: str) -> URL:
     return ACH_BASE / "iav/auth/" if option == "iav" else ACH_BASE / f"{option}/"
 
 
-def build_instruments(
-    instrument_id: Optional[str] = None, option: Optional[str] = None
-):
-    """Build instrument endpoint.
+def instruments(
+    symbol: Optional[str] = None, query: Optional[str] = None, id_: Optional[str] = None
+) -> URL:
+    """Construct urls that query instruments.
+
+    Note:
+        Each of the arguments are mutually exclusive.
 
     Args:
-        instrument_id: The id of the queried instrument.
-        option: The queried option. # TODO: (type of option?)
-    """
-    url = INSTRUMENTS_BASE
-    if instrument_id is not None:
-        url /= f"{instrument_id}/"
-    if option is not None:
-        url /= f"{option}/"
+        symbol: A stock ticker symbol.
+        query: Keyword to search for an instrument. (might be in name or ticker)
+        id_: The UUID that represents the instrument.
 
-    return url
+    Returns:
+        A constructed URL with the embedded query parameter
+
+    """
+    # Note:
+    # INSTRUMENTS_BASE/{instrument_id}/splits will not be implemented since the url is
+    # embedded in the results of an individual instrument result. The same logic applies
+    # for INSTRUMENTS_BASE/{instrument_id}/splits/{split_id}/
+    if symbol is not None:
+        return INSTRUMENTS_BASE.with_query(symbol=symbol)
+    elif query is not None:
+        return INSTRUMENTS_BASE.with_query(query=query)
+    elif id_ is not None:
+        return INSTRUMENTS_BASE / f"{id_}/"
 
 
 def build_orders(order_id: str = None) -> URL:
