@@ -6,14 +6,12 @@ from urllib.parse import unquote
 import dateutil
 import requests
 
-from pyrh import endpoints
-from pyrh.common import API_BASE
-from pyrh.exceptions import (
-    InvalidInstrumentId,
-    InvalidOptionId,
-    InvalidTickerSymbol,
-)
+from pyrh import urls
+from pyrh.exceptions import InvalidInstrumentId, InvalidTickerSymbol
 from pyrh.models import PortfolioSchema, SessionManager, SessionManagerSchema
+
+
+# TODO: re-enable InvalidOptionId when broken endpoint function below is fixed
 
 
 class Bounds(Enum):
@@ -42,11 +40,11 @@ class Robinhood(SessionManager):
     ###########################################################################
 
     def user(self):
-        return self.get(endpoints.user())
+        return self.get(urls.USER)
 
     def investment_profile(self):
         """Fetch investment_profile."""
-        return self.get(endpoints.investment_profile())
+        return self.get(urls.INVESTMENT_PROFILE)
 
     def instruments(self, stock):
         """Fetch instruments endpoint.
@@ -59,7 +57,7 @@ class Robinhood(SessionManager):
 
         """
 
-        res = self.get(endpoints.instruments(), params={"query": stock.upper()})
+        res = self.get(urls.build_instruments(), params={"query": stock.upper()})
 
         # if requesting all, return entire object so may paginate with ['next']
         if stock == "":
@@ -77,7 +75,7 @@ class Robinhood(SessionManager):
             (:obj:`dict`): JSON dict of instrument
 
         """
-        url = str(endpoints.instruments()) + "?symbol=" + str(id)
+        url = str(urls.build_instruments()) + "?symbol=" + str(id)
 
         try:
             data = requests.get(url)
@@ -99,9 +97,9 @@ class Robinhood(SessionManager):
 
         if isinstance(stock, dict):
             if "symbol" in stock.keys():
-                url = str(endpoints.quotes()) + stock["symbol"] + "/"
+                url = str(urls.QUOTES) + stock["symbol"] + "/"
         elif isinstance(stock, str):
-            url = str(endpoints.quotes()) + stock + "/"
+            url = str(urls.QUOTES) + stock + "/"
         else:
             raise InvalidTickerSymbol()
 
@@ -127,7 +125,7 @@ class Robinhood(SessionManager):
 
         """
 
-        url = str(endpoints.quotes()) + "?symbols=" + ",".join(stocks)
+        url = str(urls.QUOTES) + "?symbols=" + ",".join(stocks)
 
         try:
             data = self.get(url)
@@ -186,7 +184,7 @@ class Robinhood(SessionManager):
 
     def get_stock_marketdata(self, instruments):
         info = self.get_url(
-            endpoints.market_data() + "quotes/?instruments=" + ",".join(instruments)
+            urls.build_market_data() + "quotes/?instruments=" + ",".join(instruments)
         )
         return info["results"]
 
@@ -216,7 +214,7 @@ class Robinhood(SessionManager):
             bounds = Bounds(bounds)
 
         historicals = (
-            endpoints.historicals()
+            urls.HISTORICALS
             + "/?symbols="
             + ",".join(stock).upper()
             + "&interval="
@@ -240,7 +238,7 @@ class Robinhood(SessionManager):
 
         """
 
-        return self.get(endpoints.news(stock.upper()))
+        return self.get(urls.build_news(stock.upper()))
 
     def print_quote(self, stock=""):  # pragma: no cover
         """Print quote information.
@@ -464,7 +462,7 @@ class Robinhood(SessionManager):
 
         """
 
-        res = self.get(endpoints.accounts())
+        res = self.get(urls.ACCOUNTS)
 
         return res["results"][0]
 
@@ -484,7 +482,7 @@ class Robinhood(SessionManager):
 
         """
         stock_instrument = self.get_url(self.quote_data(stock)["instrument"])["id"]
-        return self.get_url(endpoints.instruments(stock_instrument, "popularity"))[
+        return self.get_url(urls.build_instruments(stock_instrument, "popularity"))[
             "num_open_positions"
         ]
 
@@ -504,7 +502,7 @@ class Robinhood(SessionManager):
             (List): a list of Ticker strings
 
         """
-        instrument_list = self.get_url(endpoints.tags(tag))["instruments"]
+        instrument_list = self.get_url(urls.build_tags(tag))["instruments"]
         return [self.get_url(instrument)["symbol"] for instrument in instrument_list]
 
     ###########################################################################
@@ -528,37 +526,38 @@ class Robinhood(SessionManager):
             _expiration_dates_string = ",".join(expiration_dates)
         else:
             _expiration_dates_string = expiration_dates
-        chain_id = self.get_url(endpoints.chain(instrument_id))["results"][0]["id"]
+        chain_id = self.get_url(urls.build_chain(instrument_id))["results"][0]["id"]
         return [
             contract
             for contract in self.get_url(
-                endpoints.options(chain_id, _expiration_dates_string, option_type)
+                urls.options(chain_id, _expiration_dates_string, option_type)
             )["results"]
         ]
 
-    def get_option_market_data(self, optionid):
-        """Gets a list of market data for a given optionid.
-
-        Args: (str) option id
-
-        Returns: dictionary of options market data.
-
-        """
-        market_data = {}
-        try:
-            market_data = self.get_url(endpoints.option_market_data(optionid)) or {}
-        except requests.exceptions.HTTPError:
-            raise InvalidOptionId()
-        return market_data
+    # TODO: the endpoint `option_market_data` doesn't exist
+    # def get_option_market_data(self, optionid):
+    #     """Gets a list of market data for a given optionid.
+    #
+    #     Args: (str) option id
+    #
+    #     Returns: dictionary of options market data.
+    #
+    #     """
+    #     market_data = {}
+    #     try:
+    #         market_data = self.get_url(endpoints.option_market_data(optionid)) or {}
+    #     except requests.exceptions.HTTPError:
+    #         raise InvalidOptionId()
+    #     return market_data
 
     def options_owned(self):
-        options = self.get_url(endpoints.options_base() + "positions/?nonzero=true")
+        options = self.get_url(urls.options_base() + "positions/?nonzero=true")
         options = options["results"]
         return options
 
     def get_option_marketdata(self, instrument):
         info = self.get_url(
-            endpoints.market_data() + "options/?instruments=" + instrument
+            urls.build_market_data() + "options/?instruments=" + instrument
         )
         return info["results"][0]
 
@@ -567,7 +566,7 @@ class Robinhood(SessionManager):
         stock_id = stock_info["results"][0]["id"]
         params = {}
         params["equity_instrument_ids"] = stock_id
-        chains = self.get_url(endpoints.options_base() + "chains/", params=params)
+        chains = self.get_url(urls.options_base() + "chains/", params=params)
         chains = chains["results"]
         chain_id = None
 
@@ -615,7 +614,7 @@ class Robinhood(SessionManager):
         if not stock:  # pragma: no cover
             stock = input("Symbol: ")
 
-        url = str(endpoints.fundamentals(str(stock.upper())))
+        url = str(urls.build_fundamentals(str(stock.upper())))
 
         # Check for validity of symbol
         try:
@@ -636,105 +635,8 @@ class Robinhood(SessionManager):
 
     def portfolio(self):
         """Returns the user's portfolio data """
-        portfolio_endpoint = API_BASE.with_path("/portfolios/")
 
-        return self.get(portfolio_endpoint, schema=PortfolioSchema())
-
-    def adjusted_equity_previous_close(self):
-        """Wrapper for portfolios
-
-        Returns:
-            (float): `adjusted_equity_previous_close` value
-
-        """
-
-        return float(self.portfolios()["adjusted_equity_previous_close"])
-
-    def equity(self):
-        """Wrapper for portfolios
-
-        Returns:
-            (float): `equity` value
-
-        """
-
-        return float(self.portfolios()["equity"])
-
-    def equity_previous_close(self):
-        """Wrapper for portfolios
-
-        Returns:
-            (float): `equity_previous_close` value
-
-        """
-
-        return float(self.portfolios()["equity_previous_close"])
-
-    def excess_margin(self):
-        """Wrapper for portfolios
-
-        Returns:
-            (float): `excess_margin` value
-
-        """
-
-        return float(self.portfolios()["excess_margin"])
-
-    def extended_hours_equity(self):
-        """Wrapper for portfolios
-
-        Returns:
-            (float): `extended_hours_equity` value
-
-        """
-
-        try:
-            return float(self.portfolios()["extended_hours_equity"])
-        except TypeError:
-            return None
-
-    def extended_hours_market_value(self):
-        """Wrapper for portfolios
-
-        Returns:
-            (float): `extended_hours_market_value` value
-
-        """
-
-        try:
-            return float(self.portfolios()["extended_hours_market_value"])
-        except TypeError:
-            return None
-
-    def last_core_equity(self):
-        """Wrapper for portfolios
-
-        Returns:
-            (float): `last_core_equity` value
-
-        """
-
-        return float(self.portfolios()["last_core_equity"])
-
-    def last_core_market_value(self):
-        """Wrapper for portfolios
-
-        Returns:
-            (float): `last_core_market_value` value
-
-        """
-
-        return float(self.portfolios()["last_core_market_value"])
-
-    def market_value(self):
-        """Wrapper for portfolios
-
-        Returns:
-            (float): `market_value` value
-
-        """
-
-        return float(self.portfolios()["market_value"])
+        return self.get(urls.PORTFOLIOS, schema=PortfolioSchema())
 
     def order_history(self, orderId=None):
         """Wrapper for portfolios
@@ -746,7 +648,7 @@ class Robinhood(SessionManager):
 
         """
 
-        return self.get(endpoints.orders(orderId))
+        return self.get(urls.build_orders(orderId))
 
     def dividends(self):
         """Wrapper for portfolios
@@ -756,7 +658,7 @@ class Robinhood(SessionManager):
 
         """
 
-        return self.get(endpoints.dividends())
+        return self.get(urls.DIVIDENDS)
 
     ###########################################################################
     #                           POSITIONS DATA
@@ -770,7 +672,7 @@ class Robinhood(SessionManager):
 
         """
 
-        return self.get(endpoints.positions())
+        return self.get(urls.POSITIONS)
 
     def securities_owned(self):
         """Returns list of securities' symbols that the user has shares in
@@ -780,7 +682,7 @@ class Robinhood(SessionManager):
 
         """
 
-        return self.get(endpoints.positions() + "?nonzero=true")
+        return self.get(urls.POSITIONS + "?nonzero=true")
 
     ###########################################################################
     #                               PLACE ORDER
@@ -1237,7 +1139,7 @@ class Robinhood(SessionManager):
                 payload[field] = value
 
         try:
-            res = self.post(endpoints.orders(), data=payload)
+            res = self.post(urls.build_orders(), data=payload)
             return res
         except Exception as ex:
             # sometimes Robinhood asks for another log in when placing an order
@@ -1417,7 +1319,7 @@ class Robinhood(SessionManager):
                 payload[field] = value
 
         try:
-            res = self.post(endpoints.orders(), data=payload)
+            res = self.post(urls.build_orders(), data=payload)
             return res
 
         except Exception as ex:
@@ -1482,7 +1384,7 @@ class Robinhood(SessionManager):
             payload["price"] = float(price)
 
         try:
-            res = self.post(endpoints.orders(), data=payload)
+            res = self.post(urls.build_orders(), data=payload)
             return res
 
         except Exception as ex:
@@ -1584,7 +1486,7 @@ class Robinhood(SessionManager):
         """
         if isinstance(order_id, str):
             try:
-                order = self.get(endpoints.orders() + order_id)
+                order = self.get(urls.build_orders() + order_id)
             except (requests.exceptions.HTTPError) as err_msg:
                 raise ValueError(
                     "Failed to get Order for ID: "
@@ -1615,7 +1517,7 @@ class Robinhood(SessionManager):
         elif isinstance(order_id, dict):
             order_id = order_id["id"]
             try:
-                order = self.get(endpoints.orders() + order_id)
+                order = self.get(urls.build_orders() + order_id)
             except (requests.exceptions.HTTPError) as err_msg:
                 raise ValueError(
                     "Failed to get Order for ID: "
@@ -1634,7 +1536,7 @@ class Robinhood(SessionManager):
                         # order
                         res = self.post(order["cancel"])
                         return res
-                    except (requests.exceptions.HTTPError) as err_msg:
+                    except requests.exceptions.HTTPError as err_msg:
                         raise ValueError(
                             "Failed to cancel order ID: "
                             + order_id
@@ -1655,4 +1557,6 @@ class Robinhood(SessionManager):
 
 
 class RobinhoodSchema(SessionManagerSchema):
+    """Schema for the Robinhood class."""
+
     __model__ = Robinhood

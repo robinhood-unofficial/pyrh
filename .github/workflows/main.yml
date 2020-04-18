@@ -30,9 +30,9 @@ jobs:
         id: cache-poetry
         with:
           path: ~/.virtualenvs
-          key: poetry|pre-commit|v2|${{ matrix.os }}|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
+          key: poetry|pre-commit|v3|${{ matrix.os }}|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
           restore-keys: |
-            poetry|pre-commit|v2|${{ matrix.os }}|${{ env.PY }}|
+            poetry|pre-commit|v3|${{ matrix.os }}|${{ env.PY }}|
       - name: Install Project Dependencies (Poetry)
         run: |
           poetry install -vvv
@@ -78,9 +78,9 @@ jobs:
         id: cache-poetry
         with:
           path: ~/.virtualenvs
-          key: poetry|v2|${{ matrix.os }}|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
+          key: poetry|v3|${{ matrix.os }}|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
           restore-keys: |
-            poetry|v2|${{ matrix.os }}|${{ env.PY }}|
+            poetry|v3|${{ matrix.os }}|${{ env.PY }}|
       - name: Install Project Dependencies (Poetry)
         run: |
           poetry install -vvv

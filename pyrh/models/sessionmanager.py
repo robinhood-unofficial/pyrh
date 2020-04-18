@@ -2,7 +2,7 @@
 
 import uuid
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union, cast
 from urllib.request import getproxies
 
 import certifi
@@ -13,29 +13,24 @@ from requests.exceptions import HTTPError
 from requests.structures import CaseInsensitiveDict
 from yarl import URL
 
-from pyrh.common import API_BASE, JSON
+from pyrh import urls
 from pyrh.exceptions import AuthenticationError
 
-from .base import BaseModel, BaseSchema
+from .base import JSON, BaseModel, BaseSchema
 from .oauth import CHALLENGE_TYPE_VAL, OAuth, OAuthSchema
 
 
-CLIENT_ID: str = "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS"
-"""Robinhood client id."""
-
+# Types
 if TYPE_CHECKING:  # pragma: no cover
     CaseInsensitiveDictType = CaseInsensitiveDict[str]
 else:
     CaseInsensitiveDictType = CaseInsensitiveDict
-
-# Endpoints
-OAUTH: URL = API_BASE.with_path("/oauth2/token/")
-OAUTH_REVOKE: URL = API_BASE.with_path("/oauth2/revoke_token/")
-CHALLENGE: Callable[[str], URL] = lambda cid: API_BASE.with_path(
-    f"/challenge/{cid}/respond/"
-)
-
 Proxies = Dict[str, str]
+
+
+# Constants
+CLIENT_ID: str = "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS"
+"""Robinhood client id."""
 HEADERS: CaseInsensitiveDictType = CaseInsensitiveDict(
     {
         "Accept": "*/*",
@@ -48,14 +43,10 @@ HEADERS: CaseInsensitiveDictType = CaseInsensitiveDict(
     }
 )
 """Headers used when performing requests with robinhood api."""
-
 # 8.5 days (you have a small window to refresh after this)
 # I would refresh the token proactively every day in a script
 EXPIRATION_TIME: int = 734000
 """Default expiration time for requests."""
-
-# TODO: Watch this issue and remove the F811 ignores when it is fixed
-# https://gitlab.com/pycqa/flake8/-/merge_requests/417 (we need at least pyflakes 2.2.0)
 
 
 class SessionManager(BaseModel):
@@ -312,7 +303,7 @@ class SessionManager(BaseModel):
 
         """
         # login challenge
-        challenge_url = CHALLENGE(oauth.challenge.id)
+        challenge_url = urls.build_challenge(oauth.challenge.id)
         print(
             f"Input challenge code from {oauth.challenge.type.capitalize()} "
             f"({oauth.challenge.remaining_attempts}/"
@@ -338,7 +329,7 @@ class SessionManager(BaseModel):
                 return cast(
                     OAuth,
                     self.post(
-                        OAUTH,
+                        urls.OAUTH,
                         data=oauth_payload,
                         headers=challenge_header,
                         auto_login=False,
@@ -374,7 +365,7 @@ class SessionManager(BaseModel):
         mfa_code = input()
         oauth_payload["mfa_code"] = mfa_code
         oauth, res = self.post(
-            OAUTH,
+            urls.OAUTH,
             data=oauth_payload,
             raise_errors=False,
             auto_login=False,
@@ -413,7 +404,7 @@ class SessionManager(BaseModel):
         }
 
         oauth = self.post(
-            OAUTH,
+            urls.OAUTH,
             data=oauth_payload,
             raise_errors=False,
             auto_login=False,
@@ -456,7 +447,10 @@ class SessionManager(BaseModel):
         self.session.headers.pop("Authorization", None)
         try:
             oauth = self.post(
-                OAUTH, data=relogin_payload, auto_login=False, schema=OAuthSchema()
+                urls.OAUTH,
+                data=relogin_payload,
+                auto_login=False,
+                schema=OAuthSchema(),
             )
         except HTTPError:
             raise AuthenticationError("Failed to refresh token")
@@ -472,7 +466,7 @@ class SessionManager(BaseModel):
         """
         logout_payload = {"client_id": CLIENT_ID, "token": self.oauth.refresh_token}
         try:
-            self.post(OAUTH_REVOKE, data=logout_payload, auto_login=False)
+            self.post(urls.OAUTH_REVOKE, data=logout_payload, auto_login=False)
             self.oauth = OAuth()
             self.session.headers.pop("Authorization", None)
         except HTTPError:
