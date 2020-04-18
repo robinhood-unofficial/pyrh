@@ -1,10 +1,8 @@
 """Current portfolio."""
 
-from typing import Any
+from marshmallow import fields
 
-from marshmallow import fields, post_load
-
-from .base import JSON, BaseModel, BaseSchema
+from .base import BaseModel, BaseSchema
 
 
 class Portfolio(BaseModel):
@@ -17,6 +15,7 @@ class PortfolioSchema(BaseSchema):
     """Robinhood portfolio schema data loader."""
 
     __model__ = Portfolio
+    __first__ = "results"  # returns a paginator but we only need the first
 
     url = fields.URL()
     account = fields.URL()
@@ -38,18 +37,3 @@ class PortfolioSchema(BaseSchema):
     withdrawable_amount = fields.Float()
     unwithdrawable_deposits = fields.Float()
     unwithdrawable_grants = fields.Float()
-
-    @post_load
-    def make_object(self, data: JSON, **kwargs: Any) -> Portfolio:
-        """Build model for the Portfolio class.
-
-        Args:
-            data: The JSON diction to use to build the Portfolio.
-            **kwargs: Unused but required to match signature of `Schema.make_object`
-
-        Returns:
-            An instance of the Portfolio class.
-
-        """
-        data = data.get("results", [{}])[0]
-        return self.__model__(**data)

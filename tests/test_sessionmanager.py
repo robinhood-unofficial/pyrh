@@ -346,7 +346,6 @@ def test_logout_success(post_mock, sm):
     sm.oauth.access_token = "some_token"
     sm.oauth.refresh_token = "some_refresh_token"
     sm.logout()
-    assert len(sm.oauth) == 0
     assert post_mock.call_count == 1
 
 
