@@ -7,8 +7,18 @@ class PyrhException(Exception):
     pass
 
 
+class PyrhValueError(ValueError, PyrhException):
+    """Value Error for the pyrh library."""
+
+
 class InvalidCacheFile(PyrhException):
     """Error when the cache config file is found to be invalid."""
+
+    pass
+
+
+class InvalidOperation(PyrhException):
+    """An invalid operation was requsted to be performed."""
 
     pass
 
@@ -21,12 +31,6 @@ class AuthenticationError(PyrhException):
 
 class InvalidTickerSymbol(PyrhException):
     """When an invalid ticker (stock symbol) is given/"""
-
-    pass
-
-
-class InvalidInstrumentId(PyrhException):
-    """When an invalid instrument id is given/"""
 
     pass
 

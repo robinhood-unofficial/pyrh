@@ -7,8 +7,13 @@ import dateutil
 import requests
 
 from pyrh import urls
-from pyrh.exceptions import InvalidInstrumentId, InvalidTickerSymbol
-from pyrh.models import PortfolioSchema, SessionManager, SessionManagerSchema
+from pyrh.exceptions import InvalidTickerSymbol
+from pyrh.models import (
+    InstrumentManager,
+    PortfolioSchema,
+    SessionManager,
+    SessionManagerSchema,
+)
 
 
 # TODO: re-enable InvalidOptionId when broken endpoint function below is fixed
@@ -28,10 +33,15 @@ class Transaction(Enum):
     SELL = "sell"
 
 
-class Robinhood(SessionManager):
+class Robinhood(InstrumentManager, SessionManager):
     """Wrapper class for fetching/parsing Robinhood endpoints.
 
     Please see :py:class:`SessionManager` for login functionality.
+
+    Provides a global convenience wrapper for the following manager objects:
+
+        * InstrumentManager
+        * TODO: Add to this list
 
     """
 
@@ -45,44 +55,6 @@ class Robinhood(SessionManager):
     def investment_profile(self):
         """Fetch investment_profile."""
         return self.get(urls.INVESTMENT_PROFILE)
-
-    def instruments(self, stock):
-        """Fetch instruments endpoint.
-
-        Args:
-            stock (str): stock ticker
-
-        Returns:
-            (:obj:`dict`): JSON contents from `instruments` endpoint
-
-        """
-
-        res = self.get(urls.build_instruments(), params={"query": stock.upper()})
-
-        # if requesting all, return entire object so may paginate with ['next']
-        if stock == "":
-            return res
-
-        return res["results"]
-
-    def instrument(self, id):
-        """Fetch instrument info.
-
-        Args:
-            id (str): instrument id
-
-        Returns:
-            (:obj:`dict`): JSON dict of instrument
-
-        """
-        url = str(urls.build_instruments()) + "?symbol=" + str(id)
-
-        try:
-            data = requests.get(url)
-        except requests.exceptions.HTTPError:
-            raise InvalidInstrumentId()
-
-        return data["results"][0]
 
     def quote_data(self, stock=""):
         """Fetch stock quote.

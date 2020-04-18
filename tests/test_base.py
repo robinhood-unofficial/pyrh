@@ -27,14 +27,6 @@ def test_base_model_repr():
     assert "BaseModel(a=10)" == str(bm)
 
 
-def test_base_model_len():
-    from pyrh.models.base import BaseModel
-
-    bm = BaseModel(a=10, b=20)
-
-    assert len(bm) == 2
-
-
 def test_base_schema():
     from pyrh.models.base import UnknownModel, BaseSchema
 
