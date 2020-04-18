@@ -26,7 +26,6 @@ repos:
     rev: 19.10b0
     hooks:
     - id: black
-      language_version: python3.6
 -   repo: https://gitlab.com/pycqa/flake8
     rev: 3.7.9
     hooks:
