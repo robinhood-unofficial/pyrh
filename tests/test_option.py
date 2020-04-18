@@ -9,7 +9,6 @@ from six import string_types
 from pyrh.models.option import MinTicks, OptionSchema
 
 
-
 HERE = path.abspath(path.dirname(__file__))
 ROOT = path.dirname(HERE)
 
