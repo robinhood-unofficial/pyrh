@@ -1,10 +1,6 @@
 """Option data class."""
 
-from typing import Any
-
-from marshmallow import fields, post_load
-
-from pyrh.common import JSON
+from marshmallow import fields
 
 from .base import BaseModel, BaseSchema
 
@@ -23,20 +19,6 @@ class MinTicksSchema(BaseSchema):
     above_tick = fields.Float()
     below_tick = fields.Float()
     cutoff_price = fields.Float()
-
-    @post_load
-    def make_object(self, data: JSON, **kwargs: Any) -> MinTicks:
-        """Build model for the Min ticks class.
-
-        Args:
-            data: The JSON diction to use to build the Min tick.
-            **kwargs: Unused but required to match signature of `Schema.make_object`
-
-        Returns:
-            An instance of the Min tick class.
-
-        """
-        return self.__model__(**data)
 
 
 class Option(BaseModel):
@@ -64,17 +46,3 @@ class OptionSchema(BaseSchema):
     type = fields.String()
     updated_at = fields.DateTime()
     url = fields.URL()
-
-    @post_load
-    def make_object(self, data: JSON, **kwargs: Any) -> Option:
-        """Build model for the Option class.
-
-        Args:
-            data: The JSON diction to use to build the Option.
-            **kwargs: Unused but required to match signature of `Schema.make_object`
-
-        Returns:
-            An instance of the Option class.
-
-        """
-        return self.__model__(**data)
