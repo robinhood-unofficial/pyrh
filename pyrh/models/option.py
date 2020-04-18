@@ -36,20 +36,6 @@ class MinTicksSchema(BaseSchema):
     below_tick = fields.Float()
     cutoff_price = fields.Float()
 
-    @post_load
-    def make_object(self, data: JSON, **kwargs: Any) -> MinTicks:
-        """Build model for the Min ticks class.
-
-        Args:
-            data: The JSON diction to use to build the Min tick.
-            **kwargs: Unused but required to match signature of `Schema.make_object`
-
-        Returns:
-            An instance of the Min tick class.
-
-        """
-        return self.__model__(**data)
-
 
 class Option(BaseModel):
     """Robinhood Option data class. Represents an options instrument."""
