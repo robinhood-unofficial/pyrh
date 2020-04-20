@@ -54,27 +54,19 @@ class Robinhood(InstrumentManager, SessionManager):
 
     def investment_profile(self):
         """Fetch investment_profile."""
-        return self.get(urls.investment_profile())
+        return self.get(urls.INVESTMENT_PROFILE)
 
-    def get_instruments(self, symbol, match=True, options=False):
-        """Query for instruments that match with the given ticker.
-
+    def get_popularity(self, stock=""):
+        """Get the number of robinhood users who own the given stock
         Args:
-            symbol (str): stock ticker
-            match (bool): True if want exact match, False for partial match
-
+            stock (str): stock ticker
         Returns:
-            (:obj: (list)): JSON contents from `instruments` endpoint - list
-            of instruments that match the ticker
+            (int): number of users who own the stock
         """
-        ticker = symbol.upper()
-        params = {"symbol": ticker} if match else {"query": ticker}
-        res = self.get(urls.instruments(options=options), params=params)
-        results = res.get("results", [])
-        while res.get("next"):
-            res = res.get("next")
-            results.extend(res.get("results", []))
-        return results
+        stock_instrument = self.get_url(self.quote_data(stock)["instrument"])["id"]
+        return self.get_url(urls.build_instruments(stock_instrument, "popularity"))[
+            "num_open_positions"
+        ]
 
     def quote_data(self, stock=""):
         """Fetch stock quote.
