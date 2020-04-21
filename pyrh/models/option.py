@@ -2,7 +2,7 @@
 
 from marshmallow import fields
 
-from .base import BaseModel, BaseSchema
+from .base import BaseModel, BasePaginator, BasePaginatorSchema, BaseSchema
 
 
 class MinTicks(BaseModel):
@@ -32,11 +32,11 @@ class OptionSchema(BaseSchema):
 
     __model__ = Option
 
-    chain_id = fields.String()
+    chain_id = fields.UUID()
     chain_symbol = fields.String()
     created_at = fields.DateTime()
     expiration_date = fields.Date()
-    id = fields.String()
+    id = fields.UUID()
     issue_date = fields.Date()
     min_ticks = fields.Nested(MinTicksSchema)
     rhs_tradability = fields.String()
@@ -46,3 +46,21 @@ class OptionSchema(BaseSchema):
     type = fields.String()
     updated_at = fields.DateTime()
     url = fields.URL()
+
+
+class OptionPaginator(BasePaginator):
+    """Thin wrapper around `self.results`, a list of `Option` objs."""
+
+    pass
+
+
+class OptionPaginatorSchema(BasePaginatorSchema):
+    """Schema class for the OptionPaginator.
+
+    The nested results are of type `Option`.
+
+    """
+
+    __model__ = OptionPaginator
+
+    results = fields.List(fields.Nested(OptionSchema))

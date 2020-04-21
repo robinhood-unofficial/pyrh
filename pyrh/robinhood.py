@@ -56,18 +56,6 @@ class Robinhood(InstrumentManager, SessionManager):
         """Fetch investment_profile."""
         return self.get(urls.INVESTMENT_PROFILE)
 
-    def get_popularity(self, stock=""):
-        """Get the number of robinhood users who own the given stock
-        Args:
-            stock (str): stock ticker
-        Returns:
-            (int): number of users who own the stock
-        """
-        stock_instrument = self.get_url(self.quote_data(stock)["instrument"])["id"]
-        return self.get_url(urls.build_instruments(stock_instrument, "popularity"))[
-            "num_open_positions"
-        ]
-
     def quote_data(self, stock=""):
         """Fetch stock quote.
 
@@ -94,6 +82,18 @@ class Robinhood(InstrumentManager, SessionManager):
             raise InvalidTickerSymbol()
 
         return data
+
+    def get_popularity(self, stock=""):
+        """Get the number of robinhood users who own the given stock
+        Args:
+            stock (str): stock ticker
+        Returns:
+            (int): number of users who own the stock
+        """
+        stock_instrument = self.get_url(self.quote_data(stock)["instrument"])["id"]
+        return self.get_url(urls.build_instruments(stock_instrument, "popularity"))[
+            "num_open_positions"
+        ]
 
     # We will keep for compatibility until next major release
     def quotes_data(self, stocks):
