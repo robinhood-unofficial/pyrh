@@ -1,0 +1,1 @@
+Updated the .get_historical_quotes() to use the URL method .with_query() in order to build a URL with params.
