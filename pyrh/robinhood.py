@@ -185,17 +185,12 @@ class Robinhood(InstrumentManager, SessionManager):
         if isinstance(bounds, str):  # recast to Enum
             bounds = Bounds(bounds)
 
-        historicals = (
-            urls.HISTORICALS
-            + "/?symbols="
-            + ",".join(stock).upper()
-            + "&interval="
-            + interval
-            + "&span="
-            + span
-            + "&bounds="
-            + bounds.name.lower()
-        )
+        historicals = (urls.HISTORICALS.with_query([
+            ('symbols', ",".join(stock).upper()),
+            ('interval', interval),
+            ('span', span),
+            ('bounds', bounds.name.lower())
+        ]))
 
         return self.get(historicals)
 
