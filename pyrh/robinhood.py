@@ -187,10 +187,10 @@ class Robinhood(InstrumentManager, SessionManager):
 
         historicals = urls.HISTORICALS.with_query(
             [
-                ('symbols', ",".join(stock).upper()),
-                ('interval', interval),
-                ('span', span),
-                ('bounds', bounds.name.lower())
+                ("symbols", ",".join(stock).upper()),
+                ("interval", interval),
+                ("span", span),
+                ("bounds", bounds.name.lower()),
             ]
         )
 
