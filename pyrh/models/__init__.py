@@ -8,6 +8,13 @@ from .instrument import (
     InstrumentSchema,
 )
 from .oauth import Challenge, ChallengeSchema, OAuth, OAuthSchema
+from .option import (
+    Option,
+    OptionManager,
+    OptionPaginator,
+    OptionPaginatorSchema,
+    OptionSchema,
+)
 from .portfolio import Portfolio, PortfolioSchema
 from .sessionmanager import SessionManager, SessionManagerSchema
 
@@ -26,4 +33,9 @@ __all__ = [
     "InstrumentManager",
     "InstrumentPaginator",
     "InstrumentPaginatorSchema",
+    "Option",
+    "OptionSchema",
+    "OptionManager",
+    "OptionPaginator",
+    "OptionPaginatorSchema",
 ]

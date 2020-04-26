@@ -1,8 +1,18 @@
 """Option data class."""
+from typing import Any, Iterable
 
 from marshmallow import fields
 
-from .base import BaseModel, BasePaginator, BasePaginatorSchema, BaseSchema
+from pyrh import urls
+
+from .base import (
+    BaseModel,
+    BasePaginator,
+    BasePaginatorSchema,
+    BaseSchema,
+    base_paginator,
+)
+from .sessionmanager import SessionManager
 
 
 class MinTicks(BaseModel):
@@ -64,3 +74,34 @@ class OptionPaginatorSchema(BasePaginatorSchema):
     __model__ = OptionPaginator
 
     results = fields.List(fields.Nested(OptionSchema))
+
+
+class OptionManager(SessionManager):
+    """Group together methods that manipulate an options."""
+
+    def get_options(self, **kwargs: Any) -> Iterable[Option]:
+        """Get a generator of options.
+
+        Args:
+            **kwargs: If the query argument is provided, the returned values will
+                be restricted to option instruments that match the query. Possible
+                query parameters: chain_symbol, chain_id, state (active),
+                tradability, type (call vs put), expiration_dates, strike_price
+
+        Returns:
+            A generator of Options.
+        """
+        valid_params = frozenset(
+            [
+                "chain_symbol",
+                "state",
+                "tradability",
+                "type",
+                "expiration_dates",
+                "strike_price",
+                "chain_id",
+            ]
+        )
+        query = {k: v for k, v in kwargs.items() if k in valid_params}
+        url = urls.OPTIONS_INSTRUMENTS_BASE.with_query(**query)
+        return base_paginator(url, self, OptionPaginatorSchema())
