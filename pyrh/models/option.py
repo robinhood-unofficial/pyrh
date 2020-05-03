@@ -34,7 +34,17 @@ class MinTicksSchema(BaseSchema):
 class Option(BaseModel):
     """Robinhood Option data class. Represents an options instrument."""
 
-    pass
+    def __repr__(self) -> str:
+        """Return the object as a string.
+
+        Returns:
+            The string representation of the object.
+
+        """
+        return (
+            f"Option<{self.chain_symbol}|{self.strike_price}|"
+            + f"{self.type}|{self.expiration_date}>"
+        )
 
 
 class OptionSchema(BaseSchema):
