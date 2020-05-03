@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import datetime, timedelta
+from getpass import getpass
 from typing import TYPE_CHECKING, Any, Dict, Optional, Union, cast
 from urllib.request import getproxies
 
@@ -101,8 +102,8 @@ class SessionManager(BaseModel):
 
     def __init__(
         self,
-        username: str,
-        password: str,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
         challenge_type: Optional[str] = "email",
         headers: Optional[CaseInsensitiveDictType] = None,
         proxies: Optional[Proxies] = None,
@@ -116,8 +117,8 @@ class SessionManager(BaseModel):
             tzinfo=pytz.UTC
         )  # some time in the past
 
-        self.username: str = username
-        self.password: str = password
+        self.username: Optional[str] = username
+        self.password: Optional[str] = password
         if challenge_type not in ["email", "sms"]:
             raise ValueError("challenge_type must be email or sms")
         self.challenge_type: str = challenge_type
@@ -165,6 +166,10 @@ class SessionManager(BaseModel):
                 refresh.
 
         """
+        if not self.login_set:
+            self.username = input("Please enter username:")
+            self.password = getpass(prompt="Password:")
+
         if "Authorization" not in self.session.headers:
             self._login_oauth2()
         elif self.oauth.is_valid and (self.token_expired or force_refresh):
