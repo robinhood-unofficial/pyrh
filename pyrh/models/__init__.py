@@ -13,6 +13,10 @@ from .option import (
     OptionManager,
     OptionPaginator,
     OptionPaginatorSchema,
+    OptionPosition,
+    OptionPositionSchema,
+    OptionQuote,
+    OptionQuoteSchema,
     OptionSchema,
 )
 from .portfolio import Portfolio, PortfolioSchema
@@ -35,6 +39,10 @@ __all__ = [
     "InstrumentPaginatorSchema",
     "Option",
     "OptionSchema",
+    "OptionPosition",
+    "OptionPositionSchema",
+    "OptionQuote",
+    "OptionQuoteSchema",
     "OptionManager",
     "OptionPaginator",
     "OptionPaginatorSchema",

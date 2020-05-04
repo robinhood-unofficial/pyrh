@@ -4,7 +4,7 @@ from typing import Any, Iterable, cast
 from marshmallow import fields
 from yarl import URL
 
-from pyrh import urls
+from pyrh import exceptions, urls
 
 from .base import (
     BaseModel,
@@ -128,6 +128,62 @@ class OptionPositionSchema(BaseSchema):
     url = (fields.URL(),)
 
 
+class OptionQuote(BaseModel):
+    """Robinhood Option quote data class. Represents an option quote."""
+
+    def __repr__(self) -> str:
+        """Return the object as a string.
+
+        Returns:
+            The string representation of the object.
+
+        """
+        return f"""OptionQuote<
+        Ask: {self.ask_size} x {self.ask_price}
+        Bid: {self.bid_size} x {self.bid_price}
+        Low: {self.low_price} | High: {self.high_price}
+        Volume: {self.volume} | Open Interest: {self.open_interest}
+        Implied Volatility: {self.implied_volatility}
+        Delta: {self.delta} | Gamma: {self.gamma} | Rho: {self.rho}
+        Theta: {self.theta} | Vega: {self.vega}
+        >"""
+
+
+class OptionQuoteSchema(BaseSchema):
+    """Robinhood Option quote schema data loader."""
+
+    __model__ = OptionQuote
+
+    adjusted_mark_price = (fields.Float(),)
+    ask_price = (fields.Float(),)
+    ask_size = (fields.Integer(),)
+    bid_price = (fields.Float(),)
+    bid_size = (fields.Integer(),)
+    break_even_price = (fields.Float(),)
+    high_price = (fields.Float(),)
+    instrument = (fields.URL(),)
+    last_trade_price = (fields.Float(),)
+    last_trade_size = (fields.Integer(),)
+    low_price = (fields.Float(),)
+    mark_price = (fields.Float(),)
+    open_interest = (fields.Integer(),)
+    previous_close_date = (fields.Date(),)
+    previous_close_price = (fields.Float(),)
+    volume = (fields.Integer(),)
+    chance_of_profit_long = (fields.Float(),)
+    chance_of_profit_short = (fields.Float(),)
+    delta = (fields.Float(),)
+    gamma = (fields.Float(),)
+    implied_volatility = (fields.Float(),)
+    rho = (fields.Float(),)
+    theta = (fields.Float(),)
+    vega = (fields.Float(),)
+    high_fill_rate_buy_price = (fields.Float(),)
+    high_fill_rate_sell_price = (fields.Float(),)
+    low_fill_rate_buy_price = (fields.Float(),)
+    low_fill_rate_sell_price = (fields.Float(),)
+
+
 class OptionPositionPaginator(BasePaginator):
     """Thin wrapper around `self.results`, a list of `Option` objs."""
 
@@ -162,6 +218,20 @@ class OptionManager(SessionManager):
         option_data = self.get(option_url)
         return cast(Option, OptionSchema().load(option_data))
 
+    def _get_option_quote(self, option_id: str) -> OptionQuote:
+        """Get quote from option id.
+
+        Args:
+            option_id: underlying option id to get quote for
+
+        Returns:
+            An OptionQuote object.
+        """
+        quote_data = self.get_url(
+            urls.MARKET_DATA_BASE.join(URL(f"options/{option_id}/"))
+        )
+        return cast(OptionQuote, OptionQuoteSchema().load(quote_data))
+
     def _get_option_positions(self, open_pos: bool = True) -> Iterable[OptionPosition]:
         # TODO figure out what /?nonzero=true is, returns quantity = 0...
         url = urls.OPTIONS_BASE.join(URL("positions/?nonzero=true"))
@@ -171,6 +241,27 @@ class OptionManager(SessionManager):
         for p in positions:
             p.underlying = self._get_option_from_url(p.option)
         return positions
+
+    def _get_option_id(
+        self, symbol: str, strike: str, expiry: str, otype: str, state: str = "active"
+    ) -> str:
+        url = urls.OPTIONS_BASE.join(URL("instruments/"))
+        params = {
+            "chain_symbol": symbol,
+            "strike_price": strike,
+            "expiration_dates": expiry,
+            "type": otype,
+            "state": state,
+        }
+        results = self.get_url(url.with_query(**params)).get("results")
+        if not results:
+            e = """
+            Couldn't find option with symbol={}, strike={}, expiry={}, type={}, state={}
+            """.format(
+                symbol, strike, expiry, otype, state
+            )
+            raise exceptions.InvalidOptionId(e)
+        return str(results[0]["id"])
 
     def get_options(self, **kwargs: Any) -> Iterable[Option]:
         """Get a generator of options.

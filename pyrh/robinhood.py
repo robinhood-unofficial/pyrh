@@ -12,8 +12,9 @@ from pyrh import urls
 from pyrh.exceptions import InvalidTickerSymbol
 from pyrh.models import (
     InstrumentManager,
-    Option,
     OptionManager,
+    OptionPosition,
+    OptionQuote,
     PortfolioSchema,
     SessionManager,
     SessionManagerSchema,
@@ -523,7 +524,7 @@ class Robinhood(InstrumentManager, OptionManager, SessionManager):
     #         raise InvalidOptionId()
     #     return market_data
 
-    def get_option_positions(self, open_pos: bool = True) -> Iterable[Option]:
+    def get_option_positions(self, open_pos: bool = True) -> Iterable[OptionPosition]:
         # TODO figure out what /?nonzero=true is, returns quantity = 0...
         return self._get_option_positions(open_pos)
         # url = urls.OPTIONS_BASE.join(URL("positions/?nonzero=true"))
@@ -556,25 +557,11 @@ class Robinhood(InstrumentManager, OptionManager, SessionManager):
 
         return chain_id
 
-    def get_option_quote(self, symbol, strike, expiry, otype, state="active"):
-        url = urls.OPTIONS_BASE.join(URL("instruments/"))
-        params = {
-            "chain_symbol": symbol,
-            "strike_price": strike,
-            "expiration_dates": expiry,
-            "type": otype,
-            "state": state,
-        }
-        # symbol, strike, expiry, otype should uniquely define an option
-        results = self.get_url(url.with_query(**params)).get("results")
-        if not results:
-            return
-        else:
-            option_id = results[0]["id"]
-            result = self.get_option_marketdata(option_id)
-            params["ask"] = "{} x {}".format(result["ask_size"], result["ask_price"])
-            params["bid"] = "{} x {}".format(result["bid_size"], result["bid_price"])
-            return params
+    def get_option_quote(
+        self, symbol, strike, expiry, otype, state="active"
+    ) -> OptionQuote:
+        option_id = self._get_option_id(symbol, strike, expiry, otype, state)
+        return self._get_option_quote(option_id)
 
     ###########################################################################
     #                           GET FUNDAMENTALS
