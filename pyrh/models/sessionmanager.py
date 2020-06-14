@@ -101,8 +101,8 @@ class SessionManager(BaseModel):
 
     def __init__(
         self,
-        username: str,
-        password: str,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
         challenge_type: Optional[str] = "email",
         headers: Optional[CaseInsensitiveDictType] = None,
         proxies: Optional[Proxies] = None,
@@ -116,8 +116,8 @@ class SessionManager(BaseModel):
             tzinfo=pytz.UTC
         )  # some time in the past
 
-        self.username: str = username
-        self.password: str = password
+        self.username: Optional[str] = username
+        self.password: Optional[str] = password
         if challenge_type not in ["email", "sms"]:
             raise ValueError("challenge_type must be email or sms")
         self.challenge_type: str = challenge_type
@@ -423,6 +423,11 @@ class SessionManager(BaseModel):
         """
         self.session.headers.pop("Authorization", None)
 
+        if not self.username:
+            self.username = input("Username: ")
+        if not self.password:
+            self.password = input("Password for %s: " % self.username)
+
         oauth_payload = {
             "password": self.password,
             "username": self.username,
@@ -457,6 +462,7 @@ class SessionManager(BaseModel):
             raise AuthenticationError(msg)
         else:
             self._configure_manager(oauth)
+            self.password = None
 
     def _refresh_oauth2(self) -> None:
         """Refresh an oauth2 token.
@@ -520,7 +526,7 @@ class SessionManagerSchema(BaseSchema):
 
     # Call untyped "Email" in typed context
     username = fields.Email()  # type: ignore
-    password = fields.Str()
+    password = fields.Str(allow_none=True)
     challenge_type = fields.Str(validate=CHALLENGE_TYPE_VAL)
     oauth = fields.Nested(OAuthSchema)
     expires_at = fields.AwareDateTime()
