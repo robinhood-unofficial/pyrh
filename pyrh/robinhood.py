@@ -122,28 +122,29 @@ class Robinhood(InstrumentManager, SessionManager):
 
         # Creates a tuple containing the information we want to retrieve
         def append_stock(stock):
-            keys = key.split(",")
-            myStr = ""
+            keys = key.split(",") if len(key) > 0 else stock.keys()
+            res = []
             for item in keys:
-                myStr += f"{stock[item]},"
+                res.append(f"{stock[item]}")
 
-            return myStr.split(",")
+            return res
 
         # Prompt for stock if not entered
         if not stock:  # pragma: no cover
             stock = input("Symbol: ")
 
-        data = self.quote_data(stock)
         res = []
 
         # Handles the case of multple tickers
         if stock.find(",") != -1:
-            for stock in data["results"]:
-                if stock is None:
+            for ticker in stock.split(","):
+                data = self.quote_data(ticker)
+                if data is None:
                     continue
-                res.append(append_stock(stock))
+                res.append(append_stock(data))
 
         else:
+            data = self.quote_data(stock)
             res.append(append_stock(data))
 
         return res
