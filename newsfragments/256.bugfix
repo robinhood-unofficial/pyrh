@@ -1,0 +1,1 @@
+Update robinhood.get_quote_list to handle lists of tickers, fix #253
