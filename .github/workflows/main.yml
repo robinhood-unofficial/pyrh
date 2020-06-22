@@ -55,6 +55,10 @@ jobs:
       - uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Get full python version
+        id: full-python-version
+        run: |
+          echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info[:3]))")
       - name: Install Poetry
         run: |
           pip install --upgrade pip
@@ -67,14 +71,13 @@ jobs:
         if: (${{ runner.os }} == "Linux") || (${{ runner.os }} == "macOS")
       - name: Configure Poetry
         run: |
-          poetry config virtualenvs.in-project false
-          poetry config virtualenvs.path ~/.virtualenvs
+          poetry config virtualenvs.in-project true
       - name: Cache Poetry virtualenv
         uses: actions/cache@v2.0.0
         id: cache-poetry
         with:
-          path: ~/.virtualenvs
-          key: poetry|${{ matrix.os }}|${{ matrix.python-version }}|${{ hashFiles('poetry.lock') }}
+          path: .venv
+          key: poetry|${{ matrix.os }}|${{ steps.full-python-version.outputs.version }}|${{ hashFiles('poetry.lock') }}
       - name: Install Project Dependencies (Poetry)
         run: |
           poetry install -vvv
