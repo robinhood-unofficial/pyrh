@@ -7,6 +7,7 @@ repos:
     -   id: check-toml
     -   id: check-yaml
     -   id: end-of-file-fixer
+        exclude: .*\.(ipynb)$
     -   id: trailing-whitespace
 -   repo: https://github.com/kynan/nbstripout
     rev: 0.3.7

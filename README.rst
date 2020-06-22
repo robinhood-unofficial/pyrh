@@ -38,8 +38,10 @@ Python Framework to make trades with Unofficial Robinhood API. Supports Python 3
 
 * A stable release is imminent
 
-Quickstart
-**********
+Documentation: https://pyrh.readthedocs.io/en/latest/
+
+Quick start
+***********
 
 .. code-block:: python
 
