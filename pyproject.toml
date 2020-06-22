@@ -41,6 +41,10 @@ requests = "^2.23"
 yarl = "^1.4.2"
 certifi = "^2020.4.5"
 
+# Jupyter
+notebook = { version = "^6.0.3", optional = true }
+python-dotenv = { version = "^0.13.0", optional = true }
+
 [tool.poetry.dev-dependencies]
 # Linting
 # These are version locked so .pre-commit-config is even
@@ -64,8 +68,10 @@ requests-mock = "^1.7.0"
 # Automation
 towncrier = "^19.2.0"
 
+
 [tool.poetry.extras]
 docs = ["sphinx", "sphinx-autodoc-typehints", "sphinx_rtd_theme", "autodocsumm", "tomlkit"]
+notebook = ["notebook", "python-dotenv"]
 
 [tool.black]
 include = '\.pyi?$'

@@ -70,3 +70,4 @@ target/
 .python-version
 .DS_Store
 *.mypy_cache/*
+*.env

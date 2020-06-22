@@ -11,6 +11,10 @@ pyrh - Unofficial Robinhood API
    :target: https://github.com/robinhood-unofficial/pyrh/actions?query=workflow%3Abuild+branch%3Amaster
    :alt: build
 
+.. image:: https://img.shields.io/pypi/v/pyrh?style=plastic
+   :target: https://pypi.org/project/pyrh/
+   :alt: pypi version
+
 .. image:: https://img.shields.io/pypi/dm/pyrh?color=blue&style=plastic
    :target: https://pypi.org/project/pyrh/
    :alt: PyPI - Downloads
@@ -32,7 +36,7 @@ Python Framework to make trades with Unofficial Robinhood API. Supports Python 3
 *Please note that parts of this project maybe non-functional / under rapid development*
 #######################################################################################
 
-* A stable release is iminent
+* A stable release is imminent
 
 Quickstart
 **********
@@ -52,70 +56,26 @@ How To Install:
 
    pip install pyrh
 
-Current Features
-****************
-
-* Placing buy orders (\ ``Robinhood.place_buy_order``\ )
-* Placing sell order (\ ``Robinhood.place_sell_order``\ )
-* Fetch and cancel orders (\ ``Robinhood.order_history`` and ``Robinhood.cancel_order``\ )
-* Quote information (\ ``Robinhood.quote_data``\ )
-* User portfolio data (\ ``Robinhood.portfolio``\ )
-* User positions data (\ ``Robinhood.positions``\ )
-* More coming soon
-
 Running example.ipynb_
 **********************
 
 .. _example.ipynb: https://github.com/robinhood-unofficial/pyrh/blob/master/notebooks/example.ipynb
 
-* Install jupyter
-  .. code-block::
+Clone the repository and install jupyter capabilities.
 
-     $ python --version # python 3.3+ for venv functionality
-     Python 3.7.6
-     $ python -m venv pyrh_env
-     $ source pyrh_env/bin/activate
-     (pyrh_env) $ pip install pyrh
-     (pyrh_env) $ pip install jupyter
-     (pyrh_env) $ jupyter notebook
+.. code-block::
 
-Then navigate to the example file linked above and run it.
+   $ git clone https://github.com/robinhood-unofficial/pyrh.git
+   $ cd pyrh
+   $ python --version # python 3.3+ for venv functionality
+   Python 3.7.6
+   $ python -m venv pyrh_env
+   $ source pyrh_env/bin/activate
+   (pyrh_env) $ pip install .[notebook]
+   (pyrh_env) $ cp .env.sample .env # update the values in here
+   (pyrh_env) $ jupyter notebook notebooks/example.ipynb
 
-Data returned
-*************
-* Quote data
-
-  * Ask Price
-  * Ask Size
-  * Bid Price
-  * Bid Size
-  * Last trade price
-  * Previous close
-  * Previous close date
-  * Adjusted previous close
-  * Trading halted
-  * Updated at
-  * Historical Price
-
-* User portfolio data
-
-  * Adjusted equity previous close
-  * Equity
-  * Equity previous close
-  * Excess margin
-  * Extended hours equity
-  * Extended hours market value
-  * Last core equity
-  * Last core market value
-  * Market value
-  * Order history
-  * Dividend history
-
-* User positions data
-
-  * Securities owned
-
-* News
+Now just run the files in the example.
 
 Related
 *******
