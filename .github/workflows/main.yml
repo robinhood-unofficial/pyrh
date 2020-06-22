@@ -26,13 +26,11 @@ jobs:
           poetry config virtualenvs.in-project false
           poetry config virtualenvs.path ~/.virtualenvs
       - name: Cache Poetry virtualenv
-        uses: actions/cache@v1
+        uses: actions/cache@v2.0.0
         id: cache-poetry
         with:
           path: ~/.virtualenvs
-          key: poetry|pre-commit|v3|${{ matrix.os }}|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
-          restore-keys: |
-            poetry|pre-commit|v3|${{ matrix.os }}|${{ env.PY }}|
+          key: poetry|pre-commit|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
       - name: Install Project Dependencies (Poetry)
         run: |
           poetry install -vvv
@@ -40,10 +38,10 @@ jobs:
       - name: Add poetry env to PATH
         run: |
           echo "::add-path::$( poetry env info --path )/bin"
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2.0.0
         with:
           path: ~/.cache/pre-commit
-          key: pre-commit|v2|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
+          key: pre-commit|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
       - uses: pre-commit/action@v1.0.1
   test:
     needs: lint
@@ -57,8 +55,6 @@ jobs:
       - uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.python-version }}
-      - name: set PY
-        run: echo "::set-env name=PY::$(python -c 'import hashlib, sys;print(hashlib.sha256(sys.version.encode()+sys.executable.encode()).hexdigest())')"
       - name: Install Poetry
         run: |
           pip install --upgrade pip
@@ -74,13 +70,11 @@ jobs:
           poetry config virtualenvs.in-project false
           poetry config virtualenvs.path ~/.virtualenvs
       - name: Cache Poetry virtualenv
-        uses: actions/cache@v1
+        uses: actions/cache@v2.0.0
         id: cache-poetry
         with:
           path: ~/.virtualenvs
-          key: poetry|v3|${{ matrix.os }}|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
-          restore-keys: |
-            poetry|v3|${{ matrix.os }}|${{ env.PY }}|
+          key: poetry|${{ matrix.os }}|${{ matrix.python-version }}|${{ hashFiles('poetry.lock') }}
       - name: Install Project Dependencies (Poetry)
         run: |
           poetry install -vvv
