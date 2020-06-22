@@ -8,5 +8,6 @@ API Reference
     :toctree: stubs
 
     Robinhood
-    SessionManager
+    load_session
+    dump_session
     exceptions

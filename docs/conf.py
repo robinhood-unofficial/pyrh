@@ -5,17 +5,6 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 
-def _get_version() -> str:
-    from pathlib import Path
-    from tomlkit import parse
-
-    pyproject_path = Path(__file__).resolve().parent.joinpath("../pyproject.toml")
-    with open(pyproject_path) as file:
-        pyproject = parse(file.read())
-
-    return str(pyproject["tool"]["poetry"]["version"])
-
-
 # -- Project information -----------------------------------------------------
 
 project = "pyrh"
@@ -25,7 +14,7 @@ master_doc = "index"
 exclude_patterns = ["stubs/*"]  # ignore stubs from checks
 
 # The full version, including alpha/beta/rc tags
-release = _get_version()
+release = "2.0"
 
 # -- General configuration ---------------------------------------------------
 

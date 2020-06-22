@@ -11,6 +11,9 @@ pyrh - Unofficial Robinhood API
    :target: https://github.com/robinhood-unofficial/pyrh/actions?query=workflow%3Abuild+branch%3Amaster
    :alt: build
 
+.. image:: https://codecov.io/gh/robinhood-unofficial/pyrh/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/robinhood-unofficial/pyrh
+
 .. image:: https://img.shields.io/pypi/v/pyrh?style=plastic
    :target: https://pypi.org/project/pyrh/
    :alt: pypi version

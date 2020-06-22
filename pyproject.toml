@@ -31,7 +31,6 @@ autodocsumm = { version = "^0.1.13", optional = true }
 sphinx = { version = "^2.4.4", optional = true }
 sphinx-autodoc-typehints = { version = "^1.10.3", optional = true }
 sphinx_rtd_theme = { version = "^0.4.3", optional = true }
-tomlkit = {version = "^0.5.11", optional = true }
 
 # Main Dependencies
 marshmallow = "^3.5.1"
@@ -68,9 +67,8 @@ requests-mock = "^1.7.0"
 # Automation
 towncrier = "^19.2.0"
 
-
 [tool.poetry.extras]
-docs = ["sphinx", "sphinx-autodoc-typehints", "sphinx_rtd_theme", "autodocsumm", "tomlkit"]
+docs = ["sphinx", "sphinx-autodoc-typehints", "sphinx_rtd_theme", "autodocsumm"]
 notebook = ["notebook", "python-dotenv"]
 
 [tool.black]

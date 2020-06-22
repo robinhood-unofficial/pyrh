@@ -18,8 +18,9 @@ pyrh.exceptions
    .. autosummary::
 
       AuthenticationError
-      InvalidInstrumentId
+      InvalidCacheFile
+      InvalidOperation
       InvalidOptionId
       InvalidTickerSymbol
-      LoginFailed
-      RobinhoodException
+      PyrhException
+      PyrhValueError
