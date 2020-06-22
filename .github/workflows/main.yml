@@ -86,4 +86,15 @@ jobs:
           poetry install -vvv
         if: steps.cache-poetry.outputs.cache-hit != 'true'
       - name: Run pytest
-        run : poetry run pytest
+        run : poetry run pytest --cov-report=xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1.0.7
+        env:
+          OS: ${{ matrix.os }}
+          PYTHON: ${{ matrix.python-version }}
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
+          env_vars: OS,PYTHON
+          name: codecov-umbrella
+          fail_ci_if_error: true
