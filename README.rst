@@ -9,14 +9,19 @@ pyrh - Unofficial Robinhood API
 
 .. image:: https://github.com/robinhood-unofficial/pyrh/workflows/build/badge.svg?branch=master&event=push
    :target: https://github.com/robinhood-unofficial/pyrh/actions?query=workflow%3Abuild+branch%3Amaster
-   :alt: build
+   :alt: Build Status
 
 .. image:: https://codecov.io/gh/robinhood-unofficial/pyrh/branch/master/graph/badge.svg
-  :target: https://codecov.io/gh/robinhood-unofficial/pyrh
+   :target: https://codecov.io/gh/robinhood-unofficial/pyrh
+   :alt: Coverage
+
+.. image:: https://readthedocs.org/projects/pyrh/badge/?version=latest
+   :target: https://pyrh.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
 
 .. image:: https://img.shields.io/pypi/v/pyrh?style=plastic
    :target: https://pypi.org/project/pyrh/
-   :alt: pypi version
+   :alt: PyPI Version
 
 .. image:: https://img.shields.io/pypi/dm/pyrh?color=blue&style=plastic
    :target: https://pypi.org/project/pyrh/
@@ -24,11 +29,11 @@ pyrh - Unofficial Robinhood API
 
 .. image:: https://img.shields.io/github/license/robinhood-unofficial/Robinhood
    :target: https://github.com/robinhood-unofficial/pyrh/blob/master/LICENSE
-   :alt: GitHub
+   :alt: License
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/psf/black
-   :alt: Code style: black
+   :alt: Code Style
 
 .. image:: https://img.shields.io/gitter/room/J-Robinhood/Lobby
    :target: https://gitter.im/J-Robinhood/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
