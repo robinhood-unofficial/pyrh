@@ -518,8 +518,14 @@ class SessionManagerSchema(BaseSchema):
 
     __model__ = SessionManager
 
-    # Call untyped "Email" in typed context
-    username = fields.Email()  # type: ignore
+    # Some users may not be using email for logins so we can attempt to validate as email for username.
+    # otherwise upon validation error assume a username string used for login.
+
+    try:
+        # Call untyped "Email" in typed context
+        username = fields.Email()  # type: ignore
+    except ValidationError:
+        username = fields.Str()       
     password = fields.Str()
     challenge_type = fields.Str(validate=CHALLENGE_TYPE_VAL)
     oauth = fields.Nested(OAuthSchema)
