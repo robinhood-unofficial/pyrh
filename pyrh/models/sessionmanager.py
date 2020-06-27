@@ -9,6 +9,7 @@ import certifi
 import pytz
 import requests
 from marshmallow import Schema, fields, post_load
+from marshmallow.exceptions import ValidationError
 from requests.exceptions import HTTPError
 from requests.structures import CaseInsensitiveDict
 from yarl import URL
