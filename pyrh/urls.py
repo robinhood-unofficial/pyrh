@@ -172,7 +172,7 @@ def build_chain(instrument_id: str) -> URL:
 
     """
     return (
-        OPTIONS_CHAIN_BASE.with_query(equity_instrument_ids=f"{instrument_id}")
+        OPTIONS_CHAIN_BASE.with_query(equity_instrument_ids=f"{instrument_id}") / "/"
     )  # TODO: find out if this trailing slash is required.
 
 

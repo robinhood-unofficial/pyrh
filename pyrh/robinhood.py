@@ -499,7 +499,7 @@ class Robinhood(InstrumentManager, SessionManager):
         return [
             contract
             for contract in self.get_url(
-                urls.build_options(chain_id, _expiration_dates_string, option_type)
+                urls.options(chain_id, _expiration_dates_string, option_type)
             )["results"]
         ]
 
