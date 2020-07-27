@@ -629,6 +629,16 @@ class Robinhood(InstrumentManager, SessionManager):
 
         return self.get(urls.DIVIDENDS)
 
+    def ach_transfers(self):
+        """Wrapper to get ach transfers history
+
+        Returns:
+            (:obj: `dict`): JSON dict from getting ach transfer history
+
+        """
+
+        return self.get(urls.build_ach('transfers'))
+
     ###########################################################################
     #                           POSITIONS DATA
     ###########################################################################

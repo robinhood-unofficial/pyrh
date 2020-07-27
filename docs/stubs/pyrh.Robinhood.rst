@@ -14,6 +14,7 @@ pyrh.Robinhood
    .. autosummary::
 
       ~Robinhood.__init__
+      ~Robinhood.ach_transfers
       ~Robinhood.adjusted_previous_close
       ~Robinhood.ask_price
       ~Robinhood.ask_size
