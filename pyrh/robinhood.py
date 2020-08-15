@@ -651,7 +651,7 @@ class Robinhood(InstrumentManager, SessionManager):
 
         """
 
-        return self.get(urls.POSITIONS + "?nonzero=true")
+        return self.get(str(urls.POSITIONS) + "?nonzero=true")
 
     ###########################################################################
     #                               PLACE ORDER
