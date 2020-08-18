@@ -209,6 +209,23 @@ class Robinhood(InstrumentManager, SessionManager):
 
         return self.get(urls.build_news(stock.upper()))
 
+    def get_watchlists(self):
+        """Fetch watchlists endpoint and queries for
+        each instrumented result aka stock details returned from the watchlist
+
+        Returns:
+            (:obj:`dict`): values returned from `watchlists` and `instrument` endpoints
+        """
+
+        res = []
+        watchlist = self.get(urls.WATCHLISTS)
+        if watchlist and 'results' in watchlist:
+            data = self.get(watchlist["results"][0]["url"])
+            for rec in data["results"]:
+                res.append(self.get(rec['instrument']))
+
+        return res
+
     def print_quote(self, stock=""):  # pragma: no cover
         """Print quote information.
 
