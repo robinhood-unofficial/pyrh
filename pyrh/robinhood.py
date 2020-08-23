@@ -571,14 +571,14 @@ class Robinhood(InstrumentManager, SessionManager):
     def get_watchlists(self):
         api_url = "https://api.robinhood.com"
         url = api_url + "/watchlists/"
-        res = []
+        result = []
         watchlist = self.get_url(url)
         if watchlist and 'results' in watchlist:
             data = self.get_url(watchlist["results"][0]["url"])
-            for rec in data["results"]:
-                res.append(self.get_url(rec['instrument']))
+            for item in data["results"]:
+                result.append(self.get_url(item['instrument']))
 
-        return res
+        return result
 
     ###########################################################################
     #                           GET FUNDAMENTALS
