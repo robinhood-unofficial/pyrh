@@ -563,6 +563,22 @@ class Robinhood(InstrumentManager, SessionManager):
         exp_price_list.sort()
 
         return exp_price_list
+    
+    ###########################################################################
+    #                           GET WATCHLIST
+    ###########################################################################
+
+    def get_watchlists(self):
+        api_url = "https://api.robinhood.com"
+        url = api_url + "/watchlists/"
+        result = []
+        watchlist = self.get_url(url)
+        if watchlist and 'results' in watchlist:
+            data = self.get_url(watchlist["results"][0]["url"])
+            for item in data["results"]:
+                result.append(self.get_url(item['instrument']))
+
+        return result
 
     ###########################################################################
     #                           GET FUNDAMENTALS
