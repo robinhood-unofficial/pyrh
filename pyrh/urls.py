@@ -28,7 +28,7 @@ ORDERS_BASE = API_BASE / "orders/"
 PORTFOLIOS = API_BASE / "portfolios/"
 POSITIONS = API_BASE / "positions/"
 TAGS_BASE = API_BASE / "midlands/tags/tag/"
-WATCHLISTS = API_BASE / "watchlists/"  # not implemented
+WATCHLISTS = API_BASE / "watchlists/"
 
 # Options
 OPTIONS_BASE = API_BASE / "options/"

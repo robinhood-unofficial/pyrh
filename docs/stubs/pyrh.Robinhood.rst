@@ -38,6 +38,7 @@ pyrh.Robinhood
       ~Robinhood.get_stock_marketdata
       ~Robinhood.get_tickers_by_tag
       ~Robinhood.get_url
+      ~Robinhood.get_watchlists
       ~Robinhood.instrument
       ~Robinhood.instruments
       ~Robinhood.investment_profile
