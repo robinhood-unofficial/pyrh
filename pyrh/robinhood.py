@@ -1,14 +1,17 @@
 """robinhood.py: a collection of utilities for working with Robinhood's Private API."""
-
+import uuid
 from enum import Enum
 from urllib.parse import unquote
 
 import dateutil
 import requests
+import math
+
+from requests.structures import CaseInsensitiveDict
 from yarl import URL
 
 from pyrh import urls
-from pyrh.exceptions import InvalidTickerSymbol
+from pyrh.exceptions import InvalidTickerSymbol, InvalidCryptoId
 from pyrh.models import (
     InstrumentManager,
     PortfolioSchema,
@@ -18,6 +21,7 @@ from pyrh.models import (
 
 
 # TODO: re-enable InvalidOptionId when broken endpoint function below is fixed
+from pyrh.models.sessionmanager import CaseInsensitiveDictType
 
 
 class Bounds(Enum):
@@ -81,6 +85,24 @@ class Robinhood(InstrumentManager, SessionManager):
             data = self.get(url)
         except requests.exceptions.HTTPError:
             raise InvalidTickerSymbol()
+
+        return data
+
+    def quote_crypto_data(self, crypto_id=""):
+        """Fetch Crypto quote.
+
+        Args:
+            crypto_id (str): id of cryptocurrency
+
+        Returns:
+            (:obj:`dict`): JSON contents from `quotes` endpoint
+
+        """
+        # Check for validity of symbol
+        try:
+            data = self.get(str(urls.CRYPTO) + crypto_id + "/")
+        except requests.exceptions.HTTPError:
+            raise InvalidCryptoId()
 
         return data
 
@@ -153,6 +175,12 @@ class Robinhood(InstrumentManager, SessionManager):
         """Wrapper for quote_data."""
 
         data = self.quote_data(stock)
+        return data
+
+    def get_crypto_quote(self, crypto_id=""):
+        """Wrapper for quote_crypto_data."""
+
+        data = self.quote_crypto_data(crypto_id)
         return data
 
     def get_stock_marketdata(self, instruments):
@@ -450,6 +478,18 @@ class Robinhood(InstrumentManager, SessionManager):
         """
 
         res = self.get(urls.ACCOUNTS)
+
+        return res["results"][0]
+
+    def get_nummis_account(self):
+        """Fetch account information.
+
+        Returns:
+            (:obj:`dict`): `accounts` endpoint payload
+
+        """
+
+        res = self.get(urls.NUMMIS_ACCOUNTS)
 
         return res["results"][0]
 
@@ -772,6 +812,31 @@ class Robinhood(InstrumentManager, SessionManager):
             time_in_force=time_in_force,
             stop_price=stop_price,
             quantity=quantity,
+        )
+
+    def place_market_crypto_buy_order(
+            self, currency_pair_id=None, amount_in_usd=None
+    ):
+        """Wrapper for placing crypto market buy orders
+
+        Notes:
+            If only one of the instrument_URL or symbol are passed as
+            arguments the other will be looked up automatically.
+
+        Args:
+            currency_pair_id (str): The RH URL of the instrument
+            price (str): The ticker symbol of the instrument
+            time_in_force (str): 'GFD' or 'GTC' (day or until cancelled)
+            quantity (int): Number of shares to buy
+
+        Returns:
+            (:obj:`requests.request`): result from `orders` post command
+
+        """
+        return self.submit_crypto_buy_order(
+            side="buy",
+            currency_pair_id=currency_pair_id,
+            amount_in_usd=amount_in_usd
         )
 
     def place_stop_limit_buy_order(
@@ -1314,6 +1379,98 @@ class Robinhood(InstrumentManager, SessionManager):
                 self.auth_method
             except:  # noqa: E722
                 print(ex)
+
+    def submit_crypto_buy_order(
+        self,
+        currency_pair_id=None,
+        amount_in_usd=None,
+        side=None
+    ):
+        """Submits crypto buy order to Robinhood
+
+        Notes:
+            This is normally not called directly.  Most programs should use
+            one of the following instead:
+
+                place_market_crypto_buy_order()
+
+        Args:
+            currency_pair_id (str): cryptocurrency Id
+            order_type (str): 'market' or 'limit'
+            time_in_force (:obj:`TIME_IN_FORCE`): 'gfd' or 'gtc' (day or
+                                                   until cancelled)
+            price (float): The amount of cryptocurrency
+            side (str): BUY or sell
+
+        Returns:
+            (:obj:`requests.request`): result from `orders` put command
+
+        """
+
+        # Used for default price input
+        # Price is required, so we use the current ask price if it is not specified
+        current_quote = self.get_crypto_quote(currency_pair_id)
+        if (current_quote["ask_price"] == 0) or (current_quote["ask_price"] is None):
+            current_ask_price = current_quote["last_trade_price"]
+        else:
+            current_ask_price = current_quote["ask_price"]
+
+        if currency_pair_id is None:
+            raise (ValueError("Crypto Id is not passed"))
+
+        if side is None:
+            raise (
+                ValueError("Order is neither buy nor sell in call to submit_buy_order")
+            )
+
+        order_type = "market"
+        time_in_force = "gtc"
+        side = str(side).lower()
+
+        if (order_type != "market") and (order_type != "limit"):
+            raise (ValueError("Invalid order_type in call to submit_crypto_buy_order"))
+
+        if amount_in_usd is None:
+            raise (
+                ValueError("Limit order has no price in call to submit_crypto_buy_order")
+            )
+
+        quantity = math.floor(float(amount_in_usd)/float(current_ask_price))
+
+        payload = {
+            "account_id": self.get_nummis_account()["id"],
+            "type": order_type,
+            "time_in_force": time_in_force,
+            "price": str(current_ask_price),
+            "quantity": quantity,
+            "side": side,
+            "currency_pair_id": currency_pair_id,
+            "ref_id": str(uuid.uuid4())
+        }
+        post_headers: CaseInsensitiveDictType = CaseInsensitiveDict(
+            {
+                "Accept": "*/*",
+                "Accept-Encoding": "gzip, deflate",
+                "Content-Type": "application/json",
+                "X-Robinhood-API-Version": "1.0.0",
+                "Connection": "keep-alive",
+                "Origin": "https://robinhood.com",
+                "Authorization": "Bearer " + self.oauth.access_token
+            }
+        )
+        try:
+            s = requests.Session()
+            res = s.request("post", str(urls.build_crypto_orders()), json=payload, headers=post_headers)
+            return res
+        except Exception as ex:
+            # sometimes Robinhood asks for another log in when placing an order
+            # TODO: fix bare except
+            try:
+                self.auth_method
+            except:  # noqa: E722
+                print(ex)
+
+
 
     def place_order(
         self,

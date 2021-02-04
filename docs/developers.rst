@@ -11,6 +11,8 @@ Installation
 ************
 * Python 3.7+ is required
 * |poetry|_ is used to manage package dependencies
+* To use poetry with pycharm, set your python interpreter to the your path found by running ``poetry env info``
+
 * |pre-commit|_ is used to manage the project's tooling and linting
 
    * |black|_

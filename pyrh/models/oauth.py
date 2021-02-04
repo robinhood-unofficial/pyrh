@@ -8,7 +8,7 @@ from marshmallow import fields, validate
 from .base import BaseModel, BaseSchema
 
 
-CHALLENGE_TYPE_VAL = validate.OneOf(["email", "sms"])
+CHALLENGE_TYPE_VAL = validate.OneOf(["email", "sms", "null", "none"])
 
 
 class Challenge(BaseModel):
@@ -88,6 +88,19 @@ class OAuthSchema(BaseSchema):
 
     detail = fields.Str()
     challenge = fields.Nested(ChallengeSchema)
+    mfa_required = fields.Boolean()
+
+    access_token = fields.Str()
+    refresh_token = fields.Str()
+    expires_in = fields.Int()
+
+
+class OAuthSchemaWithoutChallenge(BaseSchema):
+    """The OAuth response schema."""
+
+    __model__ = OAuth
+
+    detail = fields.Str()
     mfa_required = fields.Boolean()
 
     access_token = fields.Str()

@@ -9,9 +9,12 @@ from yarl import URL
 
 # Base
 API_BASE = URL("https://api.robinhood.com")
+# Nummus Base
+NUMMIS_API_BASE = URL("https://nummus.robinhood.com")
 
 # General
 ACCOUNTS = API_BASE / "accounts/"
+NUMMIS_ACCOUNTS = NUMMIS_API_BASE / "accounts/"
 ACH_BASE = API_BASE / "ach/"  # not implemented
 APPLICATIONS = API_BASE / "applications/"  # not implemented
 DIVIDENDS = API_BASE / "dividends/"
@@ -25,6 +28,7 @@ MARKET_DATA_BASE = API_BASE / "marketdata/"
 NEWS_BASE = API_BASE / "midlands/news/"
 NOTIFICATIONS = API_BASE / "notifications/"  # not implemented
 ORDERS_BASE = API_BASE / "orders/"
+NUMMIS_ORDERS_BASE = NUMMIS_API_BASE / "orders/"
 PORTFOLIOS = API_BASE / "portfolios/"
 POSITIONS = API_BASE / "positions/"
 TAGS_BASE = API_BASE / "midlands/tags/tag/"
@@ -42,6 +46,7 @@ INVESTMENT_PROFILE = USER / "investment_profile/"
 # Quotes
 QUOTES = API_BASE / "quotes/"
 HISTORICALS = QUOTES / "historicals/"
+CRYPTO = MARKET_DATA_BASE / "forex/quotes/"
 
 # Auth
 OAUTH_BASE: URL = API_BASE / "oauth2/"
@@ -117,6 +122,22 @@ def build_orders(order_id: str = None) -> URL:
         return ORDERS_BASE / f"/{order_id}/"
     else:
         return ORDERS_BASE
+
+
+def build_crypto_orders(order_id: str = None) -> URL:
+    """Build endpoint to place orders."
+
+    Args:
+        order_id: the id of the order
+
+    Returns:
+        A constructed URL for a particular order or the base URL for all orders.
+
+    """
+    if order_id is not None:
+        return NUMMIS_ORDERS_BASE / f"/{order_id}/"
+    else:
+        return NUMMIS_ORDERS_BASE
 
 
 def build_news(stock: str) -> URL:

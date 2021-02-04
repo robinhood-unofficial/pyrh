@@ -35,6 +35,12 @@ class InvalidTickerSymbol(PyrhException):
     pass
 
 
+class InvalidCryptoId(PyrhException):
+    """When an invalid cyptocurrency Id is given/"""
+
+    pass
+
+
 class InvalidOptionId(PyrhException):
     """When an invalid option id is given/"""
 

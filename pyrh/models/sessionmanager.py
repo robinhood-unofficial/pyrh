@@ -47,7 +47,7 @@ HEADERS: CaseInsensitiveDictType = CaseInsensitiveDict(
 """Headers used when performing requests with robinhood api."""
 # 8.5 days (you have a small window to refresh after this)
 # I would refresh the token proactively every day in a script
-EXPIRATION_TIME: int = 734000
+EXPIRATION_TIME: int = 538020
 """Default expiration time for requests."""
 
 TIMEOUT: int = 1
@@ -77,7 +77,7 @@ class SessionManager(BaseModel):
     Args:
         username: The username to login to Robinhood.
         password: The password to login to Robinhood.
-        challenge_type: Either sms or email. (only if not using mfa)
+        challenge_type: Either sms, email, or none. (only if not using mfa)
         headers: Any optional header dict modifications for the session.
         proxies: Any optional proxy dict modification for the session.
         **kwargs: Any other passed parameters as converted to instance attributes.
@@ -93,7 +93,7 @@ class SessionManager(BaseModel):
             required.
         username: The username to login to Robinhood.
         password: The password to login to Robinhood.
-        challenge_type: Either sms or email. (only if not using mfa)
+        challenge_type: Either sms, email or none. (only if not using mfa)
         headers: Any optional header dict modifications for the session.
         proxies: Any optional proxy dict modification for the session.
 
@@ -103,7 +103,7 @@ class SessionManager(BaseModel):
         self,
         username: str,
         password: str,
-        challenge_type: Optional[str] = "email",
+        challenge_type: Optional[str] = "none",
         headers: Optional[CaseInsensitiveDictType] = None,
         proxies: Optional[Proxies] = None,
         **kwargs: Any,
@@ -118,8 +118,8 @@ class SessionManager(BaseModel):
 
         self.username: str = username
         self.password: str = password
-        if challenge_type not in ["email", "sms"]:
-            raise ValueError("challenge_type must be email or sms")
+        if challenge_type not in ["email", "sms", "none"]:
+            raise ValueError("challenge_type must be email, sms, or none")
         self.challenge_type: str = challenge_type
 
         self.device_token: str = kwargs.pop("device_token", str(uuid.uuid4()))
@@ -422,7 +422,6 @@ class SessionManager(BaseModel):
 
         """
         self.session.headers.pop("Authorization", None)
-
         oauth_payload = {
             "password": self.password,
             "username": self.username,
@@ -430,9 +429,19 @@ class SessionManager(BaseModel):
             "client_id": CLIENT_ID,
             "expires_in": EXPIRATION_TIME,
             "scope": "internal",
-            "device_token": self.device_token,
-            "challenge_type": self.challenge_type,
+            "device_token": "4cf700d5-933b-4aff-86b5-33ddd0e93cb4"
         }
+        if self.challenge_type != "none":
+            oauth_payload = {
+                "password": self.password,
+                "username": self.username,
+                "grant_type": "password",
+                "client_id": CLIENT_ID,
+                "expires_in": EXPIRATION_TIME,
+                "scope": "internal",
+                "device_token": self.device_token,
+                "challenge_type": self.challenge_type
+            }
 
         oauth = self.post(
             urls.OAUTH,
