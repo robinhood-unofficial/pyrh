@@ -499,9 +499,10 @@ class Robinhood(InstrumentManager, SessionManager):
     def get_options(self, stock, expiration_dates, option_type):
         """Get a list (chain) of options contracts belonging to a particular stock
 
-        Args: stock ticker (str), list of expiration dates to filter on
-            (YYYY-MM-DD), and whether or not its a 'put' or a 'call' option type
-            (str).
+        Args:
+            stock (str): stock_ticker
+            expiration_dates (list<str>): list of expiration dates to filter on (YYYY-MM-DD)
+            option_type (str): 'put' or 'call'
 
         Returns:
             Options Contracts (List): a list (chain) of contracts for a given \
