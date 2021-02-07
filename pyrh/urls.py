@@ -119,7 +119,7 @@ def build_orders(order_id: str = None) -> URL:
 
     """
     if order_id is not None:
-        return ORDERS_BASE / f"/{order_id}/"
+        return ORDERS_BASE / f"{order_id}/"
     else:
         return ORDERS_BASE
 
@@ -135,7 +135,7 @@ def build_crypto_orders(order_id: str = None) -> URL:
 
     """
     if order_id is not None:
-        return NUMMIS_ORDERS_BASE / f"/{order_id}/"
+        return NUMMIS_ORDERS_BASE / f"{order_id}/"
     else:
         return NUMMIS_ORDERS_BASE
 

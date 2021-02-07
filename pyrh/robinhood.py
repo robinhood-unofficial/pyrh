@@ -675,6 +675,18 @@ class Robinhood(InstrumentManager, SessionManager):
 
         return self.get(urls.build_orders(orderId))
 
+    def crypto_order_history(self, orderId=None):
+        """Wrapper for portfolios
+
+        Optional Args: add an order ID to retrieve information about a single order.
+
+        Returns:
+            (:obj:`dict`): JSON dict from getting orders
+
+        """
+
+        return self.get(urls.build_crypto_orders(orderId))
+
     def dividends(self):
         """Wrapper for portfolios
 
@@ -833,8 +845,33 @@ class Robinhood(InstrumentManager, SessionManager):
             (:obj:`requests.request`): result from `orders` post command
 
         """
-        return self.submit_crypto_buy_order(
+        return self.submit_crypto_order(
             side="buy",
+            currency_pair_id=currency_pair_id,
+            amount_in_usd=amount_in_usd
+        )
+
+    def place_market_crypto_sell_order(
+            self, currency_pair_id=None, amount_in_usd=None
+    ):
+        """Wrapper for placing crypto market buy orders
+
+        Notes:
+            If only one of the instrument_URL or symbol are passed as
+            arguments the other will be looked up automatically.
+
+        Args:
+            currency_pair_id (str): The RH URL of the instrument
+            price (str): The ticker symbol of the instrument
+            time_in_force (str): 'GFD' or 'GTC' (day or until cancelled)
+            quantity (int): Number of shares to buy
+
+        Returns:
+            (:obj:`requests.request`): result from `orders` post command
+
+        """
+        return self.submit_crypto_order(
+            side="sell",
             currency_pair_id=currency_pair_id,
             amount_in_usd=amount_in_usd
         )
@@ -1380,7 +1417,7 @@ class Robinhood(InstrumentManager, SessionManager):
             except:  # noqa: E722
                 print(ex)
 
-    def submit_crypto_buy_order(
+    def submit_crypto_order(
         self,
         currency_pair_id=None,
         amount_in_usd=None,
@@ -1606,6 +1643,27 @@ class Robinhood(InstrumentManager, SessionManager):
                 open_orders.append(order)
 
         return open_orders
+
+        ##############################
+        # GET OPEN ORDER(S)
+        ##############################
+
+    def get_crypto_orders(self, order_id=None):
+        """Returns the crypto order status.
+
+        TODO: Is there a way to get these from the API endpoint without stepping through
+            order history?
+        """
+
+        orders_arr = []
+        orders = self.crypto_order_history(orderId=order_id)
+        if order_id is not None:
+            orders_arr.append(orders)
+        else:
+            for order in orders["results"]:
+                orders_arr.append(order)
+
+        return orders_arr
 
     ##############################
     #        CANCEL ORDER        #
