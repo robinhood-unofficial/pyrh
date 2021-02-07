@@ -1644,9 +1644,9 @@ class Robinhood(InstrumentManager, SessionManager):
 
         return open_orders
 
-        ##############################
-        # GET OPEN ORDER(S)
-        ##############################
+    ##############################
+    # GET CRYPTO ORDER(S)
+    ##############################
 
     def get_crypto_orders(self, order_id=None):
         """Returns the crypto order status.
@@ -1664,6 +1664,13 @@ class Robinhood(InstrumentManager, SessionManager):
                 orders_arr.append(order)
 
         return orders_arr
+
+    ##############################
+    #    CANCEL CRYPTO ORDER     #
+    ##############################
+
+    def cancel_crypto_order(self, cancel_url):  # noqa: C901
+        return self.post(cancel_url)
 
     ##############################
     #        CANCEL ORDER        #
