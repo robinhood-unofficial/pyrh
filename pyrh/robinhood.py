@@ -686,7 +686,7 @@ class Robinhood(InstrumentManager, SessionManager):
             instrument_URL (str): The RH URL of the instrument
             symbol (str): The ticker symbol of the instrument
             time_in_force (str): 'GFD' or 'GTC' (day or until cancelled)
-            quantity (int): Number of shares to buy
+            quantity (float): Number of shares to buy
 
         Returns:
             (:obj:`requests.request`): result from `orders` put command
@@ -721,7 +721,7 @@ class Robinhood(InstrumentManager, SessionManager):
             symbol (str): The ticker symbol of the instrument
             time_in_force (str): 'GFD' or 'GTC' (day or until cancelled)
             price (float): The max price you're willing to pay per share
-            quantity (int): Number of shares to buy
+            quantity (float): Number of shares to buy
 
         Returns:
             (:obj:`requests.request`): result from `orders` put command
@@ -757,7 +757,7 @@ class Robinhood(InstrumentManager, SessionManager):
             symbol (str): The ticker symbol of the instrument
             time_in_force (str): 'GFD' or 'GTC' (day or until cancelled)
             stop_price (float): The price at which this becomes a market order
-            quantity (int): Number of shares to buy
+            quantity (float): Number of shares to buy
 
         Returns:
             (:obj:`requests.request`): result from `orders` put command
@@ -795,7 +795,7 @@ class Robinhood(InstrumentManager, SessionManager):
             time_in_force (str): 'GFD' or 'GTC' (day or until cancelled)
             stop_price (float): The price at which this becomes a limit order
             price (float): The max price you're willing to pay per share
-            quantity (int): Number of shares to buy
+            quantity (float): Number of shares to buy
 
         Returns:
             (:obj:`requests.request`): result from `orders` put command
@@ -826,7 +826,7 @@ class Robinhood(InstrumentManager, SessionManager):
             instrument_URL (str): The RH URL of the instrument
             symbol (str): The ticker symbol of the instrument
             time_in_force (str): 'GFD' or 'GTC' (day or until cancelled)
-            quantity (int): Number of shares to sell
+            quantity (float): Number of shares to sell
 
         Returns:
             (:obj:`requests.request`): result from `orders` put command
@@ -861,7 +861,7 @@ class Robinhood(InstrumentManager, SessionManager):
             symbol (str): The ticker symbol of the instrument
             time_in_force (str): 'GFD' or 'GTC' (day or until cancelled)
             price (float): The minimum price you're willing to get per share
-            quantity (int): Number of shares to sell
+            quantity (float): Number of shares to sell
 
         Returns:
             (:obj:`requests.request`): result from `orders` put command
@@ -897,7 +897,7 @@ class Robinhood(InstrumentManager, SessionManager):
             symbol (str): The ticker symbol of the instrument
             time_in_force (str): 'GFD' or 'GTC' (day or until cancelled)
             stop_price (float): The price at which this becomes a market order
-            quantity (int): Number of shares to sell
+            quantity (float): Number of shares to sell
 
         Returns:
             (:obj:`requests.request`): result from `orders` put command
@@ -935,7 +935,7 @@ class Robinhood(InstrumentManager, SessionManager):
             time_in_force (str): 'GFD' or 'GTC' (day or until cancelled)
             stop_price (float): The price at which this becomes a limit order
             price (float): The max price you're willing to get per share
-            quantity (int): Number of shares to sell
+            quantity (float): Number of shares to sell
 
         Returns:
             (:obj:`requests.request`): result from `orders` put command
@@ -1097,8 +1097,6 @@ class Robinhood(InstrumentManager, SessionManager):
         if quantity is None:
             raise (ValueError("No quantity specified in call to submit_sell_order"))
 
-        quantity = int(quantity)
-
         if quantity <= 0:
             raise (
                 ValueError(
@@ -1172,7 +1170,7 @@ class Robinhood(InstrumentManager, SessionManager):
             price (float): The share price you'll accept
             stop_price (float): The price at which the order becomes a
                                 market or limit order
-            quantity (int): The number of shares to buy/sell
+            quantity (float): The number of shares to buy/sell
             side (str): BUY or sell
 
         Returns:
@@ -1276,8 +1274,6 @@ class Robinhood(InstrumentManager, SessionManager):
 
         if quantity is None:
             raise (ValueError("No quantity specified in call to submit_buy_order"))
-
-        quantity = int(quantity)
 
         if quantity <= 0:
             raise (
