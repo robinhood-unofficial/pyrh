@@ -1,4 +1,4 @@
-pyrh.Robinhood
+﻿pyrh.Robinhood
 ==============
 
 .. currentmodule:: pyrh

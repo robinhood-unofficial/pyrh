@@ -1,4 +1,4 @@
-pyrh.dump\_session
+﻿pyrh.dump\_session
 ==================
 
 .. currentmodule:: pyrh

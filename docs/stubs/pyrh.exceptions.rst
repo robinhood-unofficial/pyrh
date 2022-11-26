@@ -1,7 +1,11 @@
-pyrh.exceptions
+﻿pyrh.exceptions
 ===============
 
 .. automodule:: pyrh.exceptions
+
+
+
+
 
 
 
