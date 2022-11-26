@@ -94,10 +94,10 @@ Release
 To cut a new release go through the following steps.
 
 * Make sure that the version is updated in both ``__init__.py`` and ``pyproject.toml``
-* Make sure you've |set up your PyPI credential| with poetry
+* Make sure you've `set up your PyPI credential`_ with poetry
 * Then run:
 
-.. |set up your PyPI credential|: https://python-poetry.org/docs/repositories/#configuring-credentials
+.. _set up your PyPI credential: https://python-poetry.org/docs/repositories/#configuring-credentials
 
 .. code-block:: console
 
