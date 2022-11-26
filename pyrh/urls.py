@@ -113,7 +113,7 @@ def build_orders(order_id: Optional[str] = None) -> URL:
 
     """
     if order_id is not None:
-        return ORDERS_BASE / f"/{order_id}/"
+        return ORDERS_BASE / f"{order_id}/"
     else:
         return ORDERS_BASE
 
