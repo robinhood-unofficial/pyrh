@@ -38,7 +38,9 @@ class ChallengeSchema(BaseSchema):
     id = fields.UUID()
     user = fields.UUID()
     type = fields.Str(validate=CHALLENGE_TYPE_VAL)
-    alternate_type = fields.Str(validate=CHALLENGE_TYPE_VAL)
+    alternate_type = fields.Str(
+        validate=CHALLENGE_TYPE_VAL, required=False, allow_none=True
+    )
     status = fields.Str(validate=validate.OneOf(["issued", "validated", "failed"]))
     remaining_retries = fields.Int()
     remaining_attempts = fields.Int()

@@ -49,7 +49,7 @@ HEADERS: CaseInsensitiveDictType = CaseInsensitiveDict(
 EXPIRATION_TIME: int = 734000
 """Default expiration time for requests."""
 
-TIMEOUT: int = 1
+TIMEOUT: int = 3
 """Default timeout in seconds"""
 
 
@@ -102,7 +102,7 @@ class SessionManager(BaseModel):
         self,
         username: str,
         password: str,
-        challenge_type: Optional[str] = "email",
+        challenge_type: Optional[str] = "sms",
         headers: Optional[CaseInsensitiveDictType] = None,
         proxies: Optional[Proxies] = None,
         **kwargs: Any,
