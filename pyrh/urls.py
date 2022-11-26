@@ -128,7 +128,7 @@ def build_news(stock: str) -> URL:
         A constructed URL for the input stock ticker.
 
     """
-    return NEWS_BASE / f"/{stock}/"
+    return NEWS_BASE / f"{stock}/"
 
 
 def build_fundamentals(stock: str) -> URL:
@@ -141,7 +141,7 @@ def build_fundamentals(stock: str) -> URL:
         A constructed URL of the fundamentals for the input stock ticker.
 
     """
-    return FUNDAMENTALS_BASE / f"/{stock}/"
+    return FUNDAMENTALS_BASE / f"{stock}/"
 
 
 def build_tags(tag: str) -> URL:
@@ -154,7 +154,7 @@ def build_tags(tag: str) -> URL:
         A constructed URL for a particular tag.
 
     """
-    return TAGS_BASE / f"/{tag}/"
+    return TAGS_BASE / f"{tag}/"
 
 
 def build_chain(instrument_id: str) -> URL:
@@ -204,6 +204,6 @@ def build_market_data(option_id: Optional[str] = None) -> URL:
         A constructed URL for market data for a particular `option_id`.
     """
     if option_id is None:
-        return MARKET_DATA_BASE / f"/{option_id}/"
+        return MARKET_DATA_BASE / f"{option_id}/"
     else:
         return MARKET_DATA_BASE
