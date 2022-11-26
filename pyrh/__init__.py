@@ -4,7 +4,6 @@ from . import exceptions
 from .cache import dump_session, load_session
 from .robinhood import Robinhood
 
-
 __version__ = "2.0"
 __all__ = [
     "__version__",

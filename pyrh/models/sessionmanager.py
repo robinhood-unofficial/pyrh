@@ -19,7 +19,6 @@ from pyrh.exceptions import AuthenticationError, PyrhValueError
 from .base import JSON, BaseModel, BaseSchema
 from .oauth import CHALLENGE_TYPE_VAL, OAuth, OAuthSchema
 
-
 # TODO: merge get and post duplicated code into a single function.
 
 # Types
@@ -392,7 +391,7 @@ class SessionManager(BaseModel):
                 number of attempts.
 
         """
-        print(f"Input mfa code:")
+        print("Input mfa code:")
         mfa_code = input()
         oauth_payload["mfa_code"] = mfa_code
         oauth, res = self.post(

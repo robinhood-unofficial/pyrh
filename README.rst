@@ -39,12 +39,9 @@ pyrh - Unofficial Robinhood API
    :target: https://gitter.im/J-Robinhood/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
    :alt: Gitter
 
-Python Framework to make trades with Unofficial Robinhood API. Supports Python 3.6+
+Python Framework to make trades with Unofficial Robinhood API. Supports Python 3.8.1+
 
-*Please note that parts of this project maybe non-functional / under rapid development*
-#######################################################################################
-
-* A stable release is imminent
+*Please note this project is not currently actively maintained, but is accepting contributions*
 
 Documentation: https://pyrh.readthedocs.io/en/latest/
 
@@ -78,7 +75,7 @@ Clone the repository and install jupyter capabilities.
    $ git clone https://github.com/robinhood-unofficial/pyrh.git
    $ cd pyrh
    $ python --version # python 3.3+ for venv functionality
-   Python 3.7.6
+   Python 3.8.1
    $ python -m venv pyrh_env
    $ source pyrh_env/bin/activate
    (pyrh_env) $ pip install .[notebook]

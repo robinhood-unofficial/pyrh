@@ -9,79 +9,44 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
-          python-version: 3.7
-      - name: set PY
-        run: echo "::set-env name=PY::$(python -c 'import hashlib, sys;print(hashlib.sha256(sys.version.encode()+sys.executable.encode()).hexdigest())')"
-      - name: Install Poetry
-        run: |
-          pip install --upgrade pip
-          curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
-      - name: Add Poetry to Path Unix
-        run: echo "::add-path::$HOME/.poetry/bin"
-      - name: Configure Poetry
-        run: |
-          poetry config virtualenvs.in-project false
-          poetry config virtualenvs.path ~/.virtualenvs
-      - name: Cache Poetry virtualenv
-        uses: actions/cache@v2.0.0
-        id: cache-poetry
-        with:
-          path: ~/.virtualenvs
-          key: poetry|pre-commit|${{ env.PY }}|${{ hashFiles('poetry.lock') }}
-      - name: Install Project Dependencies (Poetry)
-        run: |
-          poetry install -vvv
-        if: steps.cache-poetry.outputs.cache-hit != 'true'
-      - name: Add poetry env to PATH
-        run: |
-          echo "::add-path::$( poetry env info --path )/bin"
-      - uses: actions/cache@v2.0.0
-        with:
-          path: ~/.cache/pre-commit
-          key: pre-commit|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
-      - uses: pre-commit/action@v1.0.1
+          python-version: '3.10'
+      - uses: pre-commit/action@v3.0.0
   test:
     needs: lint
+    defaults:
+      run:
+        shell: bash
     strategy:
+      fail-fast: false
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
-        python-version: [ 3.6, 3.7, 3.8]
+        python-version: [ 3.8, 3.9, '3.10']
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Get full python version
-        id: full-python-version
-        run: |
-          echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info[:3]))")
       - name: Install Poetry
-        run: |
-          pip install --upgrade pip
-          curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
-      - name: Set Poetry to Path Windows
-        run: echo "::add-path::%USERPROFILE%\.poetry\bin"
-        if: ${{ runner.os }} == "Windows"
-      - name: Add Poetry to Path Unix
-        run: echo "::add-path::$HOME/.poetry/bin"
-        if: (${{ runner.os }} == "Linux") || (${{ runner.os }} == "macOS")
-      - name: Configure Poetry
-        run: |
-          poetry config virtualenvs.in-project true
-      - name: Cache Poetry virtualenv
-        uses: actions/cache@v2.0.0
-        id: cache-poetry
+        uses: snok/install-poetry@v1.3.3
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
         with:
           path: .venv
-          key: poetry|${{ matrix.os }}|${{ steps.full-python-version.outputs.version }}|${{ hashFiles('poetry.lock') }}
-      - name: Install Project Dependencies (Poetry)
-        run: |
-          poetry install -vvv
-        if: steps.cache-poetry.outputs.cache-hit != 'true'
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+      - name: Install project
+        run: poetry install --no-interaction
       - name: Run pytest
         run : poetry run pytest --cov-report=xml
       - name: Upload coverage to Codecov

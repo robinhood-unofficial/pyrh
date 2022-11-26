@@ -4,7 +4,6 @@ from typing import Optional
 
 from yarl import URL
 
-
 # TODO: All url construction should happen here, not in robinhood.py
 
 # Base
@@ -103,7 +102,7 @@ def instruments(
         return INSTRUMENTS_BASE / f"{id_}/"
 
 
-def build_orders(order_id: str = None) -> URL:
+def build_orders(order_id: Optional[str] = None) -> URL:
     """Build endpoint to place orders."
 
     Args:

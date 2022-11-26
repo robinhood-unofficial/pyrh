@@ -24,7 +24,7 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.8.1"
 
 # Doc Dependencies (need to be distributed for readthedocs)
 autodocsumm = { version = "^0.1.13", optional = true }
@@ -44,25 +44,27 @@ certifi = "^2020.4.5"
 notebook = { version = "^6.0.3", optional = true }
 python-dotenv = { version = "^0.13.0", optional = true }
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
+
 # Linting
-# These are version locked so .pre-commit-config is even
-flake8 = "3.7.9"
-flake8-docstrings = "1.5.0"
-black = { version = "19.10b0", python = "^3.6" }
-darglint = { version = "1.2.1", python = "^3.7"}
-isort = { version = "4.3.21", extras = ["pyproject"] }
-seed-isort-config = { version = "2.1.0", python = "^3.7" }
-mypy = "0.770"
-nbstripout = "^0.3.7"
+# These are version locked to the same versions as `.pre-commit-config.yaml`
+flake8 = "6.0.0"
+flake8-docstrings = "1.6.0"
+flake8-bugbear = "^22.10.27"
+black = "22.10.0"
+isort = "5.10.1"
+mypy = "0.991"
+nbstripout = "0.6.1"
+# TODO: re-enable darglint but it currently makes flake8 un-reasonably slow
+# darglint = "1.8.1"
 
 # Testing
-coverage = "^5.0.4"
-freezegun = "^0.3.15"
-pytest = "^5.4.1"
-pytest-cov = "^2.8.1"
-pytest-mock = "^2.0.0"
-requests-mock = "^1.7.0"
+coverage = "^6.5.0"
+freezegun = "^1.2.2"
+pytest = "^7.2.0"
+pytest-cov = "^4.0.0"
+pytest-mock = "^3.10.0"
+requests-mock = "^1.10.0"
 
 # Automation
 towncrier = "^19.2.0"
@@ -71,29 +73,42 @@ towncrier = "^19.2.0"
 docs = ["sphinx", "sphinx-autodoc-typehints", "sphinx_rtd_theme", "autodocsumm"]
 notebook = ["notebook", "python-dotenv"]
 
-[tool.black]
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.git
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
+# Tool Configuration
 
 [tool.isort]
-known_first_party = 'robinhood'
-known_third_party = ["certifi", "dateutil", "freezegun", "marshmallow", "pytest", "pytz", "requests", "requests_mock", "yarl"]
+profile = "black"
 multi_line_output = 3
-lines_after_imports = 2
-force_grid_wrap = 0
-combine_as_imports = true
-include_trailing_comma = true
+
+[tool.mypy]
+strict = true
+disallow_untyped_decorators = false
+
+# TODO: Remove ignored typing errors
+# [["tool.mypy-*.robinhood"]]
+# ignore_errors = true
+# [["tool.mypy-*.urls"]]
+# ignore_errors = true
+# [["tool.mypy-tests.robinhood"]]
+# ignore_errors = true
+
+[tool.coverage.run]
+branch = true
+omit = [
+    "tests/*",
+    "docs/*"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:"
+]
+
+[tool.pytest.ini_options]
+# use --no-cov in PyCharm to override pytest-cov and enable builtin coverage
+addopts = "-vv -x --cov=pyrh --cov-report=term --cov-report=html"
 
 [build-system]
 requires = ["poetry>=1.0.5"]

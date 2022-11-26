@@ -11,7 +11,6 @@ from .oauth import Challenge, ChallengeSchema, OAuth, OAuthSchema
 from .portfolio import Portfolio, PortfolioSchema
 from .sessionmanager import SessionManager, SessionManagerSchema
 
-
 __all__ = [
     "OAuth",
     "OAuthSchema",
