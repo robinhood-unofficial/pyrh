@@ -1,8 +1,6 @@
-default_language_version:
-  python: python3.7
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.5.0
+    rev: v4.4.0
     hooks:
     -   id: check-toml
     -   id: check-yaml
@@ -10,34 +8,32 @@ repos:
         exclude: .*\.(ipynb)$
     -   id: trailing-whitespace
 -   repo: https://github.com/kynan/nbstripout
-    rev: 0.3.7
+    rev: 0.6.1
     hooks:
     -   id: nbstripout
         files: ".ipynb"
--   repo: https://github.com/asottile/seed-isort-config
-    rev: v2.1.0
-    hooks:
-    -   id: seed-isort-config
--   repo: https://github.com/pre-commit/mirrors-isort
-    rev: v4.3.21
+-   repo: https://github.com/pycqa/isort
+    rev: 5.10.1
     hooks:
     -   id: isort
         additional_dependencies: ['toml']
 -   repo: https://github.com/ambv/black
-    rev: 19.10b0
+    rev: 22.10.0
     hooks:
     - id: black
--   repo: https://gitlab.com/pycqa/flake8
-    rev: 3.7.9
+# TODO: re-enable once you figure out how to tell it to ignore darglint noqas
+#-   repo: https://github.com/asottile/yesqa
+#    rev: v1.4.0
+#    hooks:
+#    -   id: yesqa
+# TODO: re-enable darglint but it currently makes flake8 un-reasonably slow
+-   repo: https://github.com/PyCQA/flake8
+    rev: 6.0.0
     hooks:
     -    id: flake8
-         additional_dependencies: ['flake8-docstrings==1.5.0', 'darglint==1.2.1']
--   repo: local
-    hooks:
-    -   id: mypy
-        name: mypy
-        entry: mypy
-        language: system
-        types: [python]
-        args: ['-p=pyrh']
-        pass_filenames: false
+         additional_dependencies: ['flake8-bugbear==22.10.27', 'flake8-docstrings==1.6.0']  # , 'darglint==1.8.1']
+# TODO: re-enable mypy (need to run as its own step in CI since it requires deps)
+#-   repo: https://github.com/pre-commit/mirrors-mypy
+#    rev: v0.991
+#    hooks:
+#    -   id: mypy

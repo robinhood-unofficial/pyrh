@@ -1,5 +1,5 @@
 """Base Model."""
-from collections import MutableSequence
+from collections.abc import MutableSequence
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, Iterable, Mapping, Optional
 
@@ -7,7 +7,6 @@ from marshmallow import INCLUDE, Schema, fields, post_load
 from yarl import URL
 
 from pyrh.exceptions import InvalidOperation
-
 
 JSON = Dict[str, Any]
 MAX_REPR_LEN = 50
@@ -105,10 +104,8 @@ def has_results(func: Callable[..., Any]) -> Callable[..., Any]:
         func: The function to be decorated
 
     Returns:
-        The decorated function.
-
-    Raises:
-        InvalidOperation: If the decorated function does not have teh results attribute.
+        The decorated function which raises `InvalidOperation` if the \
+            decorated function does not have the `results` attribute
 
     """
 
@@ -127,15 +124,15 @@ class BasePaginator(BaseModel, MutableSequence):  # type: ignore
     """Thin wrapper around `self.results` for a robinhood paginator."""
 
     @has_results
-    def __getitem__(self, key: Any) -> Any:  # noqa: D
+    def __getitem__(self, key: Any) -> Any:  # noqa: D105
         return self.results[key]
 
     @has_results
-    def __setitem__(self, key: Any, value: Any) -> Any:  # noqa: D
+    def __setitem__(self, key: Any, value: Any) -> Any:  # noqa: D105
         self.results[key] = value
 
     @has_results
-    def __delitem__(self, key: Any) -> None:  # noqa: D
+    def __delitem__(self, key: Any) -> None:  # noqa: D105
         del self.results[key]
 
     @has_results
@@ -143,7 +140,7 @@ class BasePaginator(BaseModel, MutableSequence):  # type: ignore
         return len(self.results)
 
     @has_results
-    def insert(self, index: int, element: Any) -> None:  # noqa: D
+    def insert(self, index: int, element: Any) -> None:  # noqa: D102
         self.results.insert(index, element)
 
 
@@ -163,7 +160,9 @@ class BasePaginatorSchema(BaseSchema):
 
 
 # TODO: Figure how to resolve the circular import with SessionManager (type ignore)
-def base_paginator(seed_url: "URL", session_manager: "SessionManager", schema: Any) -> Iterable[Any]:  # type: ignore  # noqa: F821, E501
+def base_paginator(
+    seed_url: "URL", session_manager: Any, schema: Any
+) -> Iterable[Any]:  # type: ignore  # noqa: F821
     """Create a paginator using the passed parameters.
 
     Args:

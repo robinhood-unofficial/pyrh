@@ -6,7 +6,6 @@ import pytest
 import requests_mock
 from freezegun import freeze_time
 
-
 MOCK_URL = "mock://test.com"
 
 # TODO: refactor this to remove internal method testing and only test the public methods
@@ -84,7 +83,9 @@ def test_login_oauth2_errors(monkeypatch, sm_adap):
 def test_login_oauth2_challenge_valid(monkeypatch, sm_adap):
     import uuid
     from datetime import datetime
+
     import pytz
+
     from pyrh.models.oauth import OAuthSchema
 
     monkeypatch.setattr("builtins.input", lambda: "123456")
@@ -137,11 +138,13 @@ def test_login_oauth2_challenge_valid(monkeypatch, sm_adap):
 
 @freeze_time("2005-01-01")
 def test_login_oauth2_challenge_invalid(monkeypatch, sm_adap):
-    from pyrh.exceptions import AuthenticationError
-    from datetime import datetime
-    from pyrh.models.oauth import OAuthSchema
-    import pytz
     import uuid
+    from datetime import datetime
+
+    import pytz
+
+    from pyrh.exceptions import AuthenticationError
+    from pyrh.models.oauth import OAuthSchema
 
     monkeypatch.setattr("builtins.input", lambda: "123456")
     expiry = datetime.strptime("2010", "%Y").replace(tzinfo=pytz.UTC)
@@ -351,8 +354,9 @@ def test_logout_success(post_mock, sm):
 
 @mock.patch("pyrh.models.SessionManager.post")
 def test_logout_failure(post_mock, sm):
-    from pyrh.exceptions import AuthenticationError
     from requests.exceptions import HTTPError
+
+    from pyrh.exceptions import AuthenticationError
 
     def raise_error(*args, **kwargs):
         raise HTTPError
@@ -392,8 +396,10 @@ def test_jsonify(tmpdir, sm):
 
 @freeze_time("2000-01-01")
 def test_authenticated(sm, monkeypatch):
+    from datetime import datetime as dt
+    from datetime import timedelta
+
     import pytz
-    from datetime import datetime as dt, timedelta
 
     from pyrh.models.sessionmanager import EXPIRATION_TIME
 
@@ -467,6 +473,7 @@ def test_post(mock_login, sm):
 @freeze_time("2020-01-01")
 def test_token_expired(sm):
     from datetime import datetime
+
     import pytz
 
     # Assumes default token expired is set to 1970

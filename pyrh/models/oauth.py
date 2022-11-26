@@ -7,7 +7,6 @@ from marshmallow import fields, validate
 
 from .base import BaseModel, BaseSchema
 
-
 CHALLENGE_TYPE_VAL = validate.OneOf(["email", "sms"])
 
 

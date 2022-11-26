@@ -28,7 +28,7 @@ def test_base_model_repr():
 
 
 def test_base_schema():
-    from pyrh.models.base import UnknownModel, BaseSchema
+    from pyrh.models.base import BaseSchema, UnknownModel
 
     bm = UnknownModel(a=10)
     load_bm = BaseSchema().load({"a": 10})

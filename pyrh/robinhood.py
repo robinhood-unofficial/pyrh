@@ -16,7 +16,6 @@ from pyrh.models import (
     SessionManagerSchema,
 )
 
-
 # TODO: re-enable InvalidOptionId when broken endpoint function below is fixed
 
 
@@ -220,10 +219,10 @@ class Robinhood(InstrumentManager, SessionManager):
 
         res = []
         watchlist = self.get(urls.WATCHLISTS)
-        if watchlist and 'results' in watchlist:
+        if watchlist and "results" in watchlist:
             data = self.get(watchlist["results"][0]["url"])
             for rec in data["results"]:
-                res.append(self.get(rec['instrument']))
+                res.append(self.get(rec["instrument"]))
 
         return res
 
@@ -610,7 +609,7 @@ class Robinhood(InstrumentManager, SessionManager):
         return data
 
     def fundamentals(self, stock=""):
-        """Wrapper for get_fundamentlals function """
+        """Wrapper for get_fundamentlals function"""
 
         return self.get_fundamentals(stock)
 
@@ -619,7 +618,7 @@ class Robinhood(InstrumentManager, SessionManager):
     ###########################################################################
 
     def portfolio(self):
-        """Returns the user's portfolio data """
+        """Returns the user's portfolio data"""
 
         return self.get(urls.PORTFOLIOS, schema=PortfolioSchema())
 
@@ -1123,16 +1122,8 @@ class Robinhood(InstrumentManager, SessionManager):
             if value is not None:
                 payload[field] = value
 
-        try:
-            res = self.post(urls.build_orders(), data=payload)
-            return res
-        except Exception as ex:
-            # sometimes Robinhood asks for another log in when placing an order
-            # TODO: fix bare except
-            try:
-                self.auth_method
-            except:  # noqa: E722
-                print(ex)
+        res = self.post(urls.build_orders(), data=payload)
+        return res
 
     # TODO: Fix function complexity
     def submit_buy_order(  # noqa: C901
@@ -1303,17 +1294,8 @@ class Robinhood(InstrumentManager, SessionManager):
             if value is not None:
                 payload[field] = value
 
-        try:
-            res = self.post(urls.build_orders(), data=payload)
-            return res
-
-        except Exception as ex:
-            # sometimes Robinhood asks for another log in when placing an order
-            # TODO: fix bare except
-            try:
-                self.auth_method
-            except:  # noqa: E722
-                print(ex)
+        res = self.post(urls.build_orders(), data=payload)
+        return res
 
     def place_order(
         self,
@@ -1368,17 +1350,8 @@ class Robinhood(InstrumentManager, SessionManager):
         else:
             payload["price"] = float(price)
 
-        try:
-            res = self.post(urls.build_orders(), data=payload)
-            return res
-
-        except Exception as ex:
-            # sometimes Robinhood asks for another log in when placing an order
-            # TODO: fix bare except
-            try:
-                self.auth_method
-            except:  # noqa: E722
-                print(ex)
+        res = self.post(urls.build_orders(), data=payload)
+        return res
 
     def place_buy_order(self, instrument, quantity, ask_price=0.0):
         """Wrapper for placing buy orders

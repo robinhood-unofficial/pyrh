@@ -6,10 +6,11 @@ from freezegun import freeze_time
 @freeze_time("2020-01-01")
 def test_challenge_can_retry():
     from copy import copy
+    from datetime import datetime, timedelta
+
+    import pytz
 
     from pyrh.models.oauth import Challenge
-    from datetime import datetime, timedelta
-    import pytz
 
     future = datetime.strptime("2020-01-02", "%Y-%m-%d").replace(tzinfo=pytz.UTC)
 
@@ -28,8 +29,8 @@ def test_challenge_can_retry():
 
 
 def test_oauth_test_attrs():
-    from pyrh.models.oauth import OAuth
     from pyrh.models.base import UnknownModel
+    from pyrh.models.oauth import OAuth
 
     oa = OAuth()
     oa.challenge = UnknownModel(a="test")
