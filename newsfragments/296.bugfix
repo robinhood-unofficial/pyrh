@@ -1,1 +1,0 @@
-Fix bug in cancel_order due to wrong concatenation syntax.

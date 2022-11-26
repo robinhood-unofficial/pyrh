@@ -16,6 +16,7 @@ Installation
    * |black|_
    * |flake8|_
    * |isort|_
+
 * |pyenv|_ / |pyenv-virtualenv|_ are great and highly recommended but not covered in
   this guide
 
@@ -54,7 +55,7 @@ Installation
 
 Lint checks are automatically run when you try to push the code. To manually run them
 run the following command. If you want to skip the lint check, you can do that by using
-`--no-verify` when committing.
+``--no-verify`` when committing.
 
 .. code-block:: console
 
@@ -90,9 +91,18 @@ add a towncrier_ file of your changes to the newsfragment directory.
 Release
 *******
 
-To cut a new release go through the following steps
+To cut a new release go through the following steps.
+
+* Make sure that the version is updated in both ``__init__.py`` and ``pyproject.toml``
+* Make sure you've |set up your PyPI credential| with poetry
+* Then run:
+
+.. |set up your PyPI credential|: https://python-poetry.org/docs/repositories/#configuring-credentials
 
 .. code-block:: console
 
     towncrier build --draft  # verify this works then run
     towncrier build
+    poetry build
+    poetry publish --dry-run  # verify this succeeds
+    poetry publish
