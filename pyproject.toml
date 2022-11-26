@@ -68,7 +68,7 @@ pytest-mock = "^3.10.0"
 requests-mock = "^1.10.0"
 
 # Automation
-towncrier = "^19.2.0"
+towncrier = "^22.8.0"
 
 [tool.poetry.extras]
 docs = ["sphinx", "sphinx-autodoc-typehints", "sphinx_rtd_theme", "autodocsumm"]
@@ -83,6 +83,12 @@ multi_line_output = 3
 [tool.mypy]
 strict = true
 disallow_untyped_decorators = false
+
+[tool.towncrier]
+directory = "newsfragments"
+package = "pyrh"
+package_dir = "pyrh"
+filename = "docs/changelog.rst"
 
 # TODO: Remove ignored typing errors
 # [["tool.mypy-*.robinhood"]]

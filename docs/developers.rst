@@ -86,3 +86,13 @@ add a towncrier_ file of your changes to the newsfragment directory.
     (pyrh_env) $ # now make and commit your changes
     (pyrh_env) $ git push  --set-upstream origin some_changes
     (pyrh_env) $ # now go to YOUR fork and submit a pull request upstream
+
+Release
+*******
+
+To cut a new release go through the following steps
+
+.. code-block:: console
+
+    towncrier build --draft  # verify this works then run
+    towncrier build

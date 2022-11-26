@@ -1,1 +1,1 @@
-Refactor endpoints to ursl and make better use of yarl.
+Refactor endpoints to urls and make better use of yarl.
