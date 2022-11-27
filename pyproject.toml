@@ -7,8 +7,8 @@ authors = [
 ]
 license = "MIT"
 readme = "README.rst"
-homepage = "https://github.com/georgianpartners/foreshadow"
-repository = "https://github.com/georgianpartners/foreshadow"
+homepage = "https://pyrh.readthedocs.io/en/latest"
+repository = "https://pyrh.readthedocs.io/en/latest"
 keywords = [
     "trading",
     "options",
