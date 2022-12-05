@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Dict, Optional, Union, cast
 from urllib.request import getproxies
 
 import certifi
+import pyotp as pyotp
 import pytz
 import requests
 from marshmallow import Schema, fields, post_load
@@ -54,32 +55,27 @@ TIMEOUT: int = 3
 
 
 class SessionManager(BaseModel):
-    """Mange connectivity with Robinhood API.
+    """Manage connectivity with Robinhood API.
 
     Once logged into the session, this class will manage automatic oauth token update
     requests allowing for the automation systems to only require multi-factor
     authentication on initialization.
 
-    Example:
-        >>> sm = SessionManager(username="USERNAME", password="PASSWORD")
-        >>> sm.login()  # xdoctest: +SKIP
-        >>> sm.logout()  # xdoctest: +SKIP
-
-    If you want to cache your session (you should) then you can use the following
-    functions. This will allow you to re-cover from a script crash without having to
-    manually re-enter multi-factor authentication codes.
-
-    Example:
-        >>> dump_session(sm)  # xdoctest: +SKIP
-        >>> load_session(sm)  # xdoctest: +SKIP
-
     Args:
-        username: The username to login to Robinhood.
-        password: The password to login to Robinhood.
-        challenge_type: Either sms or email. (only if not using mfa)
-        headers: Any optional header dict modifications for the session.
-        proxies: Any optional proxy dict modification for the session.
-        **kwargs: Any other passed parameters as converted to instance attributes.
+
+    username: The username to login to Robinhood.
+
+    password: The password to login to Robinhood.
+
+    mfa: The 16 character QR code used to generate MFA on-demand
+
+    challenge_type: Either sms or email. (only if not using mfa)
+
+    headers: Any optional header dict modifications for the session.
+
+    proxies: Any optional proxy dict modification for the session.
+
+    **kwargs: Any other passed parameters as converted to instance attributes.
 
     Attributes:
         session: A requests session instance.
@@ -102,11 +98,13 @@ class SessionManager(BaseModel):
         self,
         username: str,
         password: str,
+        mfa: Optional[str] = "",
         challenge_type: Optional[str] = "sms",
         headers: Optional[CaseInsensitiveDictType] = None,
         proxies: Optional[Proxies] = None,
         **kwargs: Any,
     ) -> None:
+        self.mfa = mfa
         self.session: requests.Session = requests.session()
         self.session.headers = HEADERS if headers is None else headers
         self.session.proxies = getproxies() if proxies is None else proxies
@@ -122,7 +120,7 @@ class SessionManager(BaseModel):
         self.challenge_type: str = challenge_type
 
         self.device_token: str = kwargs.pop("device_token", str(uuid.uuid4()))
-        self.oauth: OAuth = kwargs.pop("ouath", OAuth())
+        self.oauth: OAuth = kwargs.pop("oauth", OAuth())
 
         super().__init__(**kwargs)
 
@@ -392,7 +390,10 @@ class SessionManager(BaseModel):
 
         """
         print("Input mfa code:")
-        mfa_code = input()
+        if self.mfa != "":
+            mfa_code = pyotp.TOTP(self.mfa).now()
+        else:
+            mfa_code = input()
         oauth_payload["mfa_code"] = mfa_code
         oauth, res = self.post(
             urls.OAUTH,

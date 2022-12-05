@@ -56,7 +56,7 @@ def test_bad_challenge_type(sm):
     }
 
     with pytest.raises(ValueError) as e:
-        SessionManager(**sample_user, challenge_type="bad")
+        SessionManager(challenge_type="bad", **sample_user)
 
     assert "challenge_type must be" in str(e.value)
 
