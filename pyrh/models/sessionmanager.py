@@ -57,40 +57,51 @@ TIMEOUT: int = 3
 class SessionManager(BaseModel):
     """Manage connectivity with Robinhood API.
 
-    Once logged into the session, this class will manage automatic oauth token update
-    requests allowing for the automation systems to only require multi-factor
-    authentication on initialization.
+    This class manages logging in and multi-factor authentication.  Optionally, it can automatically authenticate
+    for automation systems.
 
-    Args:
+        Example::
 
-    username: The username to login to Robinhood.
+            sm = SessionManager(username="USERNAME", password="PASSWORD")
+            sm.login()  # xdoctest: +SKIP
+            sm.logout()  # xdoctest: +SKIP
 
-    password: The password to login to Robinhood.
+        Example::
 
-    mfa: The 16 character QR code used to generate MFA on-demand
+            sm = SessionManager(username="USERNAME", password="PASSWORD", mfa="16DIGITQRCODE")
 
-    challenge_type: Either sms or email. (only if not using mfa)
+    If you want to bypass manual MFA authentication, you can supply your 16-digit QR code from Robinhood as a parameter
+    as shown.
 
-    headers: Any optional header dict modifications for the session.
+        Args:
 
-    proxies: Any optional proxy dict modification for the session.
+        * username: The username to login to Robinhood.
 
-    **kwargs: Any other passed parameters as converted to instance attributes.
+        * password: The password to login to Robinhood.
 
-    Attributes:
-        session: A requests session instance.
-        expires_at: The time the oauth token will expire at, default is
-            1970-01-01 00:00:00.
-        certs: The path to the desired certs to check against.
-        device_token: A random guid representing the current device.
-        access_token: An oauth2 token to connect to the Robinhood API.
-        refresh_token: An oauth2 refresh token to refresh the access_token when
-            required.
-        username: The username to login to Robinhood.
-        password: The password to login to Robinhood.
-        challenge_type: Either sms or email. (only if not using mfa)
-        headers: Any optional header dict modifications for the session.
-        proxies: Any optional proxy dict modification for the session.
+        * mfa: The 16 character QR code used to authenticate MFA automatically. (optional)
+
+        * challenge_type: Either sms or email. (only if not using mfa) (optional)
+
+        * headers: Any optional header dict modifications for the session. (optional)
+
+        * proxies: Any optional proxy dict modification for the session. (optional)
+
+        * **kwargs: Any other passed parameters as converted to instance attributes. (optional)
+
+        Attributes:
+
+        * session: A requests session instance.
+
+        * expires_at: The time the oauth token will expire at, default is 1970-01-01 00:00:00.
+
+        * certs: The path to the desired certs to check against.
+
+        * device_token: A random guid representing the current device.
+
+        * access_token: An oauth2 token to connect to the Robinhood API.
+
+        * refresh_token: An oauth2 refresh token to refresh the access_token when required.
 
     """
 
