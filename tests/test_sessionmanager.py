@@ -8,6 +8,7 @@ from freezegun import freeze_time
 
 MOCK_URL = "mock://test.com"
 
+
 # TODO: refactor this to remove internal method testing and only test the public methods
 
 
@@ -18,6 +19,19 @@ def sm():
     sample_user = {
         "username": "user@example.com",
         "password": "some password",
+    }
+
+    return SessionManager(**sample_user)
+
+
+@pytest.fixture
+def sm_mfa():
+    from pyrh.models import SessionManager
+
+    sample_user = {
+        "username": "user@example.com",
+        "password": "some password",
+        "mfa": "some qr code"
     }
 
     return SessionManager(**sample_user)
