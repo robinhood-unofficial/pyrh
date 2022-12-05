@@ -31,7 +31,7 @@ def sm_mfa():
     sample_user = {
         "username": "user@example.com",
         "password": "some password",
-        "mfa": "some qr code"
+        "mfa": "1234567890111213"
     }
 
     return SessionManager(**sample_user)
