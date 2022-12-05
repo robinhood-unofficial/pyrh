@@ -28,13 +28,13 @@ def sm():
 def sm_mfa():
     from pyrh.models import SessionManager
 
-    sample_user = {
+    sample_mfa_user = {
         "username": "user@example.com",
         "password": "some password",
         "mfa": "1234567890111213"
     }
 
-    return SessionManager(**sample_user)
+    return SessionManager(**sample_mfa_user)
 
 
 @pytest.fixture
