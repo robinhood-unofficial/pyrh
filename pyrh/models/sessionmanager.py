@@ -61,7 +61,7 @@ class SessionManager(BaseModel):
     for automation systems.
 
     Example::
-    
+
         sm = SessionManager(username="USERNAME", password="PASSWORD")
 
         sm.login()  # xdoctest: +SKIP
