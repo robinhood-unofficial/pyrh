@@ -8,6 +8,7 @@ from freezegun import freeze_time
 
 MOCK_URL = "mock://test.com"
 
+
 # TODO: refactor this to remove internal method testing and only test the public methods
 
 
@@ -21,6 +22,19 @@ def sm():
     }
 
     return SessionManager(**sample_user)
+
+
+@pytest.fixture
+def sm_mfa():
+    from pyrh.models import SessionManager
+
+    sample_mfa_user = {
+        "username": "user@example.com",
+        "password": "some password",
+        "mfa": "1234567890111213",
+    }
+
+    return SessionManager(**sample_mfa_user)
 
 
 @pytest.fixture
@@ -56,7 +70,7 @@ def test_bad_challenge_type(sm):
     }
 
     with pytest.raises(ValueError) as e:
-        SessionManager(**sample_user, challenge_type="bad")
+        SessionManager(challenge_type="bad", **sample_user)
 
     assert "challenge_type must be" in str(e.value)
 

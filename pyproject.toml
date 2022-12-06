@@ -39,6 +39,7 @@ pytz = "^2019.3"
 requests = "^2.23"
 yarl = "^1.4.2"
 certifi = "^2020.4.5"
+pyotp = "^2.7.0"
 
 # Jupyter
 notebook = { version = "^6.0.3", optional = true }

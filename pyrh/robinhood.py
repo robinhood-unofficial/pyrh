@@ -36,7 +36,7 @@ class Transaction(Enum):
 class Robinhood(InstrumentManager, SessionManager):
     """Wrapper class for fetching/parsing Robinhood endpoints.
 
-    Please see :py:class:`SessionManager` for login functionality.
+    Please see :py:class:`pyrh.models.sessionmanager.SessionManager` for login functionality.
 
     Provides a global convenience wrapper for the following manager objects:
 
