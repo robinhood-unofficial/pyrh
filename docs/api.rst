@@ -11,3 +11,9 @@ API Reference
     load_session
     dump_session
     exceptions
+
+.. currentmodule:: pyrh.models.sessionmanager
+.. autosummary::
+    :toctree: stubs
+
+    SessionManager
