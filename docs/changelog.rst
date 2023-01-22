@@ -5,6 +5,15 @@ Changelog
 
 .. towncrier release notes start
 
+Pyrh 2.1.1 (2023-01-21)
+=======================
+
+Features
+--------
+
+- Automating MFA authentication using `PyOTP` (#303)
+
+
 Pyrh 2.0.1 (2022-11-25)
 =======================
 
