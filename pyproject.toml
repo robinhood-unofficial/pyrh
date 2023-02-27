@@ -35,11 +35,11 @@ sphinx_rtd_theme = { version = "^1.1.1", optional = true }
 # Main Dependencies
 marshmallow = "^3.5.1"
 python-dateutil = "^2.8"
-pytz = "^2019.3"
+pytz = "^2022.7.1"
 requests = "^2.23"
 yarl = "^1.4.2"
-certifi = "^2020.4.5"
-pyotp = "^2.7.0"
+certifi = "^2022.12.7"
+pyotp = "^2.8.0"
 
 # Jupyter
 notebook = { version = "^6.0.3", optional = true }
