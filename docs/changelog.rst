@@ -5,6 +5,21 @@ Changelog
 
 .. towncrier release notes start
 
+Pyrh 2.1.2 (2023-03-04)
+=======================
+
+Features
+--------
+
+- Added on-demand MFA generation to SessionManager (#300)
+
+
+Misc
+----
+
+- #299, #301, #306
+
+
 Pyrh 2.1.1 (2023-01-21)
 =======================
 
