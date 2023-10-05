@@ -1123,6 +1123,11 @@ class Robinhood(InstrumentManager, SessionManager):
                 payload[field] = value
 
         res = self.post(urls.build_orders(), data=payload)
+
+        res.update({
+            'actual_selling_price': price
+        })
+        
         return res
 
     # TODO: Fix function complexity
