@@ -388,7 +388,7 @@ class SessionManager(BaseModel):
         if self.mfa != "":
             mfa_code = pyotp.TOTP(self.mfa).now()
         else:
-            mfa_code = input("Input mfa code:")
+            mfa_code = input("Input mfa code: ")
         oauth_payload["mfa_code"] = mfa_code
         oauth, res = self.post(
             urls.OAUTH,
