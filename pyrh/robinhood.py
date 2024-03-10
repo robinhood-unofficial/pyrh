@@ -490,6 +490,18 @@ class Robinhood(InstrumentManager, SessionManager):
         """
         instrument_list = self.get_url(urls.build_tags(tag))["instruments"]
         return [self.get_url(instrument)["symbol"] for instrument in instrument_list]
+    
+    def security_tick(self,instrument):
+        """Returns ticker of given instrument
+        """
+        return self.session.get(instrument).json()['symbol']
+    
+    def watchlists(self): 
+        """Returns list of securities' symbols that the user has in watchlist
+            Returns:
+                (:object: `dict`): Non-zero positions
+        """
+        return self.session.get(endpoints.watchlists() + 'Default/', timeout=15).json()
 
     ###########################################################################
     #                           GET OPTIONS INFO                              #
