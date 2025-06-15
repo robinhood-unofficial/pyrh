@@ -1,7 +1,7 @@
 <!--
 Thanks you for taking the time to submit a pull request! Please take a look at some
 guidelines before submitting a pull request:
-https://github.com/robinhood-unofficial/pyrh/blob/master/doc/developers.rst
+https://github.com/robinhood-unofficial/pyrh/blob/master/docs/developers.rst
 
 Below are some gentle reminder about common mistakes before PR submission. Please make sure that you tick
 all *appropriate* boxes.

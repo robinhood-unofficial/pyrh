@@ -1,5 +1,5 @@
 """Manage Robinhood Sessions."""
-
+import os
 import uuid
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any, Dict, Optional, Union, cast
@@ -18,7 +18,9 @@ from pyrh import urls
 from pyrh.exceptions import AuthenticationError, PyrhValueError
 
 from .base import JSON, BaseModel, BaseSchema
+from .login import LOGIN_FILE, load_existing_oauth, save_existing_oauth
 from .oauth import CHALLENGE_TYPE_VAL, OAuth, OAuthSchema
+from .workflow import verify_workflow
 
 # TODO: merge get and post duplicated code into a single function.
 
@@ -29,25 +31,24 @@ else:
     CaseInsensitiveDictType = CaseInsensitiveDict
 Proxies = Dict[str, str]
 
-
 # Constants
 CLIENT_ID: str = "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS"
 """Robinhood client id."""
 HEADERS: CaseInsensitiveDictType = CaseInsensitiveDict(
     {
         "Accept": "*/*",
-        "Accept-Encoding": "gzip, deflate",
-        "Accept-Language": "en;q=1, fr;q=0.9, de;q=0.8, ja;q=0.7, nl;q=0.6, it;q=0.5",
+        "Accept-Encoding": "gzip,deflate,br",
+        "Accept-Language": "en-US,en;q=1",
         "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
-        "X-Robinhood-API-Version": "1.0.0",
+        "X-Robinhood-API-Version": "1.431.4",
         "Connection": "keep-alive",
-        "User-Agent": "Robinhood/823 (iPhone; iOS 7.1.2; Scale/2.00)",
+        "User-Agent": "*",
     }
 )
 """Headers used when performing requests with robinhood api."""
 # 8.5 days (you have a small window to refresh after this)
 # I would refresh the token proactively every day in a script
-EXPIRATION_TIME: int = 734000
+EXPIRATION_TIME: int = 689285
 """Default expiration time for requests."""
 
 TIMEOUT: int = 3
@@ -158,10 +159,26 @@ class SessionManager(BaseModel):
                 refresh.
 
         """
+        if force_refresh:
+            if os.path.isfile(LOGIN_FILE):
+                os.remove(LOGIN_FILE)
+        else:
+            oauth = load_existing_oauth(username=self.username, password=self.password)
+            if oauth:
+                self._configure_manager(oauth)
+                # Once oauth is configured, attempt to retrieve positions to check if auth token is still valid
+                _, resp = self.get(urls.POSITIONS, return_response=True)
+                if resp.ok:
+                    return
+                else:
+                    self.session.headers = {}
         if "Authorization" not in self.session.headers:
             self._login_oauth2()
         elif self.oauth.is_valid and (self.token_expired or force_refresh):
             self._refresh_oauth2()
+        save_existing_oauth(
+            data=self.oauth, username=self.username, password=self.password
+        )
 
     def get(
         self,
@@ -419,39 +436,57 @@ class SessionManager(BaseModel):
         self.session.headers.pop("Authorization", None)
 
         oauth_payload = {
-            "password": self.password,
-            "username": self.username,
-            "grant_type": "password",
             "client_id": CLIENT_ID,
             "expires_in": EXPIRATION_TIME,
+            "grant_type": "password",
+            "password": self.password,
             "scope": "internal",
+            "username": self.username,
             "device_token": self.device_token,
-            "challenge_type": self.challenge_type,
+            "try_passkeys": False,
+            "token_request_path": "/login",
+            "create_read_only_secondary_token": True,
         }
+        if self.mfa:
+            oauth_payload["mfa_code"] = self.mfa
 
-        oauth = self.post(
+        data = self.post(
             urls.OAUTH,
             data=oauth_payload,
             raise_errors=False,
             auto_login=False,
-            schema=OAuthSchema(),
         )
 
-        if oauth.is_challenge:
-            oauth = self._challenge_oauth2(oauth, oauth_payload)
-        elif oauth.is_mfa:
-            oauth = self._mfa_oauth2(oauth_payload)
-
-        if not oauth.is_valid:
-            if hasattr(oauth, "error"):
-                msg = f"{oauth.error}"
-            elif hasattr(oauth, "detail"):
-                msg = f"{oauth.detail}"
+        if data.get("verification_workflow"):
+            workflow_id = data["verification_workflow"]["id"]
+            verify_workflow(
+                session=self.session,
+                device_token=self.device_token,
+                workflow_id=workflow_id,
+            )
+            # Reattempt login after verification
+            oauth = self.post(
+                url=str(urls.OAUTH),
+                data=oauth_payload,
+                raise_errors=False,
+                schema=OAuthSchema(),
+            )
+            if oauth.is_challenge:
+                oauth = self._challenge_oauth2(oauth, oauth_payload)
+            elif oauth.is_mfa:
+                oauth = self._mfa_oauth2(oauth_payload)
+            if not oauth.is_valid:
+                if hasattr(oauth, "error"):
+                    msg = f"{oauth.error}"
+                elif hasattr(oauth, "detail"):
+                    msg = f"{oauth.detail}"
+                else:
+                    msg = "Unknown login error"
+                raise AuthenticationError(msg)
             else:
-                msg = "Unknown login error"
-            raise AuthenticationError(msg)
+                self._configure_manager(oauth)
         else:
-            self._configure_manager(oauth)
+            raise AuthenticationError("Failed to login, no verification workflow found")
 
     def _refresh_oauth2(self) -> None:
         """Refresh an oauth2 token.
@@ -466,9 +501,7 @@ class SessionManager(BaseModel):
         relogin_payload = {
             "grant_type": "refresh_token",
             "refresh_token": self.oauth.refresh_token,
-            "scope": "internal",
             "client_id": CLIENT_ID,
-            "expires_in": EXPIRATION_TIME,
         }
         self.session.headers.pop("Authorization", None)
         try:

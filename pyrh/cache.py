@@ -8,18 +8,19 @@ from pyrh.exceptions import InvalidCacheFile
 from pyrh.robinhood import Robinhood, RobinhoodSchema
 
 CACHE_ROOT: Path = Path("~/.robinhood").expanduser()
-"""The root directory where cache and config files are stores.
+"""The root directory where cache and config files are stored.
 
 Creates the directory on import.
 """
 CACHE_ROOT.mkdir(parents=True, exist_ok=True)
 
-CACHE_LOGIN: Path = CACHE_ROOT.joinpath("login.json")
-"""Path to login.json config file.
+CACHE_LOGIN: Path = CACHE_ROOT.joinpath("cache.json")
+"""Path to cache.json config file.
 
 Creates the file on import.
 """
 CACHE_LOGIN.touch(exist_ok=True)
+
 
 # TODO: Fix darglint issue (remove from flake8 ignore)
 # https://github.com/terrencepreilly/darglint/issues/81

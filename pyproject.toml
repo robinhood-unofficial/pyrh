@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyrh"
-version = "2.1.2"
+version = "2.2.0"
 description = "Unofficial Robinhood Python API"
 authors = [
     "Unofficial Robinhood Python API Developers"
@@ -39,6 +39,7 @@ pytz = "^2022.7.1"
 requests = "^2.23"
 yarl = "^1.4.2"
 certifi = "^2022.12.7"
+cryptography = "^43.0.3"
 pyotp = "^2.8.0"
 
 # Jupyter
